@@ -37,7 +37,7 @@
                         </x-slot>
                     </x-dropdown>
 
-                     <!-- Dropdown de Pedidos -->
+                     <!-- Dropdown de Produção -->
                     <x-dropdown align="left" width="48">
                         <x-slot name="trigger">
                             <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
@@ -54,6 +54,75 @@
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('producao.relatorios')">
                                 {{ __('Relatórios') }}
+                            </x-dropdown-link>
+                        </x-slot>
+                    </x-dropdown>
+
+                       <!-- Dropdown de Agenda -->
+                    <x-dropdown align="left" width="48">
+                        <x-slot name="trigger">
+                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                                {{ __('Agenda') }}
+                                <svg class="ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                        </x-slot>
+
+                        <x-slot name="content">
+                            <x-dropdown-link :href="route('agenda.logistica')">
+                                {{ __('Logistica') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('agenda.orcamentos')">
+                                {{ __('Orçamentos') }}
+                            </x-dropdown-link>
+                        </x-slot>
+                    </x-dropdown>
+
+                       <!-- Dropdown de Financeiro -->
+                    <x-dropdown align="left" width="48">
+                        <x-slot name="trigger">
+                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                                {{ __('Financeiro') }}
+                                <svg class="ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                        </x-slot>
+
+                        <x-slot name="content">
+                            <x-dropdown-link :href="route('financeiro.vencimentos')">
+                                {{ __('Vencimentos') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('financeiro.consulta')">
+                                {{ __('Consulta') }}
+                            </x-dropdown-link>
+                             <x-dropdown-link :href="route('financeiro.recebimento')">
+                                {{ __('Recebimentos') }}
+                            </x-dropdown-link>
+                        </x-slot>
+                    </x-dropdown>
+
+                          <!-- Dropdown de Outros -->
+                    <x-dropdown align="left" width="48">
+                        <x-slot name="trigger">
+                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                                {{ __('Outros') }}
+                                <svg class="ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                        </x-slot>
+
+                        <x-slot name="content">
+                            <x-dropdown-link :href="route('outros.imper')">
+                                {{ __('Imper e Higienização') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('outros.pintura')">
+                                {{ __('Invernizações e Pinturas') }}
+                            </x-dropdown-link>
+                             <x-dropdown-link :href="route('outros.fabric')">
+                                {{ __('Confecções e Fabricações') }}
                             </x-dropdown-link>
                         </x-slot>
                     </x-dropdown>

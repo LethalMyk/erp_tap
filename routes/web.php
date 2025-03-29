@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\ProducaoController;
+use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\FinanceiroController;
+use App\Http\Controllers\OutrosController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -39,5 +43,18 @@ Route::get('/pedidos', [PedidoController::class, 'index'])->name('pedidos.index'
 
 Route::get('/producao/controle', [ProducaoController::class, 'index'])->name('producao.controle');
 Route::get('/producao/relatorios', [ProducaoController::class, 'relatorios'])->name('producao.relatorios');
+
+
+Route::get('/agenda/logistica', [AgendaController::class, 'logistica'])->name('agenda.logistica');
+Route::get('/agenda/orcamentos', [AgendaController::class, 'orcamentos'])->name('agenda.orcamentos');
+
+Route::get('/financeiro/vencimentos', [FinanceiroController::class, 'vencimentos'])->name('financeiro.vencimentos');
+Route::get('/financeiro/consulta', [FinanceiroController::class, 'consulta'])->name('financeiro.consulta');
+Route::get('/financeiro/recebimento', [FinanceiroController::class, 'recebimento'])->name('financeiro.recebimento');
+
+Route::get('/outros/imper', [OutrosController::class, 'imper'])->name('outros.imper');
+Route::get('/outros/pintura', [OutrosController::class, 'pintura'])->name('outros.pintura');
+Route::get('/outros/fabric', [OutrosController::class, 'fabric'])->name('outros.fabric');
+
 
 require __DIR__.'/auth.php';
