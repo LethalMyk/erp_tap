@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\PedidoController;
+use App\Http\Controllers\ProducaoController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -34,5 +35,9 @@ Route::get('/pedidos', [PedidoController::class, 'index'])->name('pedidos.index'
 Route::get('/pedidos/create', [PedidoController::class, 'create'])->name('pedidos.create');
 Route::post('/pedidos', [PedidoController::class, 'store'])->name('pedidos.store');
 Route::get('/pedidos', [PedidoController::class, 'index'])->name('pedidos.index');
+
+
+Route::get('/producao/controle', [ProducaoController::class, 'index'])->name('producao.controle');
+Route::get('/producao/relatorios', [ProducaoController::class, 'relatorios'])->name('producao.relatorios');
 
 require __DIR__.'/auth.php';

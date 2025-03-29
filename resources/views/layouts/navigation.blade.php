@@ -36,6 +36,28 @@
                             </x-dropdown-link>
                         </x-slot>
                     </x-dropdown>
+
+                     <!-- Dropdown de Pedidos -->
+                    <x-dropdown align="left" width="48">
+                        <x-slot name="trigger">
+                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                                {{ __('Produção') }}
+                                <svg class="ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                        </x-slot>
+
+                        <x-slot name="content">
+                            <x-dropdown-link :href="route('producao.controle')">
+                                {{ __('Controle de Produção') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('producao.relatorios')">
+                                {{ __('Relatórios') }}
+                            </x-dropdown-link>
+                        </x-slot>
+                    </x-dropdown>
+
                 </div>
             </div>
 
