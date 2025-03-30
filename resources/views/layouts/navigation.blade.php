@@ -31,7 +31,7 @@
                             <x-dropdown-link :href="route('pedidos.create')">
                                 {{ __('Novo Pedido') }}
                             </x-dropdown-link>
-                            <x-dropdown-link :href="route('pedidos.index')">
+                            <x-dropdown-link :href="route('pedidos.pesquisar')">
                                 {{ __('Consultar Pedidos') }}
                             </x-dropdown-link>
                         </x-slot>
@@ -196,7 +196,7 @@
                     <x-responsive-nav-link :href="route('pedidos.create')">
                         {{ __('Novo Pedido') }}
                     </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('pedidos.index')">
+                    <x-responsive-nav-link :href="route('pedidos.pesquisar')">
                         {{ __('Consultar Pedidos') }}
                     </x-responsive-nav-link>
                 </div>

@@ -9,12 +9,16 @@ class Client extends Model
 {
     use HasFactory;
 
-    // Defina o nome correto da tabela no banco de dados
-    protected $table = 'clientes'; // Tabela no banco de dados
-  // Caso o nome do campo de chave primária não seja "id"
-    protected $primaryKey = 'client_id';  // Altere para o nome correto, se necessário
-    
+    protected $table = 'clientes';  // Nome da tabela de clientes
+    protected $primaryKey = 'client_id';  // Chave primária
+
     protected $fillable = [
         'nome', 'telefone', 'endereco', 'email', 'cpf'
     ];
+
+    // Relacionamento com Pedido
+    public function pedidos()
+    {
+        return $this->hasMany(Pedido::class, 'client_id', 'client_id');
+    }
 }

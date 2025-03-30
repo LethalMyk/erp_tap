@@ -1,18 +1,18 @@
 <?php
 
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Client;  // Importando o modelo Client
 
 class Pedido extends Model
 {
     use HasFactory;
 
-    // Definir a chave primária se for diferente do padrão (ID)
-    protected $primaryKey = 'pedido_id'; // Caso o nome da chave primária não seja 'id'
+    protected $primaryKey = 'pedido_id';
 
-    // Definir os campos que podem ser preenchidos (mass assignment)
     protected $fillable = [
         'client_id', 
         'data', 
@@ -22,11 +22,23 @@ class Pedido extends Model
         'data_retirada', 
         'obs'
     ];
-public function pagamento()
+
+    // Relacionamento com Pagamentos
+    public function pagamentos()
+    {
+        return $this->hasMany(Pagamento::class, 'pedido_id');
+    }
+
+    // Relacionamento com Client (não Cliente, porque o modelo é Client)
+    public function client()  // Nome do método deve ser 'client' para manter consistência
+    {
+        return $this->belongsTo(Client::class, 'client_id', 'client_id');
+    }
+
+public function atualizarStatusPagamento($status)
 {
-    return $this->hasOne(Pagamento::class, 'pedido_id');
+    $this->status = $status;  // Atualiza o status
+    $this->save();  // Salva a alteração no banco de dados
+}
 }
 
-    // Definir se o modelo usará timestamps automaticamente
-    public $timestamps = true;
-}

@@ -207,12 +207,24 @@
         </div>
         <br><br>
 
-        <!-- Valor do Orçamento -->
-        <h3>Valor do Orçamento</h3>
-        <div class="campo">
-            <label for="valor_total">Valor Total:</label>
-            <input type="number" name="valor_total" id="valor_total" required>
-        </div>
+
+<h3>Valor Total</h3>
+<div class="campo">
+    <label for="valor_total">Valor Total:</label>
+    <input type="number" name="valor_total" id="valor_total" required readonly>
+</div>
+
+<script>
+    // Obtém os campos de orçamento e valor total
+    const orcamentoField = document.getElementById('orcamento');
+    const valorTotalField = document.getElementById('valor_total');
+
+    // Quando o valor do orçamento for alterado, atualiza o campo valor_total
+    orcamentoField.addEventListener('input', function () {
+        valorTotalField.value = orcamentoField.value;
+    });
+</script>
+
 
         <div class="campo">
             <label for="adicionais">Adicionais:</label>

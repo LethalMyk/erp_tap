@@ -8,6 +8,8 @@ use App\Http\Controllers\ProducaoController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\FinanceiroController;
 use App\Http\Controllers\OutrosController;
+use App\Http\Controllers\PagamentoController;
+use App\Http\Controllers\PesquisarController;
 
 
 Route::get('/', function () {
@@ -38,7 +40,7 @@ Route::get('/clients', [ClientController::class, 'index'])->name('clients.index'
 Route::get('/pedidos', [PedidoController::class, 'index'])->name('pedidos.index');
 Route::get('/pedidos/create', [PedidoController::class, 'create'])->name('pedidos.create');
 Route::post('/pedidos', [PedidoController::class, 'store'])->name('pedidos.store');
-Route::get('/pedidos', [PedidoController::class, 'index'])->name('pedidos.index');
+Route::get('/pedidos/pesquisar', [PedidoController::class, 'pesquisar'])->name('pedidos.pesquisar');
 
 
 Route::get('/producao/controle', [ProducaoController::class, 'index'])->name('producao.controle');
@@ -55,6 +57,11 @@ Route::get('/financeiro/recebimento', [FinanceiroController::class, 'recebimento
 Route::get('/outros/imper', [OutrosController::class, 'imper'])->name('outros.imper');
 Route::get('/outros/pintura', [OutrosController::class, 'pintura'])->name('outros.pintura');
 Route::get('/outros/fabric', [OutrosController::class, 'fabric'])->name('outros.fabric');
+
+
+
+Route::get('/pedidos/{pedido_id}/pagamento', [PagamentoController::class, 'showForm'])->name('pagamento.form');
+Route::post('/pedidos/{pedido_id}/pagamento', [PagamentoController::class, 'store'])->name('pagamento.store');
 
 
 require __DIR__.'/auth.php';

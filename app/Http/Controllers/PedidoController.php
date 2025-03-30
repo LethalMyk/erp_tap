@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 
 class PedidoController extends Controller
 {
+
     public function index()
     {
         // Buscar todos os pedidos para exibir na visão
@@ -24,7 +25,7 @@ class PedidoController extends Controller
     }
 
     // Armazenar o pedido, itens, pagamento e o cliente
-    public function store(Request $request)
+public function store(Request $request)
 {
     // Validação dos dados recebidos
     $request->validate([
@@ -35,7 +36,7 @@ class PedidoController extends Controller
         'cpf_cliente' => 'nullable|string|max:14',
         'data' => 'required|date',
         'orcamento' => 'required|numeric',
-        'status' => 'required|string',
+        'status' => 'nullable|string', // Status pode ser opcional aqui
         'prazo' => 'required|date',
         'data_retirada' => 'required|date',
         'obs' => 'nullable|string',
@@ -48,31 +49,29 @@ class PedidoController extends Controller
         'pagamentos.*.valor' => 'required|numeric',
         'pagamentos.*.forma' => 'required|string',
         'pagamentos.*.descricao' => 'required|string',
-
     ]);
 
     // Verificar se o cliente existe ou criar um novo cliente
-    if (!$request->cliente_id) {
-        // Criando um novo cliente
-        $cliente = Client::create([
+    $cliente = Client::firstOrCreate(
+        ['client_id' => $request->cliente_id],  // Verifica se o cliente existe com o ID
+        [
             'nome' => $request->nome_cliente,
             'telefone' => $request->telefone_cliente,
             'endereco' => $request->endereco_cliente,
             'email' => $request->email_cliente,
             'cpf' => $request->cpf_cliente,
-        ]);
-        $cliente_id = $cliente->client_id;
-    } else {
-        // Se cliente_id foi enviado, apenas usar o ID informado
-        $cliente_id = $request->cliente_id;
-    }
+        ]
+    );
 
-    // Criar o pedido
+    // Definir o status como "Pendente" se não for fornecido
+    $status = $request->status ?? 'Pendente';
+
+    // Criar o pedido com o status padrão "Pendente"
     $pedido = Pedido::create([
-        'client_id' => $cliente_id, // Passando o client_id para o pedido
+        'client_id' => $cliente->client_id, // Passando o client_id para o pedido
         'data' => $request->data,
         'orcamento' => $request->orcamento,
-        'status' => $request->status,
+        'status' => $status, // Usando o status informado ou "Pendente"
         'prazo' => $request->prazo,
         'data_retirada' => $request->data_retirada,
         'obs' => $request->obs,
@@ -96,10 +95,24 @@ class PedidoController extends Controller
             'valor' => $pagamentoData['valor'],
             'forma' => $pagamentoData['forma'],
             'descricao' => $pagamentoData['descricao'],
-
         ]);
     }
 
     return redirect()->route('pedidos.index')->with('success', 'Pedido registrado com sucesso!');
 }
+  public function pesquisar(Request $request)
+    {
+        $termo = $request->input('termo');  // Pega o termo de pesquisa
+
+        // Realiza a pesquisa no banco de dados
+        $pedidos = Pedido::where('pedido_id', 'like', "%{$termo}%")
+                         ->orWhereHas('client', function ($query) use ($termo) {
+                             $query->where('nome', 'like', "%{$termo}%")
+                                   ->orWhere('endereco', 'like', "%{$termo}%")
+                                   ->orWhere('cpf', 'like', "%{$termo}%");
+                         })
+                         ->paginate(10);  // Aqui você pode paginar os resultados
+
+        return view('pedidos.pesquisar', compact('pedidos'));
+    }
 }
