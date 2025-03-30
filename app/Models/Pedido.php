@@ -20,6 +20,7 @@ class Pedido extends Model
         'status', 
         'prazo', 
         'data_retirada', 
+        'imagens',  // Adicionando campo imagem ao fillable
         'obs'
     ];
 
@@ -39,6 +40,11 @@ public function atualizarStatusPagamento($status)
 {
     $this->status = $status;  // Atualiza o status
     $this->save();  // Salva a alteração no banco de dados
+}
+
+public function imagens()
+{
+    return $this->hasMany(ImagemPedido::class, 'pedido_id');
 }
 }
 

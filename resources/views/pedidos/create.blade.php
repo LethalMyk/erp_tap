@@ -107,7 +107,7 @@
 </head>
 
 <body>
-    <form action="{{ route('pedidos.store') }}" method="POST">
+    <form action="{{ route('pedidos.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
         <!-- Cliente Dados -->
@@ -191,7 +191,6 @@
                     <textarea name="items[0][especificacao]" id="especificacao" placeholder="Adicione a especificação do item..."></textarea>
                 </div>
                 <br><br>
-
             </div>
         </div>
 
@@ -207,6 +206,12 @@
         </div>
         <br><br>
 
+
+<!-- Formulário de Imagens -->
+<div class="campo">
+    <label for="imagens">Imagens do Pedido (adicione várias):</label>
+    <input type="file" name="imagens[]" accept="image/*" multiple>
+</div>
 
 <h3>Valor Total</h3>
 <div class="campo">

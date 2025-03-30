@@ -25,9 +25,11 @@ class PedidoController extends Controller
     }
 
     // Armazenar o pedido, itens, pagamento e o cliente
+// Atualize o método store para garantir que cada imagem seja salva corretamente e associada ao pedido
+
 public function store(Request $request)
 {
-    // Validação dos dados recebidos
+    // Validação
     $request->validate([
         'nome_cliente' => 'nullable|string|max:255',
         'telefone_cliente' => 'nullable|string|max:15',
@@ -36,7 +38,7 @@ public function store(Request $request)
         'cpf_cliente' => 'nullable|string|max:14',
         'data' => 'required|date',
         'orcamento' => 'required|numeric',
-        'status' => 'nullable|string', // Status pode ser opcional aqui
+        'status' => 'nullable|string',
         'prazo' => 'required|date',
         'data_retirada' => 'required|date',
         'obs' => 'nullable|string',
@@ -45,15 +47,17 @@ public function store(Request $request)
         'items.*.material' => 'required|string',
         'items.*.metragem' => 'required|numeric',
         'items.*.especificacao' => 'nullable|string',
-        'pagamentos' => 'required|array|min:1', // Múltiplos pagamentos
+        'pagamentos' => 'required|array|min:1',
         'pagamentos.*.valor' => 'required|numeric',
         'pagamentos.*.forma' => 'required|string',
         'pagamentos.*.descricao' => 'required|string',
+        'imagens' => 'nullable|array',
+        'imagens.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
     ]);
 
-    // Verificar se o cliente existe ou criar um novo cliente
+    // Verificar se o cliente existe ou criar um novo
     $cliente = Client::firstOrCreate(
-        ['client_id' => $request->cliente_id],  // Verifica se o cliente existe com o ID
+        ['client_id' => $request->cliente_id],
         [
             'nome' => $request->nome_cliente,
             'telefone' => $request->telefone_cliente,
@@ -63,24 +67,21 @@ public function store(Request $request)
         ]
     );
 
-    // Definir o status como "Pendente" se não for fornecido
-    $status = $request->status ?? 'Pendente';
-
-    // Criar o pedido com o status padrão "Pendente"
+    // Criar o pedido
     $pedido = Pedido::create([
-        'client_id' => $cliente->client_id, // Passando o client_id para o pedido
+        'client_id' => $cliente->client_id,
         'data' => $request->data,
         'orcamento' => $request->orcamento,
-        'status' => $status, // Usando o status informado ou "Pendente"
+        'status' => $request->status ?? 'Pendente',
         'prazo' => $request->prazo,
         'data_retirada' => $request->data_retirada,
         'obs' => $request->obs,
     ]);
 
-    // Criar os itens do pedido
+    // Criar os itens
     foreach ($request->items as $itemData) {
         Item::create([
-            'pedido_id' => $pedido->pedido_id, // Associando o pedido_id
+            'pedido_id' => $pedido->pedido_id,
             'nome_item' => $itemData['nome_item'],
             'material' => $itemData['material'],
             'metragem' => $itemData['metragem'],
@@ -88,7 +89,7 @@ public function store(Request $request)
         ]);
     }
 
-    // Criar os pagamentos do pedido
+    // Criar os pagamentos
     foreach ($request->pagamentos as $pagamentoData) {
         Pagamento::create([
             'pedido_id' => $pedido->pedido_id,
@@ -98,9 +99,19 @@ public function store(Request $request)
         ]);
     }
 
+    // Armazenamento das imagens
+    if ($request->hasFile('imagens')) {
+        foreach ($request->file('imagens') as $imagem) {
+            $path = $imagem->store('pedidos', 'public');
+            $pedido->imagens()->create([
+                'imagem_path' => $path
+            ]);
+        }
+    }
+
     return redirect()->route('pedidos.index')->with('success', 'Pedido registrado com sucesso!');
 }
-  public function pesquisar(Request $request)
+public function pesquisar(Request $request)
     {
         $termo = $request->input('termo');  // Pega o termo de pesquisa
 
