@@ -62,6 +62,9 @@ Route::get('/outros/fabric', [OutrosController::class, 'fabric'])->name('outros.
 
 Route::get('/pedidos/{pedido_id}/pagamento', [PagamentoController::class, 'showForm'])->name('pagamento.form');
 Route::post('/pedidos/{pedido_id}/pagamento', [PagamentoController::class, 'store'])->name('pagamento.store');
+// Rota para exibir detalhes do pedido
+
+Route::get('pedidos/{pedido_id}/detalhes', [PedidoController::class, 'detalhes'])->name('pedidos.detalhes');
 
 
 require __DIR__.'/auth.php';

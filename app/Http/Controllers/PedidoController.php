@@ -126,4 +126,15 @@ public function pesquisar(Request $request)
 
         return view('pedidos.pesquisar', compact('pedidos'));
     }
+
+    public function detalhes($pedido_id)
+{
+    // Busca o pedido com as relações necessárias
+    $pedido = Pedido::with(['client', 'itens', 'imagens']) // Carrega as relações de cliente, itens e imagens
+        ->where('pedido_id', $pedido_id)
+        ->firstOrFail();  // Se não encontrar o pedido, retorna um erro 404
+
+    return view('pedidos.detalhes', compact('pedido'));  // Retorna a visão com os dados do pedido
+}
+
 }

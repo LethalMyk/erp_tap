@@ -20,4 +20,10 @@ class Item extends Model
 
     // Defina se o modelo usará timestamps automaticamente
     public $timestamps = true;
+
+    public function pedido()
+{
+    return $this->belongsTo(Pedido::class, 'pedido_id', 'pedido_id');
+}
+
 }

@@ -6,10 +6,10 @@
     </x-slot>
 
     <div class="container mx-auto p-6">
-<form method="GET" action="{{ route('pedidos.pesquisar') }}">
-    <input type="text" name="termo" placeholder="Buscar por ID, CPF, Nome ou Endereço..." value="{{ request('termo') }}" class="border rounded p-2">
-    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Pesquisar</button>
-</form>
+        <form method="GET" action="{{ route('pedidos.pesquisar') }}">
+            <input type="text" name="termo" placeholder="Buscar por ID, CPF, Nome ou Endereço..." value="{{ request('termo') }}" class="border rounded p-2">
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Pesquisar</button>
+        </form>
 
         @if($pedidos->count())
             <table class="mt-4 border w-full">
@@ -36,6 +36,9 @@
                             <td>
                                 <!-- Botão para redirecionar ao formulário de pagamento -->
                                 <a href="{{ route('pagamento.form', $pedido->pedido_id) }}" class="bg-green-500 text-white px-4 py-2 rounded">Registrar Pagamento</a>
+
+                                <!-- Botão de Exibir Detalhes -->
+                                <a href="{{ route('pedidos.detalhes', $pedido->pedido_id) }}" class="bg-blue-500 text-white px-4 py-2 rounded ml-2">Exibir Detalhes</a>
                             </td>
                         </tr>
                     @endforeach

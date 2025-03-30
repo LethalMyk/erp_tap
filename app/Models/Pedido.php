@@ -46,5 +46,10 @@ public function imagens()
 {
     return $this->hasMany(ImagemPedido::class, 'pedido_id');
 }
+
+public function itens()
+{
+    return $this->hasMany(Item::class, 'pedido_id', 'pedido_id');
+}
 }
 
