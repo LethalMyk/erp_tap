@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 
 class ClientController extends Controller
 {
-    // Exibe a lista de clientes
+    // Exibe a lista de clientes com paginação
     public function index()
     {
-        $clients = Client::all();
+        $clients = Client::paginate(10);  // Usando paginação ao invés de all()
         return view('clients.index', compact('clients'));
     }
 
@@ -38,7 +38,8 @@ class ClientController extends Controller
             'cpf' => 'required|string|max:14|unique:clientes',
         ]);
 
-        Client::create($request->all());  // Cria o cliente no banco de dados
+        // Criando cliente apenas com os campos permitidos
+        Client::create($request->only(['nome', 'telefone', 'endereco', 'email', 'cpf']));
 
         return redirect()->route('clients.index')->with('success', 'Cliente cadastrado com sucesso!');
     }
@@ -62,7 +63,7 @@ class ClientController extends Controller
         ]);
 
         $client = Client::findOrFail($id);  // Busca o cliente por ID
-        $client->update($request->all());  // Atualiza os dados do cliente
+        $client->update($request->only(['nome', 'telefone', 'endereco', 'email', 'cpf']));  // Atualiza os dados do cliente
 
         return redirect()->route('clients.index')->with('success', 'Cliente atualizado com sucesso!');
     }

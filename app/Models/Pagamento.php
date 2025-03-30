@@ -14,6 +14,7 @@ class Pagamento extends Model
         'pedido_id',
         'valor',
         'forma',
+        'descricao',
     ];
 
     public function pedido()

@@ -16,6 +16,7 @@ public function up()
         $table->foreignId('pedido_id');
         $table->decimal('valor', 10, 2);
         $table->string('forma');
+        $table->string('descricao')->nullable(); // Permite valores nulos
         $table->timestamps();
     });
 }

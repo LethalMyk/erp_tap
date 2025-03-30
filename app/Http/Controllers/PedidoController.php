@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Pedido;
 use App\Models\Item;
 use App\Models\Pagamento;
-use App\Models\Client; // Certifique-se de que o modelo Cliente está importado
+use App\Models\Client; // Certifique-se de que o modelo Client está importado
 use Illuminate\Http\Request;
 
 class PedidoController extends Controller
@@ -24,10 +24,11 @@ class PedidoController extends Controller
     }
 
     // Armazenar o pedido, itens, pagamento e o cliente
-public function store(Request $request)
+    public function store(Request $request)
 {
+    // Validação dos dados recebidos
     $request->validate([
-        'nome_cliente' => 'nullable|string|max:255', 
+        'nome_cliente' => 'nullable|string|max:255',
         'telefone_cliente' => 'nullable|string|max:15',
         'endereco_cliente' => 'nullable|string|max:255',
         'email_cliente' => 'nullable|string|email|max:255',
@@ -43,13 +44,16 @@ public function store(Request $request)
         'items.*.material' => 'required|string',
         'items.*.metragem' => 'required|numeric',
         'items.*.especificacao' => 'nullable|string',
-        'valor_pagamento' => 'required|numeric',
-        'forma_pagamento' => 'required|string',
+        'pagamentos' => 'required|array|min:1', // Múltiplos pagamentos
+        'pagamentos.*.valor' => 'required|numeric',
+        'pagamentos.*.forma' => 'required|string',
+        'pagamentos.*.descricao' => 'required|string',
+
     ]);
 
-    // Verificar se cliente_id foi enviado, se não, criar um novo cliente
+    // Verificar se o cliente existe ou criar um novo cliente
     if (!$request->cliente_id) {
-        // Criando o cliente
+        // Criando um novo cliente
         $cliente = Client::create([
             'nome' => $request->nome_cliente,
             'telefone' => $request->telefone_cliente,
@@ -57,11 +61,9 @@ public function store(Request $request)
             'email' => $request->email_cliente,
             'cpf' => $request->cpf_cliente,
         ]);
-
-        // O client_id do cliente recém-criado será automaticamente atribuído
-        $cliente_id = $cliente->client_id; 
+        $cliente_id = $cliente->client_id;
     } else {
-        // Se cliente_id foi enviado, apenas usa o ID informado
+        // Se cliente_id foi enviado, apenas usar o ID informado
         $cliente_id = $request->cliente_id;
     }
 
@@ -87,15 +89,17 @@ public function store(Request $request)
         ]);
     }
 
-    // Criar o pagamento do pedido
-    Pagamento::create([
-        'pedido_id' => $pedido->pedido_id,
-        'valor' => $request->valor_pagamento,
-        'forma' => $request->forma_pagamento,
-    ]);
+    // Criar os pagamentos do pedido
+    foreach ($request->pagamentos as $pagamentoData) {
+        Pagamento::create([
+            'pedido_id' => $pedido->pedido_id,
+            'valor' => $pagamentoData['valor'],
+            'forma' => $pagamentoData['forma'],
+            'descricao' => $pagamentoData['descricao'],
+
+        ]);
+    }
 
     return redirect()->route('pedidos.index')->with('success', 'Pedido registrado com sucesso!');
 }
-
-
 }
