@@ -58,11 +58,11 @@
         <!-- Imagens -->
         <div class="campo">
             <h3>Imagens do Pedido</h3>
-            @foreach ($pedido->imagens as $imagem)
-                <img src="{{ asset('storage/'.$imagem->path) }}" alt="Imagem do Pedido" class="w-32 h-32 object-cover">
-            @endforeach
+@foreach($pedido->imagens as $imagem)
+    <img src="{{ asset('storage/'.$imagem->imagem_path) }}" alt="Imagem do Pedido" class="w-32 h-32 object-cover">
+@endforeach
         </div>
-
+    
         <!-- Valor Total -->
         <div class="campo">
             <h3>Valor Total</h3>
