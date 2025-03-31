@@ -1,0 +1,10 @@
+
+Usuarios (usuario_id, nome, login,senha,email,cargo)
+
+Clientes (client_id, nome, telefone, endereço,email,cpf)
+
+Pedidos (pedido_id, client_id(vinculado a Clientes) ,data, orçamento, status, prazo,data_retirada, obs)
+
+Items (item_id,pedido_id(vinculado), nome_item, material, metragem,espefic,)
+
+Pagamentos(pagamento_id, pedido_id(vinculado a Pedidos), valor, forma)

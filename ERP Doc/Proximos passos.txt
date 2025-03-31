@@ -1,0 +1,100 @@
+Adicionar as colunas a pedidos:  obs_retirada(depois precisa ser incluida no formulario create como opcional), tapeçeiro(incluir no formulario create como opcional),andamento(retirar/montado/desmanchado/produzindo/entregar/concluido),data_inicio,dificuldade, previsto_para, data_termino,data_entrega, ARPtech, 
+
+
+vamos criar a coluna ARPtech também em itens
+
+e vamos criar a tabela ARPtech: id, tipo_servico (impermeabilização, higienização, imper+higi), pedido_id, item_id,estado(aguardando/executado), custo,servico_pg(PAGO,PENDENTE)
+
+Se houver algum item marcado com a coluna ARPtech = IMPERMEABILIZAÇÃO ou HIGIENIZAÇÃO ou IMPER+HIGI, ao criar o pedido, sera criado uma nova entrada na tabela ARPtech relacionado ao pedido_id e items_id marcados e passando o tipo de servico e tambem vai alterar a tabela pedidos.ARPtech para SIM
+
+
+Criar a pagina de filtros, para pesquisar itens por:  ID,Nome Ciente,CPF,Data Pedido,Endereco,Data Retirada,profissional,data_termino,ARPtech,andamento
+
+
+
+Ajustar Impressão de Pedido com diferentes modelos (Modelo Cliente, Modelo Retirada, Modelo Profissional)
+
+criar tabela Assistencias para controlar a quantidade(desenvolver ideia)
+
+criar tabela Profissionais (id,nome,cargo,salario,vt....)
+desenvolver ideias e funcionalidades aqui
+
+
+Criar os Modulos de Administraçao:
+vamos adicionar novos pagamentos sempre que registrarmos uma compra ou outro tipo de saída financeira
+
+Tabela Pagamentos:
+id ,Vencimento ,Valor,Status, id_fornecedor,id_conta, id_funcionario, id_categoria,id_forma_pagamento,CHAVE, data_pagamento,observacoes, anexos
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único do pagamento.
+data_vencimento	DATE	Data de vencimento do pagamento.
+valor	DECIMAL(10, 2)	Valor total do pagamento.
+status	ENUM('Pendente', 'Pago', 'Atrasado')	Status do pagamento (pendente, pago ou atrasado).
+id_fornecedor	INT (FK)	Referência ao fornecedor, se for pagamento a fornecedor.
+id_funcionario	INT (FK)	Referência ao funcionário, se for pagamento de salário.
+id_conta	INT (FK)	Referência à conta a ser paga, como água, energia, etc.
+id_categoria	INT (FK)	Categoria do pagamento (ex: fornecedor, imposto, salário, etc.).
+id_forma_pagamento	INT (FK)	Forma de pagamento (boleto, cartão de crédito, transferência, etc.).
+data_pagamento	DATE	Data em que o pagamento foi efetuado.
+observacoes	TEXT	Campo para observações extras sobre o pagamento.
+
+
+Tabela: fornecedores
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único do fornecedor.
+nome	VARCHAR(255)	Nome do fornecedor.
+documento	VARCHAR(20)	Documento de identificação (CNPJ, CPF, etc.).
+endereco	VARCHAR(255)	Endereço do fornecedor.
+telefone	VARCHAR(20)	Número de telefone do fornecedor.
+
+
+Tabela: contas
+Esta tabela armazena informações sobre as contas a pagar (ex: água, energia, aluguel).
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único da conta.
+descricao	VARCHAR(255)	Descrição da conta (ex: Energia elétrica, aluguel).
+valor	DECIMAL(10, 2)	Valor da conta.
+data_vencimento	DATE	Data de vencimento da conta.
+
+
+
+
+Tabela: formas_pagamento
+Define as formas de pagamento disponíveis (ex: boleto, transferência bancária, cartão de crédito).
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único da forma de pagamento.
+descricao	VARCHAR(100)	Descrição da forma de pagamento (ex: boleto, cartão de crédito, etc.).
+
+
+
+
+Tabela: categorias_pagamento
+Classifica os tipos de pagamento (ex: Fornecedor, Impostos, Funcionário, etc.).
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único da categoria.
+descricao	VARCHAR(100)	Descrição da categoria (ex: Fornecedor, Funcionário, Impostos, etc.).
+
+
+
+ Relacionamentos
+Agora, vamos definir os relacionamentos entre as tabelas:
+
+Pagamentos e Fornecedores: Um pagamento pode estar associado a um fornecedor (relacionamento de 1 para N, onde um fornecedor pode ter vários pagamentos).
+
+Pagamentos e Funcionários: Um pagamento pode ser destinado a um funcionário (relacionamento de 1 para N, onde um funcionário pode ter vários pagamentos de salários).
+
+Pagamentos e Contas: Um pagamento pode estar relacionado a uma conta de consumo (água, luz, etc.) (relacionamento de 1 para N).
+
+Pagamentos e Formas de Pagamento: Cada pagamento pode ser feito de uma forma específica (boleto, transferência, etc.) (relacionamento de N para 1).
+
+Pagamentos e Categorias de Pagamento: Cada pagamento pertence a uma categoria (relacionamento de N para 1, com categorias como Fornecedor, Imposto, Salário, etc.).
+
+
+
+
+vamos criar uma pagina para registrar um novo pagamento

@@ -1,0 +1,94 @@
+Estrutura de Banco de Dados para Compras e Estoque
+1. Entidades Principais
+As principais entidades para a gestão de compras e estoque são:
+
+Produtos
+
+Fornecedores
+
+Compras
+
+Itens da Compra
+
+Estoque
+
+Categorias de Produtos
+
+Movimentações de Estoque
+
+2. Estrutura de Tabelas
+Tabela: produtos
+Esta tabela armazena informações sobre os produtos que estão disponíveis no estoque.
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único do produto.
+nome	VARCHAR(255)	Nome do produto.
+descricao	TEXT	Descrição do produto.
+categoria_id	INT (FK)	Categoria à qual o produto pertence.
+unidade_medida	VARCHAR(50)	Unidade de medida do produto (ex: kg, unidade, etc.).
+preco_unitario	DECIMAL(10, 2)	Preço unitário do produto.
+estoque_minimo	INT	Quantidade mínima de estoque para acionar reabastecimento.
+Tabela: fornecedores
+Armazena informações sobre os fornecedores dos produtos.
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único do fornecedor.
+nome	VARCHAR(255)	Nome do fornecedor.
+documento	VARCHAR(20)	CNPJ ou CPF do fornecedor.
+telefone	VARCHAR(20)	Telefone do fornecedor.
+email	VARCHAR(100)	E-mail do fornecedor.
+endereco	TEXT	Endereço do fornecedor.
+Tabela: compras
+Armazena as compras feitas pela empresa, contendo as informações gerais da transação.
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único da compra.
+data_compra	DATE	Data da compra.
+fornecedor_id	INT (FK)	Referência ao fornecedor (relaciona-se com a tabela fornecedores).
+total	DECIMAL(10, 2)	Valor total da compra.
+status	ENUM('Pendente', 'Recebido', 'Cancelado')	Status da compra (pendente, recebida ou cancelada).
+nota_fiscal	VARCHAR(100)	Número da nota fiscal da compra.
+Tabela: itens_compra
+Esta tabela armazena os itens específicos adquiridos em cada compra (produtos e quantidades).
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único do item de compra.
+compra_id	INT (FK)	Referência à compra (relaciona-se com a tabela compras).
+produto_id	INT (FK)	Referência ao produto comprado (relaciona-se com a tabela produtos).
+quantidade	INT	Quantidade adquirida do produto.
+preco_unitario	DECIMAL(10, 2)	Preço unitário do produto na compra.
+Tabela: estoque
+Armazena as quantidades de produtos em estoque.
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único do estoque.
+produto_id	INT (FK)	Referência ao produto (relaciona-se com a tabela produtos).
+quantidade	INT	Quantidade atual do produto em estoque.
+Tabela: categorias_produto
+Define as categorias dos produtos, como alimentos, eletrônicos, etc.
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único da categoria.
+descricao	VARCHAR(255)	Descrição da categoria (ex: Eletrônicos, Alimentos).
+Tabela: movimentacoes_estoque
+Registra todas as movimentações de entrada e saída de produtos no estoque, como compras e vendas.
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único da movimentação.
+produto_id	INT (FK)	Referência ao produto que está sendo movimentado (relaciona-se com a tabela produtos).
+quantidade	INT	Quantidade do produto movimentado (pode ser positiva para entradas e negativa para saídas).
+tipo_movimentacao	ENUM('Entrada', 'Saída')	Tipo da movimentação: entrada (compra, reposição) ou saída (venda, consumo interno).
+data_movimentacao	DATE	Data da movimentação.
+nota_fiscal	VARCHAR(100)	Nota fiscal relacionada à movimentação (se houver).
+3. Relacionamentos Entre Tabelas
+Produtos e Categorias: Cada produto pertence a uma categoria (relacionamento de N para 1 entre produtos e categorias_produto).
+
+Compras e Fornecedores: Cada compra tem um fornecedor associado (relacionamento de N para 1 entre compras e fornecedores).
+
+Itens da Compra e Compras: Cada item da compra pertence a uma compra (relacionamento de N para 1 entre itens_compra e compras).
+
+Itens da Compra e Produtos: Cada item da compra se refere a um produto específico (relacionamento de N para 1 entre itens_compra e produtos).
+
+Estoque e Produtos: Cada produto tem uma quantidade específica de estoque (relacionamento de 1 para N entre estoque e produtos).
+
+Movimentações de Estoque e Produtos: Cada movimentação de estoque se refere a um produto específico (relacionamento de N para 1 entre movimentacoes_estoque e produtos).

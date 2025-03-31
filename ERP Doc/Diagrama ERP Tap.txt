@@ -1,0 +1,84 @@
+Diagrama de Módulos do ERP da Tapeçaria
+
+1. Clientes
+
+Cadastro de clientes (Nome, telefone, endereço, email, CPF)
+
+Consulta de clientes
+
+Histórico de pedidos
+
+2. Pedidos
+
+Criação e gestão de pedidos
+
+Orçamentos
+
+Status do pedido (Em andamento, concluído, cancelado)
+
+Data de entrega prevista
+
+Tapeceiro responsável
+
+3. Itens do Pedido
+
+Nome do item
+
+Material e tecido
+
+Metragem
+
+Quantidade
+
+Observações e detalhes adicionais
+
+4. Financeiro
+
+Pagamentos
+
+Recebimentos
+
+Relatórios financeiros
+
+Status do pagamento (Pago, Pendente, Atrasado)
+
+5. Estoque
+
+Controle de materiais e tecidos
+
+Registro de saídas e entradas
+
+Notificações de reposição
+
+6. Usuários
+
+Cadastro de funcionários
+
+Controle de acesso e permissões
+
+Registro de atividades
+
+7. Relatórios
+
+Pedidos finalizados
+
+Pedidos pendentes
+
+Desempenho dos tapeceiros
+
+Movimentação financeira
+
+Interligações:
+
+Clientes se relacionam com Pedidos.
+
+Pedidos estão vinculados a Itens do Pedido e Financeiro.
+
+Estoque atualiza automaticamente com base nos Pedidos.
+
+Usuários têm acesso conforme as permissões definidas.
+
+Relatórios compilam informações de todos os módulos.
+
+Esse diagrama ajuda a visualizar a estrutura do ERP, garantindo um fluxo organizado e eficiente para a gestão da tapeçaria.
+
