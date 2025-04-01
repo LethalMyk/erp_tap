@@ -1,0 +1,110 @@
+# Levantamento de Requisitos - ERP Tapeçaria
+
+## 1. Requisitos Funcionais
+
+### 1.1. Módulo de Pedidos
+- Adicionar novas colunas à tabela `pedidos`:
+  - `obs_retirada` (Texto, opcional)
+  - `tapeceiro` (Texto, opcional)
+  - `andamento` (ENUM: retirar, montado, desmanchado, produzindo, entregar, concluído)
+  - `data_inicio` (DATE)
+  - `dificuldade` (Texto, opcional)
+  - `previsto_para` (DATE)
+  - `data_termino` (DATE)
+  - `data_entrega` (DATE)
+  - `ARPtech` (BOOLEAN, indica se há serviço ARPtech no pedido)
+- Adicionar campo `ARPtech` também na tabela `itens`.
+- Criar a tabela `ARPtech`:
+  - `id` (INT, PK)
+  - `tipo_servico` (ENUM: impermeabilização, higienização, imper+higi)
+  - `pedido_id` (INT, FK -> pedidos)
+  - `item_id` (INT, FK -> itens)
+  - `estado` (ENUM: aguardando, executado)
+  - `custo` (DECIMAL)
+  - `servico_pg` (ENUM: PAGO, PENDENTE)
+- Regras de negócio:
+  - Se algum item do pedido for marcado com `ARPtech`, criar uma entrada na tabela `ARPtech` vinculada ao `pedido_id` e `item_id`, definindo o tipo de serviço e alterando `pedidos.ARPtech` para SIM.
+
+### 1.2. Página de Filtros
+Criar uma página para pesquisa de itens por:
+  - ID
+  - Nome do Cliente
+  - CPF
+  - Data do Pedido
+  - Endereço
+  - Data de Retirada
+  - Profissional
+  - Data de Término
+  - ARPtech
+  - Andamento
+
+### 1.3. Impressão de Pedidos
+Ajustar a funcionalidade de impressão com diferentes modelos:
+  - Modelo Cliente
+  - Modelo Retirada
+  - Modelo Profissional
+
+### 1.4. Tabela de Assistências
+Criar uma nova tabela para controle de assistências prestadas.
+
+### 1.5. Módulo de Profissionais
+Criar a tabela `profissionais`:
+  - `id` (INT, PK)
+  - `nome` (VARCHAR)
+  - `cargo` (VARCHAR)
+  - `salario` (DECIMAL)
+  - `vt` (DECIMAL)
+  - Outros campos a serem definidos.
+
+## 2. Módulo de Administração Financeira
+
+### 2.1. Tabela de Pagamentos
+Criar a tabela `pagamentos`:
+  - `id` (INT, PK)
+  - `data_vencimento` (DATE)
+  - `valor` (DECIMAL)
+  - `status` (ENUM: Pendente, Pago, Atrasado)
+  - `id_fornecedor` (INT, FK -> fornecedores)
+  - `id_funcionario` (INT, FK -> profissionais)
+  - `id_conta` (INT, FK -> contas)
+  - `id_categoria` (INT, FK -> categorias_pagamento)
+  - `id_forma_pagamento` (INT, FK -> formas_pagamento)
+  - `data_pagamento` (DATE)
+  - `observacoes` (TEXT)
+  - `anexos` (Arquivo opcional)
+
+### 2.2. Tabela de Fornecedores
+Criar a tabela `fornecedores`:
+  - `id` (INT, PK)
+  - `nome` (VARCHAR)
+  - `documento` (VARCHAR)
+  - `endereco` (VARCHAR)
+  - `telefone` (VARCHAR)
+
+### 2.3. Tabela de Contas
+Criar a tabela `contas`:
+  - `id` (INT, PK)
+  - `descricao` (VARCHAR)
+  - `valor` (DECIMAL)
+  - `data_vencimento` (DATE)
+
+### 2.4. Tabela de Formas de Pagamento
+Criar a tabela `formas_pagamento`:
+  - `id` (INT, PK)
+  - `descricao` (VARCHAR)
+
+### 2.5. Tabela de Categorias de Pagamento
+Criar a tabela `categorias_pagamento`:
+  - `id` (INT, PK)
+  - `descricao` (VARCHAR)
+
+## 3. Relacionamentos
+- `pagamentos` → `fornecedores` (1:N)
+- `pagamentos` → `profissionais` (1:N)
+- `pagamentos` → `contas` (1:N)
+- `pagamentos` → `formas_pagamento` (N:1)
+- `pagamentos` → `categorias_pagamento` (N:1)
+
+## 4. Página para Registro de Pagamentos
+Criar uma interface para registrar novos pagamentos, vinculando a uma conta, fornecedor ou funcionário, com possibilidade de anexar documentos e observações.
+
