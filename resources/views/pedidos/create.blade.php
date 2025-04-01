@@ -191,6 +191,25 @@
                     <textarea name="items[0][especificacao]" id="especificacao" placeholder="Adicione a especificação do item..."></textarea>
                 </div>
                 <br><br>
+
+
+                <form>
+    <!-- Impermeabilizar -->
+    <div>
+        <input type="checkbox" id="impermeabilizar" name="impermeabilizar">
+        <label for="impermeabilizar">Impermeabilizar</label>
+        <input type="text" id="impermeabilizar_obs" name="impermeabilizar_obs" placeholder="Observação..." style="display:none;">
+    </div>
+
+    <!-- Higienizar -->
+    <div>
+        <input type="checkbox" id="higienizar" name="higienizar">
+        <label for="higienizar">Higienizar</label>
+        <input type="text" id="higienizar_obs" name="higienizar_obs" placeholder="Observação..." style="display:none;">
+    </div>
+
+</form>
+
             </div>
         </div>
 
@@ -305,39 +324,81 @@
     });
 </script>
 <br><br>
-
         <button type="submit">Registrar Pedido</button>
     </form>
 
-    <script>
-        // Script para adicionar mais itens
-        let itemCount = 1;
-        document.getElementById('addItemButton').addEventListener('click', function() {
-            if (itemCount < 10) {
-                itemCount++;
-                const newItem = document.createElement('div');
-                newItem.classList.add('item');
-                newItem.innerHTML = `
-                    <label for="nome_item[]">Nome do Item:</label>
-                    <input type="text" name="items[${itemCount}][nome_item]" required>
-                    <br><br>
-                    <label for="material[]">Material:</label>
-                    <input type="text" name="items[${itemCount}][material]" required>
-                    <br><br>
-                    <label for="metragem[]">Metragem:</label>
-                    <input type="number" name="items[${itemCount}][metragem]" required>
-                    <br><br>
 
-                    <!-- Especificação -->
-                    <label for="especificacao[]">Especificação:</label>
-                    <textarea name="items[${itemCount}][especificacao]" placeholder="Adicione a especificação do item..."></textarea>
-                    <br><br>
-                `;
+    <script> 
+        // Mostrar/ocultar os campos de observação quando as caixas forem marcadas/desmarcadas
+document.getElementById('impermeabilizar').addEventListener('change', function() {
+    const obsImpermeabilizar = document.getElementById('impermeabilizar_obs');
+    obsImpermeabilizar.style.display = this.checked ? 'block' : 'none';
+});
 
-                document.getElementById('items').appendChild(newItem);
-            }
+document.getElementById('higienizar').addEventListener('change', function() {
+    const obsHigienizar = document.getElementById('higienizar_obs');
+    obsHigienizar.style.display = this.checked ? 'block' : 'none';
+});
+</script>
+<script>
+    // Função para mostrar/ocultar os campos de observação quando as caixas forem marcadas/desmarcadas
+    function setupCheckboxes(itemIndex) {
+        const impermeabilizarCheckbox = document.getElementById(`impermeabilizar${itemIndex}`);
+        const higienizarCheckbox = document.getElementById(`higienizar${itemIndex}`);
+        const impermeabilizarObs = document.getElementById(`impermeabilizar_obs${itemIndex}`);
+        const higienizarObs = document.getElementById(`higienizar_obs${itemIndex}`);
+        
+        impermeabilizarCheckbox.addEventListener('change', function() {
+            impermeabilizarObs.style.display = this.checked ? 'block' : 'none';
         });
 
+        higienizarCheckbox.addEventListener('change', function() {
+            higienizarObs.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+
+    // Adicionar item
+    let itemCount = 1;
+    document.getElementById('addItemButton').addEventListener('click', function() {
+        if (itemCount < 10) {
+            itemCount++;
+            const newItem = document.createElement('div');
+            newItem.classList.add('item');
+            newItem.innerHTML = `
+                <label for="nome_item[]">Nome do Item:</label>
+                <input type="text" name="items[${itemCount}][nome_item]" required>
+                <br><br>
+                <label for="material[]">Material:</label>
+                <input type="text" name="items[${itemCount}][material]" required>
+                <br><br>
+                <label for="metragem[]">Metragem:</label>
+                <input type="number" name="items[${itemCount}][metragem]" required>
+                <br><br>
+                <label for="especificacao[]">Especificação:</label>
+                <textarea name="items[${itemCount}][especificacao]" placeholder="Adicione a especificação do item..."></textarea>
+                <br><br>
+                
+                <!-- Impermeabilizar -->
+                <input type="checkbox" id="impermeabilizar${itemCount}" name="items[${itemCount}][impermeabilizar]">
+                <label for="impermeabilizar${itemCount}">Impermeabilizar</label>
+                <input type="text" id="impermeabilizar_obs${itemCount}" name="items[${itemCount}][impermeabilizar_obs]" placeholder="Observação..." style="display:none;">
+                <br><br>
+                
+                <!-- Higienizar -->
+                <input type="checkbox" id="higienizar${itemCount}" name="items[${itemCount}][higienizar]">
+                <label for="higienizar${itemCount}">Higienizar</label>
+                <input type="text" id="higienizar_obs${itemCount}" name="items[${itemCount}][higienizar_obs]" placeholder="Observação..." style="display:none;">
+            `;
+            document.getElementById('items').appendChild(newItem);
+
+            // Configurar os checkboxes de cada novo item
+            setupCheckboxes(itemCount);
+        }
+    });
+</script>
+
+
+<script>
         // Script para remover o último item
         document.getElementById('removeItemButton').addEventListener('click', function() {
             if (itemCount > 1) {
