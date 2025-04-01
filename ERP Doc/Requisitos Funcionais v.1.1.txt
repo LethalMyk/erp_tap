@@ -108,3 +108,169 @@ Criar a tabela `categorias_pagamento`:
 ## 4. Página para Registro de Pagamentos
 Criar uma interface para registrar novos pagamentos, vinculando a uma conta, fornecedor ou funcionário, com possibilidade de anexar documentos e observações.
 
+1️⃣ Módulo de Pedidos e Produção
+🔹 Histórico de alterações nos pedidos (para saber quem fez cada mudança e quando).
+🔹 Cálculo automático de prazo com base na dificuldade e no tempo médio dos serviços.
+🔹 Notificações internas para tapeceiros sobre novos pedidos atribuídos.
+🔹 Integração com WhatsApp para notificar clientes sobre o andamento do pedido.
+🔹 Gerenciamento de peças (para estofados que precisam de espuma, molas, tecidos específicos).
+
+2️⃣ Módulo Financeiro
+🔹 Relatório de fluxo de caixa com totais recebidos, gastos e saldo.
+🔹 Geração de boletos e integração com PIX para pagamentos.
+🔹 Cálculo de comissão para tapeceiros baseado nos serviços concluídos.
+🔹 Parcelamento de pagamentos (se clientes pagarem em várias vezes).
+🔹 Controle de despesas fixas (exemplo: aluguel, energia, água).
+
+3️⃣ Módulo de Gestão de Clientes
+🔹 Cadastro de clientes recorrentes para evitar redigitação de dados.
+🔹 Histórico de atendimentos para saber quantos serviços já foram feitos para cada cliente.
+🔹 Sistema de fidelidade (descontos para clientes que já fizeram X pedidos).
+🔹 Envio automático de lembretes (exemplo: "seu pedido estará pronto em 3 dias").
+
+4️⃣ Módulo de Recursos Humanos
+🔹 Gestão de funcionários com controle de ponto e pagamento de salários.
+🔹 Cálculo automático de benefícios (VT, VR, horas extras, comissões).
+🔹 Relatórios de produtividade (quantidade de pedidos finalizados por tapeceiro).
+🔹 Controle de férias e afastamentos.
+
+5️⃣ Relatórios e Estatísticas
+🔹 Painel com gráficos para acompanhar pedidos em andamento, faturamento mensal, clientes atendidos, etc.
+🔹 Relatório de produtividade para saber quais serviços demoram mais e onde otimizar processos.
+🔹 Exportação de dados para Excel/PDF.
+
+
+DESENVOLVIMENTO
+
+
+Vamos estruturar cada funcionalidade com os seguintes detalhes:
+
+Tabelas no banco de dados (se precisar criar ou modificar alguma).
+
+Campos principais (o que cada tabela precisa armazenar).
+
+Regras de negócio (como a funcionalidade deve se comportar).
+
+Interface (como será exibida no sistema).
+
+1️⃣ Módulo de Pedidos e Produção
+📌 Histórico de Alterações nos Pedidos
+📂 Nova tabela: historico_pedidos
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único
+pedido_id	INT (FK)	Referência ao pedido alterado
+usuario_id	INT (FK)	Quem fez a alteração
+campo	VARCHAR	Campo alterado
+valor_antigo	TEXT	Valor antes da alteração
+valor_novo	TEXT	Novo valor
+data_alteracao	DATETIME	Quando foi feita a mudança
+🔹 Regra de Negócio: Toda vez que um pedido for atualizado, um registro é criado nessa tabela.
+📌 Interface: Criar uma aba "Histórico" na página de detalhes do pedido.
+
+📌 Cálculo Automático de Prazo
+🔹 Regra de Negócio:
+
+Se dificuldade = fácil, previsto_para = data_inicio + 3 dias.
+
+Se dificuldade = média, previsto_para = data_inicio + 7 dias.
+
+Se dificuldade = difícil, previsto_para = data_inicio + 14 dias.
+
+📌 Interface: Quando um novo pedido for criado, o sistema preencherá automaticamente a data de previsão de término.
+
+📌 Notificações Internas para Tapeceiros
+📂 Nova tabela: notificacoes
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único
+usuario_id	INT (FK)	Tapeceiro que recebe a notificação
+mensagem	TEXT	Texto da notificação
+lida	BOOLEAN	Se já foi visualizada
+data_envio	DATETIME	Quando foi enviada
+📌 Interface: Ícone de "sino" no sistema mostrando notificações pendentes.
+
+📌 Integração com WhatsApp
+🔹 Regras de Negócio:
+
+Quando o status de um pedido muda para "Pronto para retirada", enviar uma mensagem via API do WhatsApp.
+📌 Interface: Botão "Notificar Cliente" dentro dos pedidos.
+
+2️⃣ Módulo Financeiro
+📌 Relatório de Fluxo de Caixa
+📌 Interface: Criar página "Financeiro" com gráficos de entrada e saída de dinheiro.
+📌 SQL:
+
+sql
+Copiar
+Editar
+SELECT SUM(valor) AS total, status 
+FROM pagamentos 
+GROUP BY status;
+📌 Geração de Boletos e PIX
+📌 Requisitos:
+
+API de pagamento (exemplo: Gerencianet, Mercado Pago).
+📌 Interface:
+
+Botão "Gerar Boleto/Pix" na tela de pagamentos.
+
+📌 Cálculo de Comissão para Tapeceiros
+📂 Novo campo na tabela profissionais
+
+Campo	Tipo	Descrição
+comissao	DECIMAL	Percentual sobre os serviços concluídos
+📌 Regra de Negócio: O sistema calcula a comissão de cada tapeceiro baseado nos pedidos finalizados.
+
+3️⃣ Módulo de Gestão de Clientes
+📌 Histórico de Atendimentos
+📂 Nova tabela: historico_clientes
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador único
+cliente_id	INT (FK)	Cliente atendido
+descricao	TEXT	O que foi feito
+data	DATETIME	Quando foi realizado
+📌 Interface: Aba "Histórico" na tela do cliente.
+
+📌 Sistema de Fidelidade
+📂 Novo campo na tabela clientes
+
+Campo	Tipo	Descrição
+pontos	INT	Pontos acumulados para desconto
+📌 Regra de Negócio: Cada R$100 gastos = 10 pontos. A cada 100 pontos, desconto de R$10.
+
+4️⃣ Módulo de Recursos Humanos
+📌 Gestão de Funcionários
+📂 Nova tabela: funcionarios
+
+Campo	Tipo	Descrição
+id	INT (PK)	Identificador
+nome	VARCHAR	Nome do funcionário
+cargo	VARCHAR	Cargo ocupado
+salario	DECIMAL	Salário base
+📌 Interface: Página "Funcionários" com detalhes de cada um.
+
+📌 Controle de Férias
+📂 Novo campo na tabela funcionarios
+
+Campo	Tipo	Descrição
+data_ferias	DATE	Próxima data de férias
+📌 Regra de Negócio: O sistema deve alertar 30 dias antes da data de férias.
+
+5️⃣ Relatórios e Estatísticas
+📌 Painel de Gráficos
+📌 Interface: Criar uma dashboard mostrando:
+✅ Número de pedidos em andamento
+✅ Faturamento do mês
+✅ Clientes novos
+
+📌 SQL para faturamento mensal:
+
+sql
+Copiar
+Editar
+SELECT MONTH(data_pagamento) AS mes, SUM(valor) AS total 
+FROM pagamentos 
+WHERE status = 'Pago' 
+GROUP BY MONTH(data_pagamento);
