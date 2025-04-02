@@ -13,7 +13,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\TerceirizadaController;
 use App\Http\Controllers\ProfissionalController;
 use App\Models\Terceirizada; // Certifique-se de importar o Model
-
+use App\Http\Controllers\ServicoController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -62,6 +62,10 @@ Route::get('/terceirizadas', function () {
 
 Route::resource('profissional', ProfissionalController::class);
 
+
+// Rotas de Servicos
+
+Route::resource('servico', ServicoController::class);
 
 // Outras rotas de produção, agenda, financeiro e outros
 Route::get('/producao/controle', [ProducaoController::class, 'index'])->name('producao.controle');
