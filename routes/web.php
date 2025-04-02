@@ -11,6 +11,7 @@ use App\Http\Controllers\OutrosController;
 use App\Http\Controllers\PagamentoController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\TerceirizadaController;
+use App\Http\Controllers\ProfissionalController;
 use App\Models\Terceirizada; // Certifique-se de importar o Model
 
 
@@ -40,24 +41,26 @@ Route::get('/pedidos/create', [PedidoController::class, 'create'])->name('pedido
 Route::post('/pedidos', [PedidoController::class, 'store'])->name('pedidos.store');
 Route::resource('pedidos', PedidoController::class);
 Route::delete('/pedidos/{pedido}/imagens/{imagem}', [PedidoController::class, 'destroyImagem'])->name('pedidos.imagens.destroy');
-
-// Rotas de Items
-
-Route::resource('items', ItemController::class);
-
-
-Route::resource('terceirizadas', TerceirizadaController::class);
-
-
 Route::get('/get-items/{pedido_id}', [TerceirizadaController::class, 'getItems']);
 Route::get('/get-items/{pedido}', function(Pedido $pedido) {
     return response()->json($pedido->items);
 });
 
+// Rotas de Items
+
+Route::resource('items', ItemController::class);
+
+// Rotas de Terceirizadas
+
+Route::resource('terceirizadas', TerceirizadaController::class);
 Route::get('/terceirizadas', function () {
     $terceirizadas = Terceirizada::with(['item', 'pedido.cliente'])->get();
     return view('terceirizadas.index', compact('terceirizadas'));
 })->name('terceirizadas.index');
+
+// Rotas de Profissionais
+
+Route::resource('profissional', ProfissionalController::class);
 
 
 // Outras rotas de produção, agenda, financeiro e outros
