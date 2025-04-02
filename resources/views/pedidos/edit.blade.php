@@ -47,12 +47,20 @@
         <button type="submit">Atualizar Pedido</button>
     </form>
 
-    <h3>Imagens Atuais:</h3>
-    @if ($pedido->imagens->count())
-        @foreach ($pedido->imagens as $imagem)
-            <img src="{{ asset('storage/' . $imagem->imagem) }}" alt="Imagem do Pedido" width="100">
-        @endforeach
-    @else
-        <p>Sem imagens anexadas.</p>
-    @endif
+ <h3>Imagens do Pedido:</h3>
+@if ($pedido->imagens->count())
+    @foreach ($pedido->imagens as $imagem)
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="{{ asset('storage/' . $imagem->imagem) }}" alt="Imagem do Pedido" width="200">
+            
+            <form action="{{ route('pedidos.imagens.destroy', [$pedido->id, $imagem->id]) }}" method="POST">
+                @csrf
+                @method('DELETE')
+                <button type="submit" onclick="return confirm('Tem certeza que deseja excluir esta imagem?')">🗑️ Excluir</button>
+            </form>
+        </div>
+    @endforeach
+@else
+    <p>Sem imagens anexadas.</p>
+@endif
 </x-app-layout>

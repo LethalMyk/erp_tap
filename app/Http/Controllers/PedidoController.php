@@ -95,4 +95,21 @@ class PedidoController extends Controller
     {
         return view('pedidos.show', compact('pedido'));
     }
+
+    public function destroyImagem(Pedido $pedido, PedidoImagem $imagem)
+{
+    // Verifica se a imagem pertence ao pedido correto
+    if ($imagem->pedido_id !== $pedido->id) {
+        return redirect()->route('pedidos.show', $pedido->id)->with('error', 'Imagem não pertence a este pedido.');
+    }
+
+    // Exclui a imagem do armazenamento
+    Storage::disk('public')->delete($imagem->imagem);
+
+    // Remove do banco de dados
+    $imagem->delete();
+
+    return redirect()->route('pedidos.show', $pedido->id)->with('success', 'Imagem excluída com sucesso.');
+}
+    
 }

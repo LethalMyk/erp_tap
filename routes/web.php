@@ -37,6 +37,7 @@ Route::resource('clientes', ClienteController::class);
 Route::get('/pedidos/create', [PedidoController::class, 'create'])->name('pedidos.create');
 Route::post('/pedidos', [PedidoController::class, 'store'])->name('pedidos.store');
 Route::resource('pedidos', PedidoController::class);
+Route::delete('/pedidos/{pedido}/imagens/{imagem}', [PedidoController::class, 'destroyImagem'])->name('pedidos.imagens.destroy');
 
 // Rotas de Items
 
