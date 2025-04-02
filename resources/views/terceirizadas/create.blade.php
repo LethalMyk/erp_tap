@@ -17,8 +17,11 @@
             <option value="">-- Escolha um Item --</option>
         </select>
 
-        <label>Tipo de Serviço</label>
-        <input type="text" name="tipoServico" required>
+<select name="tipoServico" class="form-control">
+    @foreach(['Impermeabilizar', 'Higienizar', 'Pintar', 'Invernizar', 'Outros'] as $servico)
+        <option value="{{ $servico }}">{{ $servico }}</option>
+    @endforeach
+</select>
 
         <label>Observações</label>
         <textarea name="obs"></textarea>

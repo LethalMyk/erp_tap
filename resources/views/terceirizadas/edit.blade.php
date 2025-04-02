@@ -6,33 +6,61 @@
         @method('PUT')
 
         <label>Selecione o Pedido</label>
-        <select id="pedido_id" name="pedido_id" required>
+        <select id="pedido_id" name="pedido_id" class="form-control" required>
             <option value="">-- Escolha um Pedido --</option>
             @foreach($pedidos as $pedido)
                 <option value="{{ $pedido->id }}" 
-                    @if($pedido->id == $terceirizada->pedido_id) selected @endif>
+                    {{ $pedido->id == $terceirizada->pedido_id ? 'selected' : '' }}>
                     Pedido #{{ $pedido->id }}
                 </option>
             @endforeach
         </select>
 
         <label>Selecione o Item</label>
-        <select id="item_id" name="item_id" required>
+        <select id="item_id" name="item_id" class="form-control" required>
             <option value="">-- Escolha um Item --</option>
         </select>
 
         <label>Tipo de Serviço</label>
-        <input type="text" name="tipoServico" value="{{ $terceirizada->tipoServico }}" required>
+        <select name="tipoServico" class="form-control">
+            @foreach(['Impermeabilizar', 'Higienizar', 'Pintar', 'Invernizar', 'Outros'] as $servico)
+                <option value="{{ $servico }}" 
+                    {{ $terceirizada->tipoServico == $servico ? 'selected' : '' }}>
+                    {{ $servico }}
+                </option>
+            @endforeach
+        </select>
 
         <label>Observações</label>
-        <textarea name="obs">{{ $terceirizada->obs }}</textarea>
+        <textarea name="obs" class="form-control">{{ $terceirizada->obs }}</textarea>
 
-        <button type="submit">Atualizar</button>
+        <label>Andamento</label>
+        <select name="andamento" class="form-control">
+            @foreach(['em espera', 'executado', 'pronto'] as $status)
+                <option value="{{ $status }}" {{ $terceirizada->andamento == $status ? 'selected' : '' }}>
+                    {{ ucfirst($status) }}
+                </option>
+            @endforeach
+        </select>
+
+        <label>Valor</label>
+        <input type="number" step="0.01" name="valor" class="form-control" value="{{ $terceirizada->valor }}">
+
+        <label>Status do Pagamento</label>
+        <select name="statusPg" class="form-control">
+            @foreach(['Pendente', 'Pago', 'Parcial'] as $status)
+                <option value="{{ $status }}" {{ $terceirizada->statusPg == $status ? 'selected' : '' }}>
+                    {{ $status }}
+                </option>
+            @endforeach
+        </select>
+
+        <button type="submit" class="btn btn-primary mt-3">Atualizar</button>
     </form>
 
     <script>
         function carregarItens(pedidoId, itemSelecionado = null) {
-            var itemSelect = document.getElementById('item_id');
+            let itemSelect = document.getElementById('item_id');
             itemSelect.innerHTML = '<option value="">-- Escolha um Item --</option>';
 
             if (pedidoId) {
@@ -40,7 +68,7 @@
                     .then(response => response.json())
                     .then(data => {
                         data.forEach(item => {
-                            var option = document.createElement('option');
+                            let option = document.createElement('option');
                             option.value = item.id;
                             option.textContent = item.descricao;
                             if (itemSelecionado && item.id == itemSelecionado) {
@@ -48,14 +76,15 @@
                             }
                             itemSelect.appendChild(option);
                         });
-                    });
+                    })
+                    .catch(error => console.error('Erro ao carregar itens:', error));
             }
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            var pedidoSelect = document.getElementById('pedido_id');
-            var pedidoSelecionado = pedidoSelect.value;
-            var itemSelecionado = "{{ $terceirizada->item_id }}"; // Recupera o item já salvo
+            let pedidoSelect = document.getElementById('pedido_id');
+            let pedidoSelecionado = pedidoSelect.value;
+            let itemSelecionado = "{{ $terceirizada->item_id }}";
 
             if (pedidoSelecionado) {
                 carregarItens(pedidoSelecionado, itemSelecionado);
