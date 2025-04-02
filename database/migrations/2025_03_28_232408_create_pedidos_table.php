@@ -17,6 +17,7 @@ class CreatePedidosTable extends Migration
         $table->string('status');
         $table->text('obs')->nullable(); // Observações do pedido
         $table->date('prazo');
+        $table->string('imagem'); // Caminho do arquivo
         $table->timestamps();
     });
 }

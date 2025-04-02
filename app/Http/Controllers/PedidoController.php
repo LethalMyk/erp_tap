@@ -4,14 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Pedido;
 use App\Models\Cliente;
+use App\Models\PedidoImagem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PedidoController extends Controller
 {
     // Método para exibir a lista de pedidos
     public function index()
     {
-        $pedidos = Pedido::with('cliente')->get();
+        $pedidos = Pedido::with(['cliente', 'imagens'])->get();
         return view('pedidos.index', compact('pedidos'));
     }
 
@@ -33,9 +35,21 @@ class PedidoController extends Controller
             'status' => 'required|string',
             'obs' => 'nullable|string',
             'prazo' => 'required|date',
+            'imagem.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048' // Validação de imagens
         ]);
 
-        Pedido::create($request->all());
+        $pedido = Pedido::create($request->except('imagem'));
+
+      if ($request->hasFile('imagens')) {
+    foreach ($request->file('imagens') as $imagem) {
+        $path = $imagem->store('pedidos', 'public');
+      \App\Models\PedidoImagem::create([
+    'pedido_id' => $pedido->id,
+    'imagem' => $path
+]);
+
+    }
+}
 
         return redirect()->route('pedidos.index')->with('success', 'Pedido criado com sucesso!');
     }
@@ -58,9 +72,20 @@ class PedidoController extends Controller
             'status' => 'required|string',
             'obs' => 'nullable|string',
             'prazo' => 'required|date',
+            'imagens.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
         ]);
 
-        $pedido->update($request->all());
+        $pedido->update($request->except('imagens'));
+
+        if ($request->hasFile('imagens')) {
+            foreach ($request->file('imagens') as $imagem) {
+                $path = $imagem->store('pedidos', 'public');
+                PedidoImagem::create([
+                    'pedido_id' => $pedido->id,
+                    'imagem' => $path
+                ]);
+            }
+        }
 
         return redirect()->route('pedidos.index')->with('success', 'Pedido atualizado com sucesso!');
     }

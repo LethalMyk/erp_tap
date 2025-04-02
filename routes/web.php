@@ -38,6 +38,13 @@ Route::get('/pedidos/create', [PedidoController::class, 'create'])->name('pedido
 Route::post('/pedidos', [PedidoController::class, 'store'])->name('pedidos.store');
 Route::resource('pedidos', PedidoController::class);
 
+// Rotas de Items
+
+Route::resource('items', ItemController::class);
+
+
+
+
 // Outras rotas de produção, agenda, financeiro e outros
 Route::get('/producao/controle', [ProducaoController::class, 'index'])->name('producao.controle');
 Route::get('/producao/relatorios', [ProducaoController::class, 'relatorios'])->name('producao.relatorios');

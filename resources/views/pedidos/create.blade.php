@@ -1,7 +1,7 @@
  <x-app-layout>
     <h1>Criar Pedido</h1>
 
-    <form action="{{ route('pedidos.store') }}" method="POST">
+<form action="{{ route('pedidos.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div>
             <label for="cliente_id">Cliente</label>
@@ -35,6 +35,10 @@
             <label for="prazo">Prazo</label>
             <input type="date" name="prazo" id="prazo" required>
         </div>
+<div>
+            <label for="imagens">Anexar Imagens:</label>
+    <input type="file" name="imagens[]" multiple>
+</div>
         <button type="submit">Criar Pedido</button>
     </form>
 </x-app-layout>

@@ -2,7 +2,6 @@
     <h1>Lista de Pedidos</h1>
     <a href="{{ route('pedidos.create') }}">Criar Pedido</a>
 
-
     <table>
         <thead>
             <tr>
@@ -12,6 +11,7 @@
                 <th>Data</th>
                 <th>Valor</th>
                 <th>Status</th>
+                <th>Imagens</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -24,6 +24,13 @@
                     <td>{{ $pedido->data }}</td>
                     <td>{{ $pedido->valor }}</td>
                     <td>{{ $pedido->status }}</td>
+                    <td>
+                        @if($pedido->imagens->count())
+                            <span>{{ $pedido->imagens->count() }} 📷</span>
+                        @else
+                            <span>Sem imagens</span>
+                        @endif
+                    </td>
                     <td>
                         <a href="{{ route('pedidos.show', $pedido->id) }}">Ver</a>
                         <a href="{{ route('pedidos.edit', $pedido->id) }}">Editar</a>

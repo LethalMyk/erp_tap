@@ -1,36 +1,27 @@
  <x-app-layout>
 
-<div class="container">
-    <h1>Adicionar Item ao Pedido</h1>
+ <form action="{{ route('items.store') }}" method="POST">
+    @csrf
+    <label for="pedido_id">Pedido:</label>
+    <select name="pedido_id" required>
+        @foreach ($pedidos as $pedido)
+            <option value="{{ $pedido->id }}">Pedido #{{ $pedido->id }}</option>
+        @endforeach
+    </select>
 
-    <form action="{{ route('pedidos.itens.store', $pedido->id) }}" method="POST">
-        @csrf
-        <div class="form-group">
-            <label for="nome_item">Nome do Item</label>
-            <input type="text" name="nome_item" class="form-control" required>
-        </div>
-        <div class="form-group">
-            <label for="quant_item">Quantidade</label>
-            <input type="number" name="quant_item" class="form-control" required>
-        </div>
-        <div class="form-group">
-            <label for="tecido_item">Tecido</label>
-            <input type="text" name="tecido_item" class="form-control">
-        </div>
-        <div class="form-group">
-            <label for="metragem_item">Metragem</label>
-            <input type="number" name="metragem_item" class="form-control">
-        </div>
-        <div class="form-group">
-            <label for="desc_item">Descrição</label>
-            <textarea name="desc_item" class="form-control"></textarea>
-        </div>
-        <div class="form-group">
-            <label for="obs_item">Observações</label>
-            <textarea name="obs_item" class="form-control"></textarea>
-        </div>
+    <label for="nomeItem">Nome do Item:</label>
+    <input type="text" name="nomeItem" required>
 
-        <button type="submit" class="btn btn-success">Adicionar Item</button>
-    </form>
-</div>
+    <label for="material">Material:</label>
+    <input type="text" name="material" required>
+
+    <label for="metragem">Metragem:</label>
+    <input type="number" name="metragem" step="0.01" required>
+
+    <label for="especifi">Especificações:</label>
+    <textarea name="especifi"></textarea>
+
+    <button type="submit">Salvar Item</button>
+</form>
+
 </x-app-layout>
