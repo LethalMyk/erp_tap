@@ -19,14 +19,6 @@
         <label>Selecione o Item</label>
         <select id="item_id" name="item_id" required>
             <option value="">-- Escolha um Item --</option>
-            @if($pedidoSelecionado && $pedidoSelecionado->items->count() > 0)
-                @foreach($pedidoSelecionado->items as $item)
-                    <option value="{{ $item->id }}" 
-                        @if($terceirizada->item_id == $item->id) selected @endif>
-                        {{ $item->descricao }}
-                    </option>
-                @endforeach
-            @endif
         </select>
 
         <label>Tipo de Serviço</label>
@@ -39,8 +31,7 @@
     </form>
 
     <script>
-        document.getElementById('pedido_id').addEventListener('change', function() {
-            var pedidoId = this.value;
+        function carregarItens(pedidoId, itemSelecionado = null) {
             var itemSelect = document.getElementById('item_id');
             itemSelect.innerHTML = '<option value="">-- Escolha um Item --</option>';
 
@@ -52,10 +43,27 @@
                             var option = document.createElement('option');
                             option.value = item.id;
                             option.textContent = item.descricao;
+                            if (itemSelecionado && item.id == itemSelecionado) {
+                                option.selected = true;
+                            }
                             itemSelect.appendChild(option);
                         });
                     });
             }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var pedidoSelect = document.getElementById('pedido_id');
+            var pedidoSelecionado = pedidoSelect.value;
+            var itemSelecionado = "{{ $terceirizada->item_id }}"; // Recupera o item já salvo
+
+            if (pedidoSelecionado) {
+                carregarItens(pedidoSelecionado, itemSelecionado);
+            }
+
+            pedidoSelect.addEventListener('change', function() {
+                carregarItens(this.value);
+            });
         });
     </script>
 </x-app-layout>
