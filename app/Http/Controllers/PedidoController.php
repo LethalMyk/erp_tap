@@ -7,6 +7,7 @@ use App\Models\Cliente;
 use App\Models\PedidoImagem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Terceirizada;
 
 class PedidoController extends Controller
 {
@@ -111,5 +112,5 @@ class PedidoController extends Controller
 
     return redirect()->route('pedidos.show', $pedido->id)->with('success', 'Imagem excluída com sucesso.');
 }
-    
+
 }

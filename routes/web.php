@@ -10,6 +10,8 @@ use App\Http\Controllers\FinanceiroController;
 use App\Http\Controllers\OutrosController;
 use App\Http\Controllers\PagamentoController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\TerceirizadaController;
+use App\Models\Terceirizada; // Certifique-se de importar o Model
 
 
 Route::get('/', function () {
@@ -44,6 +46,18 @@ Route::delete('/pedidos/{pedido}/imagens/{imagem}', [PedidoController::class, 'd
 Route::resource('items', ItemController::class);
 
 
+Route::resource('terceirizadas', TerceirizadaController::class);
+
+
+Route::get('/get-items/{pedido_id}', [TerceirizadaController::class, 'getItems']);
+Route::get('/get-items/{pedido}', function(Pedido $pedido) {
+    return response()->json($pedido->items);
+});
+
+Route::get('/terceirizadas', function () {
+    $terceirizadas = Terceirizada::with(['item', 'pedido.cliente'])->get();
+    return view('terceirizadas.index', compact('terceirizadas'));
+})->name('terceirizadas.index');
 
 
 // Outras rotas de produção, agenda, financeiro e outros

@@ -8,12 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Item extends Model {
     use HasFactory;
-    protected $fillable = ['nomeItem', 'material', 'metragem', 'especifi'];
+    protected $fillable = ['nomeItem', 'material', 'metragem', 'especifi', 'pedido_id']; // Adicione pedido_id
 
-
-
-
-    public function pedido()
+   public function pedido()
 {
     return $this->belongsTo(Pedido::class);
 }

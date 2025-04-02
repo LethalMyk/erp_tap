@@ -46,10 +46,10 @@
                         </x-slot>
 
                         <x-slot name="content">
-                            <x-dropdown-link :href="route('producao.controle')">
+                            <x-dropdown-link :href="route('pedidos.create')">
                                 {{ __('Controle de Produção') }}
                             </x-dropdown-link>
-                            <x-dropdown-link :href="route('producao.relatorios')">
+                            <x-dropdown-link :href="route('pedidos.create')">
                                 {{ __('Relatórios') }}
                             </x-dropdown-link>
                         </x-slot>
@@ -67,10 +67,10 @@
                         </x-slot>
 
                         <x-slot name="content">
-                            <x-dropdown-link :href="route('agenda.logistica')">
+                            <x-dropdown-link :href="route('pedidos.create')">
                                 {{ __('Logistica') }}
                             </x-dropdown-link>
-                            <x-dropdown-link :href="route('agenda.orcamentos')">
+                            <x-dropdown-link :href="route('pedidos.create')">
                                 {{ __('Orçamentos') }}
                             </x-dropdown-link>
                         </x-slot>
@@ -88,13 +88,13 @@
                         </x-slot>
 
                         <x-slot name="content">
-                            <x-dropdown-link :href="route('financeiro.vencimentos')">
+                            <x-dropdown-link :href="route('pedidos.create')">
                                 {{ __('Vencimentos') }}
                             </x-dropdown-link>
-                            <x-dropdown-link :href="route('financeiro.consulta')">
+                            <x-dropdown-link :href="route('pedidos.create')">
                                 {{ __('Consulta') }}
                             </x-dropdown-link>
-                             <x-dropdown-link :href="route('financeiro.recebimento')">
+                            <x-dropdown-link :href="route('pedidos.create')">
                                 {{ __('Recebimentos') }}
                             </x-dropdown-link>
                         </x-slot>
@@ -112,13 +112,13 @@
                         </x-slot>
 
                         <x-slot name="content">
-                            <x-dropdown-link :href="route('outros.imper')">
+                            <x-dropdown-link :href="route('pedidos.create')">
                                 {{ __('Imper e Higienização') }}
                             </x-dropdown-link>
-                            <x-dropdown-link :href="route('outros.pintura')">
+                            <x-dropdown-link :href="route('pedidos.create')">
                                 {{ __('Invernizações e Pinturas') }}
                             </x-dropdown-link>
-                             <x-dropdown-link :href="route('outros.fabric')">
+                            <x-dropdown-link :href="route('pedidos.create')">
                                 {{ __('Confecções e Fabricações') }}
                             </x-dropdown-link>
                         </x-slot>

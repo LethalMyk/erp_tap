@@ -3,6 +3,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Pedido;
 
 class Pedido extends Model
 {
@@ -19,8 +20,9 @@ protected $fillable = [
 }
 public function items()
 {
-    return $this->hasMany(Item::class);
+    return $this->hasMany(Item::class, 'pedido_id', 'id');
 }
+ 
 
   public function imagens()
 {

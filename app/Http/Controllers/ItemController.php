@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\Pedido;
+use App\Models\Terceirizada;
 
 use Illuminate\Http\Request;
 
@@ -15,26 +16,28 @@ class ItemController extends Controller {
         return view('items.index', compact('items'));
     }
 
-   public function create()
+public function create()
 {
-    $pedidos = Pedido::all(); // Buscar todos os pedidos disponíveis
+    $pedidos = Pedido::all(); // Buscar todos os pedidos existentes
     return view('items.create', compact('pedidos'));
 }
+
 
 public function store(Request $request)
 {
     $request->validate([
-        'nomeItem' => 'required|string|max:255',
-        'material' => 'required|string|max:255',
+        'nomeItem' => 'required|string',
+        'material' => 'required|string',
         'metragem' => 'required|numeric',
         'especifi' => 'nullable|string',
-        'pedido_id' => 'required|exists:pedidos,id'
+        'pedido_id' => 'required|exists:pedidos,id', // Garante que pedido_id está sendo enviado
     ]);
 
     Item::create($request->all());
 
-    return redirect()->route('items.index')->with('success', 'Item criado com sucesso!');
+    return redirect()->route('items.index')->with('success', 'Item cadastrado com sucesso!');
 }
+
 
 
     public function show(Item $item) {

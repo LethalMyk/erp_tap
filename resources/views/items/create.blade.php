@@ -2,12 +2,13 @@
 
  <form action="{{ route('items.store') }}" method="POST">
     @csrf
-    <label for="pedido_id">Pedido:</label>
-    <select name="pedido_id" required>
-        @foreach ($pedidos as $pedido)
-            <option value="{{ $pedido->id }}">Pedido #{{ $pedido->id }}</option>
-        @endforeach
-    </select>
+    <label for="pedido_id">Pedido</label>
+<select name="pedido_id" required>
+    @foreach($pedidos as $pedido)
+        <option value="{{ $pedido->id }}">Pedido #{{ $pedido->id }}</option>
+    @endforeach
+</select>
+
 
     <label for="nomeItem">Nome do Item:</label>
     <input type="text" name="nomeItem" required>
