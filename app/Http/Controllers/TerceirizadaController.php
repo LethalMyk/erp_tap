@@ -14,6 +14,7 @@ class TerceirizadaController extends Controller
     {
         $terceirizadas = Terceirizada::with('item')->get();
         return view('terceirizadas.index', compact('terceirizadas'));
+        
     }
 public function create()
 {
@@ -80,5 +81,7 @@ public function edit($id)
     $items = Item::where('pedido_id', $pedido_id)->get(['id', 'nomeItem as descricao']); 
     return response()->json($items);
 }
+
+
 
 }

@@ -18,10 +18,11 @@ class Terceirizada extends Model
     }
 
     // Relacionamento com Item
-    public function item()
-    {
-        return $this->belongsTo(Item::class, 'item_id');
-    }
+  public function item()
+{
+    return $this->belongsTo(Item::class, 'item_id', 'id');
+}
+
 
     // Relacionamento indireto com Cliente através do Pedido
     public function cliente()

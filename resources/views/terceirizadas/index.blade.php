@@ -16,16 +16,16 @@
                 <tr>
                     <td>{{ $terceirizada->id }}</td>
                     <td>{{ $terceirizada->tipoServico }}</td>
+<td>
+    {{ $terceirizada->item ? $terceirizada->item->nomeItem : 'Sem item associado' }}
+</td>
                     <td>
-                        {{ $terceirizada->item ? $terceirizada->item->descricao : 'Sem item associado' }}
-                    </td>
-                    <td>
-                        <a href="{{ route('terceirizadas.show', $terceirizada->id) }}">Ver</a>
-                        <a href="{{ route('terceirizadas.edit', $terceirizada->id) }}">Editar</a>
+                        <a href="{{ route('terceirizadas.show', $terceirizada->id) }}"> 👁️ Ver</a>
+                        <a href="{{ route('terceirizadas.edit', $terceirizada->id) }}">✏️ Editar</a>
                         <form action="{{ route('terceirizadas.destroy', $terceirizada->id) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" onclick="return confirm('Deseja excluir este serviço terceirizado?')">Excluir</button>
+                            <button type="submit" onclick="return confirm('Deseja excluir este serviço terceirizado?')">🗑️ Excluir</button>
                         </form>
                     </td>
                 </tr>
