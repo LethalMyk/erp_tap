@@ -8,12 +8,13 @@ return new class extends Migration {
     public function up()
     {
         Schema::create('terceirizadas', function (Blueprint $table) {
-            $table->id();
-            $table->string('tipoServico');
-            $table->text('obs')->nullable();
-            $table->foreignId('item_id');
-            $table->timestamps();
-        });
+           $table->id();
+    $table->enum('tipoServico', ['Impermeabilizar', 'Higienizar', 'Pintar', 'Invernizar', 'Outros']);
+    $table->text('obs')->nullable();
+    $table->unsignedBigInteger('item_id');
+    $table->unsignedBigInteger('pedido_id');
+    $table->timestamps();
+});
     }
 
     public function down()

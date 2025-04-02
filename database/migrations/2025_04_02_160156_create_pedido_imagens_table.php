@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('pedido_imagens', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pedido_id')->constrained('pedidos')->onDelete('cascade'); 
-            $table->string('imagem')->nullable()->change();
+            $table->string('imagem')->nullable();
             $table->timestamps();
         });
     }
