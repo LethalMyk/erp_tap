@@ -47,15 +47,12 @@ public function store(Request $request)
 public function edit($id)
 {
     $terceirizada = Terceirizada::findOrFail($id);
-    
-    // Verifica se a terceirização tem um pedido associado antes de buscar
-    $pedido = null;
-    if ($terceirizada->pedido_id) {
-        $pedido = Pedido::with('items')->find($terceirizada->pedido_id);
-    }
+    $pedidos = Pedido::all(); // Busca todos os pedidos
+    $pedidoSelecionado = Pedido::find($terceirizada->pedido_id); // Obtém o pedido associado
 
-    return view('terceirizadas.edit', compact('terceirizada', 'pedido'));
+    return view('terceirizadas.edit', compact('terceirizada', 'pedidos', 'pedidoSelecionado'));
 }
+
 
 
 
