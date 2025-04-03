@@ -1,7 +1,7 @@
- <x-app-layout>
+<x-app-layout>
     <h1>Criar Pedido</h1>
 
-<form action="{{ route('pedidos.store') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('pedidos.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div>
             <label for="cliente_id">Cliente</label>
@@ -24,10 +24,6 @@
             <input type="text" name="valor" id="valor" required>
         </div>
         <div>
-            <label for="status">Status</label>
-            <input type="text" name="status" id="status" required>
-        </div>
-        <div>
             <label for="obs">Observações</label>
             <textarea name="obs" id="obs"></textarea>
         </div>
@@ -35,10 +31,10 @@
             <label for="prazo">Prazo</label>
             <input type="date" name="prazo" id="prazo" required>
         </div>
-<div>
+        <div>
             <label for="imagens">Anexar Imagens:</label>
-    <input type="file" name="imagens[]" multiple>
-</div>
+            <input type="file" name="imagens[]" multiple>
+        </div>
         <button type="submit">Criar Pedido</button>
     </form>
 </x-app-layout>

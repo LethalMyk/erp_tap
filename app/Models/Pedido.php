@@ -10,7 +10,7 @@ class Pedido extends Model
     use HasFactory;
 
 protected $fillable = [
-    'cliente_id', 'qntItens', 'data', 'valor', 'status', 'obs', 'prazo', 'imagem'
+    'cliente_id', 'qntItens', 'data', 'valor', 'status', 'obs', 'prazo', 'imagem', 'valorResta'
 ];
 
 
@@ -29,4 +29,9 @@ public function items()
     return $this->hasMany(PedidoImagem::class);
 }
   
+   public function pagamentos()
+    {
+        return $this->hasMany(Pagamento::class);
+    }
+    
 }

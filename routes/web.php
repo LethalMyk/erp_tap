@@ -8,12 +8,12 @@ use App\Http\Controllers\ProducaoController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\FinanceiroController;
 use App\Http\Controllers\OutrosController;
-use App\Http\Controllers\PagamentoController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\TerceirizadaController;
 use App\Http\Controllers\ProfissionalController;
 use App\Models\Terceirizada; // Certifique-se de importar o Model
 use App\Http\Controllers\ServicoController;
+use App\Http\Controllers\PagamentoController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -66,6 +66,10 @@ Route::resource('profissional', ProfissionalController::class);
 // Rotas de Servicos
 
 Route::resource('servico', ServicoController::class);
+
+// Rotas de Pagamentos
+
+Route::resource('pagamento', PagamentoController::class);
 
 // Outras rotas de produção, agenda, financeiro e outros
 Route::get('/producao/controle', [ProducaoController::class, 'index'])->name('producao.controle');

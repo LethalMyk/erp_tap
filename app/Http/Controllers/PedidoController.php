@@ -26,34 +26,45 @@ class PedidoController extends Controller
     }
 
     // Método para armazenar um novo pedido
-    public function store(Request $request)
-    {
-        $request->validate([
-            'cliente_id' => 'required|exists:clientes,id',
-            'qntItens' => 'required|integer',
-            'data' => 'required|date',
-            'valor' => 'required|numeric',
-            'status' => 'required|string',
-            'obs' => 'nullable|string',
-            'prazo' => 'required|date',
-            'imagem.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048' // Validação de imagens
-        ]);
+    // Método para armazenar um novo pedido
+public function store(Request $request)
+{
+    $request->validate([
+        'cliente_id' => 'required|exists:clientes,id',
+        'qntItens' => 'required|integer',
+        'data' => 'required|date',
+        'valor' => 'required|numeric',
+        'obs' => 'nullable|string',
+        'prazo' => 'required|date',
+        'imagens.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+    ]);
 
-        $pedido = Pedido::create($request->except('imagem'));
+    // Criar pedido com status "RESTA" e valorResta igual ao valor inicial
+    $pedido = Pedido::create([
+        'cliente_id' => $request->cliente_id,
+        'qntItens' => $request->qntItens,
+        'data' => $request->data,
+        'valor' => $request->valor,
+        'valorResta' => $request->valor, // Definir valorResta igual ao valor inicial
+        'status' => 'RESTA', // Sempre inicia como RESTA
+        'obs' => $request->obs,
+        'prazo' => $request->prazo,
+    ]);
 
-      if ($request->hasFile('imagens')) {
-    foreach ($request->file('imagens') as $imagem) {
-        $path = $imagem->store('pedidos', 'public');
-      \App\Models\PedidoImagem::create([
-    'pedido_id' => $pedido->id,
-    'imagem' => $path
-]);
-
+    // Armazenamento de imagens (se houver)
+    if ($request->hasFile('imagens')) {
+        foreach ($request->file('imagens') as $imagem) {
+            $path = $imagem->store('pedidos', 'public');
+            PedidoImagem::create([
+                'pedido_id' => $pedido->id,
+                'imagem' => $path
+            ]);
+        }
     }
+
+    return redirect()->route('pedidos.index')->with('success', 'Pedido criado com sucesso!');
 }
 
-        return redirect()->route('pedidos.index')->with('success', 'Pedido criado com sucesso!');
-    }
 
     // Método para exibir o formulário de edição de pedido
     public function edit(Pedido $pedido)
