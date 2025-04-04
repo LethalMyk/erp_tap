@@ -14,6 +14,8 @@ use App\Http\Controllers\ProfissionalController;
 use App\Models\Terceirizada; // Certifique-se de importar o Model
 use App\Http\Controllers\ServicoController;
 use App\Http\Controllers\PagamentoController;
+use App\Http\Controllers\FormularioController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -71,20 +73,8 @@ Route::resource('servico', ServicoController::class);
 
 Route::resource('pagamento', PagamentoController::class);
 
-// Outras rotas de produção, agenda, financeiro e outros
-Route::get('/producao/controle', [ProducaoController::class, 'index'])->name('producao.controle');
-Route::get('/producao/relatorios', [ProducaoController::class, 'relatorios'])->name('producao.relatorios');
-
-Route::get('/agenda/logistica', [AgendaController::class, 'logistica'])->name('agenda.logistica');
-Route::get('/agenda/orcamentos', [AgendaController::class, 'orcamentos'])->name('agenda.orcamentos');
-
-Route::get('/financeiro/vencimentos', [FinanceiroController::class, 'vencimentos'])->name('financeiro.vencimentos');
-Route::get('/financeiro/consulta', [FinanceiroController::class, 'consulta'])->name('financeiro.consulta');
-Route::get('/financeiro/recebimento', [FinanceiroController::class, 'recebimento'])->name('financeiro.recebimento');
-
-Route::get('/outros/imper', [OutrosController::class, 'imper'])->name('outros.imper');
-Route::get('/outros/pintura', [OutrosController::class, 'pintura'])->name('outros.pintura');
-Route::get('/outros/fabric', [OutrosController::class, 'fabric'])->name('outros.fabric');
+Route::get('/formulario', [FormularioController::class, 'index'])->name('formulario.index');
+Route::post('/formulario', [FormularioController::class, 'store'])->name('formulario.store');
 
 Route::post('/itens/store', [ItemController::class, 'store'])->name('items.store');
 

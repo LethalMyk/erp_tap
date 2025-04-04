@@ -1,65 +1,83 @@
 <?php
 
-// Controller - app/Http/Controllers/ItemController.php
 namespace App\Http\Controllers;
 
-use App\Models\Item;
+use App\Models\Cliente;
 use App\Models\Pedido;
-use App\Models\Terceirizada;
-
+use App\Models\Item;
+use App\Models\Pagamento;
 use Illuminate\Http\Request;
 
-
-class ItemController extends Controller {
-    public function index() {
-        $items = Item::all();
-        return view('items.index', compact('items'));
-    }
-
-public function create()
+class FormularioController extends Controller
 {
-    $pedidos = Pedido::all(); // Buscar todos os pedidos existentes
-    return view('items.create', compact('pedidos'));
-}
-
-
-public function store(Request $request)
-{
-    $request->validate([
-        'nomeItem' => 'required|string',
-        'material' => 'required|string',
-        'metragem' => 'required|numeric',
-        'especifi' => 'nullable|string',
-        'pedido_id' => 'required|exists:pedidos,id', // Garante que pedido_id está sendo enviado
-    ]);
-
-    Item::create($request->all());
-
-    return redirect()->route('items.index')->with('success', 'Item cadastrado com sucesso!');
-}
-
-
-
-    public function show(Item $item) {
-        return view('items.show', compact('item'));
+    public function index()
+    {
+        return view('formulario');
     }
 
-    public function edit(Item $item) {
-        return view('items.edit', compact('item'));
-    }
-
-    public function update(Request $request, Item $item) {
+    public function store(Request $request)
+    {
+        // ✅ Validação dos dados
         $request->validate([
-            'nomeItem' => 'required',
-            'material' => 'required',
-            'metragem' => 'required|numeric',
+            'cliente.nome' => 'required|string',
+            'cliente.telefone' => 'required|string',
+            'cliente.endereco' => 'required|string',
+            'cliente.cpf' => 'required|string',
+            'cliente.email' => 'required|email',
+            'pedido.data' => 'required|date',
+            'pedido.data_retirada' => 'nullable|date',
+            'pedido.prazo' => 'nullable|date',
+            'pedido.valor' => 'required|numeric',
+            'pedido.valor_resta' => 'required|numeric',
+            'items' => 'required|array',
+            'items.*.nomeItem' => 'required|string',
+            'items.*.material' => 'required|string',
+            'items.*.metragem' => 'required|numeric',
+            'items.*.especifi' => 'nullable|string',
+            'pagamentos' => 'nullable|array',
+            'pagamentos.*.valor' => 'required|numeric',
+            'pagamentos.*.forma' => 'required|string',
+            'pagamentos.*.obs' => 'nullable|string',
         ]);
-        $item->update($request->all());
-        return redirect()->route('items.index')->with('success', 'Item atualizado com sucesso!');
-    }
 
-    public function destroy(Item $item) {
-        $item->delete();
-        return redirect()->route('items.index')->with('success', 'Item excluído com sucesso!');
+        // 1️⃣ Criar Cliente
+        $cliente = Cliente::create([
+            'nome' => $request->input('cliente.nome'),
+            'telefone' => $request->input('cliente.telefone'),
+            'endereco' => $request->input('cliente.endereco'),
+            'cpf' => $request->input('cliente.cpf'),
+            'email' => $request->input('cliente.email'),
+        ]);
+
+        // 2️⃣ Criar Pedido
+        $pedido = Pedido::create([
+            'cliente_id' => $cliente->id,
+            'data' => $request->input('pedido.data'),
+            'data_retirada' => $request->input('pedido.data_retirada'),
+            'prazo' => $request->input('pedido.prazo'),
+            'valor' => $request->input('pedido.valor'),
+            'valor_resta' => $request->input('pedido.valor_resta'),
+        ]);
+
+        // 3️⃣ Criar Itens (com validação)
+            Item::create([
+                'pedido_id' => $pedido->id,
+                'nomeItem' => $itemData['nomeItem'],
+                'material' => $itemData['material'],
+                'metragem' => $itemData['metragem'],
+                'especifi' => $itemData['especifi'] ?? null,
+            ]);
+
+        // 4️⃣ Criar Pagamentos
+        foreach ($request->input('pagamentos', []) as $pagamentoData) {
+            Pagamento::create([
+                'pedido_id' => $pedido->id,
+                'valor' => $pagamentoData['valor'],
+                'forma' => $pagamentoData['forma'],
+                'obs' => $pagamentoData['obs'] ?? null,
+            ]);
+        }
+
+        return redirect()->route('formulario.index')->with('success', 'Formulário salvo com sucesso!');
     }
 }
