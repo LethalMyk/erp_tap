@@ -1,5 +1,6 @@
 
-<form action="{{ route('formulario.store') }}" method="POST">
+<form action="{{ route('formulario.store') }}" method="POST" enctype="multipart/form-data">
+
     @csrf
     
 <h3>Cliente</h3>
@@ -28,6 +29,11 @@
 </div>
     </div>
     <button type="button" onclick="addItem()">+ Adicionar Item</button>
+<br><br>
+    
+    <h3>Imagens do Pedido</h3>
+<input type="file" name="imagens[]" multiple accept="image/*">
+    
 <br><br>
 
 

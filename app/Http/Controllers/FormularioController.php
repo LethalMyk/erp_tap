@@ -7,6 +7,8 @@ use App\Models\Pedido;
 use App\Models\Item;
 use App\Models\Pagamento;
 use Illuminate\Http\Request;
+use App\Models\PedidoImagem;
+use Illuminate\Support\Facades\Storage;
 
 class FormularioController extends Controller
 {
@@ -52,8 +54,28 @@ class FormularioController extends Controller
             ]);
         }
 
+if ($request->hasFile('imagens')) {
+    foreach ($request->file('imagens') as $imagem) {
+        if ($imagem->isValid()) {
+            $path = $imagem->store('pedidos', 'public');
+            PedidoImagem::create([
+                'pedido_id' => $pedido->id,
+                'imagem' => $path
+            ]);
+        } else {
+            dd('Arquivo inválido: ', $imagem);
+        }
+    }
+} else {
+    dd('Nenhuma imagem recebida!');
+}
+
         return redirect()->route('formulario.index')->with('success', 'Formulário salvo com sucesso!');
     }
+
+
+
+
 
     public function index()
     {
