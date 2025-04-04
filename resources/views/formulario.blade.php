@@ -2,7 +2,42 @@
 <form action="{{ route('formulario.store') }}" method="POST" enctype="multipart/form-data">
 
     @csrf
-    
+    <style>
+    .item {
+        margin-bottom: 20px; /* Ajuste o valor conforme necessário */
+        padding: 10px; /* Adiciona padding dentro de cada item */
+        border: 1px solid #ccc; /* Opcional: Adiciona uma borda para destacar o item */
+        border-radius: 5px; /* Opcional: Deixa as bordas arredondadas */
+        background-color: #f9f9f9; /* Opcional: Muda o fundo para um cinza claro */
+    }
+
+    .terceirizada {
+        margin-top: 10px; /* Adiciona espaçamento entre os serviços terceirizados */
+        margin-bottom: 10px; /* Espaçamento após o serviço */
+        padding: 10px;
+        border: 1px solid #ddd;
+        background-color: #f1f1f1;
+        border-radius: 5px;
+    }
+
+    .pagamento {
+        margin-bottom: 15px; /* Espaçamento entre os pagamentos */
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f1f1f1;
+    }
+
+    /* Aumentando o espaçamento do botão "Adicionar" */
+    button {
+        margin-top: 10px; /* Adiciona um pequeno espaço entre o botão e o conteúdo anterior */
+    }
+
+    .terceirizadas-container {
+        margin-top: 10px;
+    }
+</style>
+
 <h3>Cliente</h3>
 <input type="text" name="cliente[nome]" placeholder="Nome do Cliente" required>
 <input type="text" name="cliente[telefone]" placeholder="Telefone" required>
@@ -16,19 +51,28 @@
     <input type="date" name="pedido[prazo]" placeholder="Prazo">
     <input type="number" step="0.01" name="pedido[valor]" placeholder="Valor Total" required>
     <input type="number" step="0.01" name="pedido[valor_resta]" placeholder="Valor Restante">
+<br><br><br>
+    <button type="button" onclick="addItem()">+ Adicionar Item</button>
 
     <h3>Itens</h3>
     <div id="itens">
+        
         <div class="item">
-<input type="text" name="items[0][nomeItem]" />
-<input type="text" name="items[0][material]" placeholder="Material">
-<input type="text" name="items[0][metragem]" placeholder="Metragem">
-<input type="text" name="items[0][especifi]" placeholder="Especificação">
-    <button type="button" onclick="removerItem(this)">Remover</button>
+            <input type="text" name="items[0][nomeItem]" placeholder="Nome do Item" required>
+            <input type="text" name="items[0][material]" placeholder="Material" required>
+            <input type="number" name="items[0][metragem]" placeholder="Metragem" step="0.01" required>
+            <input type="text" name="items[0][especifi]" placeholder="Especificação">
+            <button type="button" onclick="removerItem(this)">Remover Item</button>
 
-</div>
+            <h4>Serviços Terceirizados</h4>
+            <div class="terceirizadas-container" id="terceirizadas-0">
+                <!-- Serviços terceirizados serão adicionados aqui -->
+                <button type="button" onclick="addTerceirizada(0)">+ Adicionar Terceirizadas</button>
+            </div>
+        </div>
     </div>
-    <button type="button" onclick="addItem()">+ Adicionar Item</button>
+
+
 <br><br>
     
     <h3>Imagens do Pedido</h3>
@@ -56,6 +100,7 @@
 <script>
 let itemIndex = 1;
 let pagamentoIndex = 1;
+let terceirizadaIndex = {0: 0}; // Índice para cada item
 
 function addItem() {
     const wrapper = document.getElementById('itens');
@@ -67,8 +112,16 @@ function addItem() {
         <input type="number" name="items[${itemIndex}][metragem]" placeholder="Metragem" step="0.01" required>
         <input type="text" name="items[${itemIndex}][especifi]" placeholder="Especificações">
         <button type="button" onclick="removerItem(this)">Remover</button>
+
+        <h4>Serviços Terceirizados</h4>
+        <div class="terceirizadas-container" id="terceirizadas-${itemIndex}">
+            <!-- Serviços terceirizados serão adicionados aqui -->
+        </div>
+        <button type="button" onclick="addTerceirizada(${itemIndex})">+ Adicionar Terceirizadas</button>
     `;
+
     wrapper.appendChild(newItem);
+    terceirizadaIndex[itemIndex] = 0; // Inicializa contador para terceirizadas
     itemIndex++;
 }
 
@@ -86,11 +139,23 @@ function addPagamento() {
     pagamentoIndex++;
 }
 
+function addTerceirizada(itemIdx) {
+    const container = document.getElementById(`terceirizadas-${itemIdx}`);
+    const newTerceirizada = document.createElement('div');
+    newTerceirizada.classList.add('terceirizada');
+    newTerceirizada.innerHTML = `
+        <input type="text" name="items[${itemIdx}][terceirizadas][${terceirizadaIndex[itemIdx]}][tipo]" placeholder="Tipo de Serviço" required>
+        <input type="text" name="items[${itemIdx}][terceirizadas][${terceirizadaIndex[itemIdx]}][obs]" placeholder="Observação">
+        <button type="button" onclick="removerTerceirizada(this)">Remover</button>
+    `;
+    container.appendChild(newTerceirizada);
+    terceirizadaIndex[itemIdx]++;
+}
+
 function removerItem(button) {
     const wrapper = document.getElementById('itens');
     if (wrapper.children.length > 1) {
-        const item = button.closest('.item');
-        item.remove();
+        button.closest('.item').remove();
     } else {
         alert("Você não pode remover o último item.");
     }
@@ -99,10 +164,13 @@ function removerItem(button) {
 function removerPagamento(button) {
     const wrapper = document.getElementById('pagamentos');
     if (wrapper.children.length > 1) {
-        const pagamento = button.closest('.pagamento');
-        pagamento.remove();
+        button.closest('.pagamento').remove();
     } else {
         alert("Você não pode remover o último pagamento.");
     }
+}
+
+function removerTerceirizada(button) {
+    button.closest('.terceirizada').remove();
 }
 </script>

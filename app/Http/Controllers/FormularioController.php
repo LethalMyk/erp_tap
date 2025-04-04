@@ -6,8 +6,9 @@ use App\Models\Cliente;
 use App\Models\Pedido;
 use App\Models\Item;
 use App\Models\Pagamento;
-use Illuminate\Http\Request;
 use App\Models\PedidoImagem;
+use App\Models\Terceirizada;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class FormularioController extends Controller
@@ -21,7 +22,6 @@ class FormularioController extends Controller
             'endereco' => $request->input('cliente.endereco'),
             'cpf' => $request->input('cliente.cpf'),
             'email' => $request->input('cliente.email'),
-
         ]);
 
         // 2️⃣ Criar Pedido
@@ -34,15 +34,31 @@ class FormularioController extends Controller
             'valor_resta' => $request->input('pedido.valor_resta'),
         ]);
 
-    foreach ($request->input('items', []) as $itemData) {
-    Item::create([
-        'pedido_id' => $pedido->id,
-        'nomeItem' => $itemData['nomeItem'], // <- verifique se no form está exatamente assim
-        'material' => $itemData['material'],
-        'metragem' => $itemData['metragem'],
-        'especifi' => $itemData['especifi'] ?? null,
-    ]);
-}
+        // 3️⃣ Criar Itens e Serviços Terceirizados
+        foreach ($request->input('items', []) as $itemData) {
+            $item = Item::create([
+                'pedido_id' => $pedido->id,
+                'nomeItem' => $itemData['nomeItem'],
+                'material' => $itemData['material'],
+                'metragem' => $itemData['metragem'],
+                'especifi' => $itemData['especifi'] ?? null,
+                
+            ]);
+
+            // Criar Serviços Terceirizados
+            if (!empty($itemData['terceirizadas'])) {
+                foreach ($itemData['terceirizadas'] as $terceirizadaData) {
+                    Terceirizada::create([
+                        'item_id' => $item->id,
+                     'pedido_id' => $pedido->id, // Adicione essa linha caso seja necessário
+                        'tipo' => $terceirizadaData['tipo'],
+                        'obs' => $terceirizadaData['obs'] ?? null,
+                        'statusPg' => 'Pendente', // Ou 'Pago' ou 'Parcial', conforme necessário
+
+                    ]);
+                }
+            }
+        }
 
         // 4️⃣ Criar Pagamentos
         foreach ($request->input('pagamentos', []) as $pagamentoData) {
@@ -54,28 +70,21 @@ class FormularioController extends Controller
             ]);
         }
 
-if ($request->hasFile('imagens')) {
-    foreach ($request->file('imagens') as $imagem) {
-        if ($imagem->isValid()) {
-            $path = $imagem->store('pedidos', 'public');
-            PedidoImagem::create([
-                'pedido_id' => $pedido->id,
-                'imagem' => $path
-            ]);
-        } else {
-            dd('Arquivo inválido: ', $imagem);
+        // 5️⃣ Upload de Imagens
+        if ($request->hasFile('imagens')) {
+            foreach ($request->file('imagens') as $imagem) {
+                if ($imagem->isValid()) {
+                    $path = $imagem->store('pedidos', 'public');
+                    PedidoImagem::create([
+                        'pedido_id' => $pedido->id,
+                        'imagem' => $path
+                    ]);
+                }
+            }
         }
-    }
-} else {
-    dd('Nenhuma imagem recebida!');
-}
 
         return redirect()->route('formulario.index')->with('success', 'Formulário salvo com sucesso!');
     }
-
-
-
-
 
     public function index()
     {
