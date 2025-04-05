@@ -76,6 +76,12 @@ Route::resource('pagamento', PagamentoController::class);
 Route::get('/formulario', [FormularioController::class, 'index'])->name('formulario.index');
 Route::post('/formulario', [FormularioController::class, 'store'])->name('formulario.store');
 
+
+
+Route::get('/pedido/{id}/visualizar', [FormularioController::class, 'visualizar'])->name('pedido.visualizar');
+Route::get('/pedidos/{id}/imprimirviatap', [PedidoController::class, 'imprimir'])->name('pedidos.imprimirviatap');
+
+
 Route::post('/itens/store', [ItemController::class, 'store'])->name('items.store');
 
 require __DIR__.'/auth.php';
