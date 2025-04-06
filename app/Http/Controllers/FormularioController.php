@@ -106,4 +106,16 @@ public function store(Request $request)
     {
         return view('formulario');
     }
+    public function visualizar($id)
+{
+    $pedido = Pedido::with([
+        'cliente',
+        'items.terceirizadas',
+        'pagamentos',
+        'imagens'
+    ])->findOrFail($id);
+
+    return view('viewpedido', compact('pedido'));
+}
+
 }

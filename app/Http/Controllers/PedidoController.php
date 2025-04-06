@@ -124,4 +124,12 @@ public function store(Request $request)
     return redirect()->route('pedidos.show', $pedido->id)->with('success', 'Imagem excluída com sucesso.');
 }
 
+
+public function imprimir($id)
+{
+    $pedido = Pedido::with(['cliente', 'items.terceirizadas', 'pagamentos', 'imagens'])->findOrFail($id);
+    return view('pedidos.imprimirviatap', compact('pedido'));
+}
+
+
 }

@@ -15,4 +15,11 @@ class Item extends Model {
     return $this->belongsTo(Pedido::class);
 }
 
+
+
+public function terceirizadas()
+{
+    return $this->hasMany(Terceirizada::class, 'item_id', 'id');
+}
+
 }
