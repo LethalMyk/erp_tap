@@ -16,24 +16,17 @@
 <br><br><br>
 
 <h3>Itens</h3>
-<<<<<<< HEAD
-
-=======
->>>>>>> b0b6b4fda2e00297c9be5a44b4c237f1b85a009e
 <div id="itens">
     
     <div class="item">
         <input type="text" name="items[0][nomeItem]" placeholder="Nome do Item" required>
         <input type="text" name="items[0][material]" placeholder="Material" required>
         <input type="number" name="items[0][metragem]" placeholder="Metragem" step="0.01" required>
-<<<<<<< HEAD
         <select name="items[0][material_disponib]" required>
     <option value="Pedir" selected>Pedir</option>
     <option value="Complementar">Complementar</option>
     <option value="TM">TM</option>
 </select>
-=======
->>>>>>> b0b6b4fda2e00297c9be5a44b4c237f1b85a009e
         <input type="text" name="items[0][especifi]" placeholder="Especificação">
         <button type="button" onclick="removerItem(this)">Remover Item</button>
         
@@ -298,8 +291,4 @@ function removerTerceirizada(button) {
             padding: 12px;
             border-radius: 5px;
             color: white;
-<<<<<<< HEAD
-            font-size: 1.2
-=======
-            font-size: 1.2
->>>>>>> b0b6b4fda2e00297c9be5a44b4c237f1b85a009e
+            font-size: 1.2}
