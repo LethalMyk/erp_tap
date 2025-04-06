@@ -1,43 +1,7 @@
-
 <form action="{{ route('formulario.store') }}" method="POST" enctype="multipart/form-data">
 
     @csrf
-    <style>
-    .item {
-        margin-bottom: 20px; /* Ajuste o valor conforme necessário */
-        padding: 10px; /* Adiciona padding dentro de cada item */
-        border: 1px solid #ccc; /* Opcional: Adiciona uma borda para destacar o item */
-        border-radius: 5px; /* Opcional: Deixa as bordas arredondadas */
-        background-color: #f9f9f9; /* Opcional: Muda o fundo para um cinza claro */
-    }
-
-    .terceirizada {
-        margin-top: 10px; /* Adiciona espaçamento entre os serviços terceirizados */
-        margin-bottom: 10px; /* Espaçamento após o serviço */
-        padding: 10px;
-        border: 1px solid #ddd;
-        background-color: #f1f1f1;
-        border-radius: 5px;
-    }
-
-    .pagamento {
-        margin-bottom: 15px; /* Espaçamento entre os pagamentos */
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        background-color: #f1f1f1;
-    }
-
-    /* Aumentando o espaçamento do botão "Adicionar" */
-    button {
-        margin-top: 10px; /* Adiciona um pequeno espaço entre o botão e o conteúdo anterior */
-    }
-
-    .terceirizadas-container {
-        margin-top: 10px;
-    }
-</style>
-
+    
 <h3>Cliente</h3>
 <input type="text" name="cliente[nome]" placeholder="Nome do Cliente" required>
 <input type="text" name="cliente[telefone]" placeholder="Telefone" required>
@@ -45,32 +9,36 @@
 <input type="text" name="cliente[cpf]" placeholder="CPF" required>
 <input type="email" name="cliente[email]" placeholder="E-mail" required>
 
-    <h3>Pedido</h3>
+    <h3>Datas e Prazos</h3>
     <input type="date" name="pedido[data]" placeholder="Data do Pedido" required>
     <input type="date" name="pedido[data_retirada]" placeholder="Data de Retirada">
     <input type="date" name="pedido[prazo]" placeholder="Prazo">
-    <input type="number" step="0.01" name="pedido[valor]" placeholder="Valor Total" required>
-    <input type="number" step="0.01" name="pedido[valor_resta]" placeholder="Valor Restante">
 <br><br><br>
-    <button type="button" onclick="addItem()">+ Adicionar Item</button>
 
-    <h3>Itens</h3>
-    <div id="itens">
+<h3>Itens</h3>
+
+<div id="itens">
+    
+    <div class="item">
+        <input type="text" name="items[0][nomeItem]" placeholder="Nome do Item" required>
+        <input type="text" name="items[0][material]" placeholder="Material" required>
+        <input type="number" name="items[0][metragem]" placeholder="Metragem" step="0.01" required>
+        <select name="items[0][material_disponib]" required>
+    <option value="Pedir" selected>Pedir</option>
+    <option value="Complementar">Complementar</option>
+    <option value="TM">TM</option>
+</select>
+        <input type="text" name="items[0][especifi]" placeholder="Especificação">
+        <button type="button" onclick="removerItem(this)">Remover Item</button>
         
-        <div class="item">
-            <input type="text" name="items[0][nomeItem]" placeholder="Nome do Item" required>
-            <input type="text" name="items[0][material]" placeholder="Material" required>
-            <input type="number" name="items[0][metragem]" placeholder="Metragem" step="0.01" required>
-            <input type="text" name="items[0][especifi]" placeholder="Especificação">
-            <button type="button" onclick="removerItem(this)">Remover Item</button>
-
-            <h4>Serviços Terceirizados</h4>
-            <div class="terceirizadas-container" id="terceirizadas-0">
-                <!-- Serviços terceirizados serão adicionados aqui -->
-                <button type="button" onclick="addTerceirizada(0)">+ Adicionar Terceirizadas</button>
-            </div>
+        <h4>Serviços Terceirizados</h4>
+        <div class="terceirizadas-container" id="terceirizadas-0">
+            <!-- Serviços terceirizados serão adicionados aqui -->
+            <button type="button" onclick="addTerceirizada(0)">+ Adicionar Terceirizadas</button>
         </div>
     </div>
+</div>
+<button type="button" onclick="addItem()">+ Adicionar Item</button>
 
 
 <br><br>
@@ -81,11 +49,25 @@
 <br><br>
 
 
+<h3>Resumo Final</h3>
+    <input type="number" step="0.01" name="pedido[valor]" placeholder="Valor Total" required>
+
+
 <h3>Pagamentos</h3>
 <div id="pagamentos">
     <div class="pagamento">
         <input type="number" step="0.01" name="pagamentos[0][valor]" placeholder="Valor">
-        <input type="text" name="pagamentos[0][forma]" placeholder="Forma de Pagamento">
+<select name="pagamentos[0][forma]" required>
+    <option value="">Selecione</option>
+    <option value="PIX">PIX</option>
+    <option value="DEBITO">DEBITO</option>
+    <option value="DINHEIRO">DINHEIRO</option>
+    <option value="CREDITO À VISTA">CREDITO À VISTA</option>
+    <option value="CREDITO PARCELADO">CREDITO PARCELADO</option>
+    <option value="BOLETO">BOLETO</option>
+    <option value="CHEQUE">CHEQUE</option>
+    <option value="OUTROS">OUTROS</option>
+</select>
         <input type="text" name="pagamentos[0][obs]" placeholder="Observação">
             <button type="button" onclick="removerPagamento(this)">Remover</button>
 
@@ -110,6 +92,12 @@ function addItem() {
         <input type="text" name="items[${itemIndex}][nomeItem]" placeholder="Nome do Item" required>
         <input type="text" name="items[${itemIndex}][material]" placeholder="Material" required>
         <input type="number" name="items[${itemIndex}][metragem]" placeholder="Metragem" step="0.01" required>
+        <select name="items[${itemIndex}][material_disponib]" required>
+    <option value="Pedir" selected>Pedir</option>
+    <option value="Complementar">Complementar</option>
+    <option value="TM">TM</option>
+</select>
+
         <input type="text" name="items[${itemIndex}][especifi]" placeholder="Especificações">
         <button type="button" onclick="removerItem(this)">Remover</button>
 
@@ -131,7 +119,17 @@ function addPagamento() {
     newPagamento.classList.add('pagamento');
     newPagamento.innerHTML = `
         <input type="number" step="0.01" name="pagamentos[${pagamentoIndex}][valor]" placeholder="Valor" required>
-        <input type="text" name="pagamentos[${pagamentoIndex}][forma]" placeholder="Forma de Pagamento" required>
+<select name="pagamentos[${pagamentoIndex}][forma]" required>
+    <option value="">Selecione</option>
+    <option value="PIX">PIX</option>
+    <option value="DEBITO">DEBITO</option>
+    <option value="DINHEIRO">DINHEIRO</option>
+    <option value="CREDITO À VISTA">CREDITO À VISTA</option>
+    <option value="CREDITO PARCELADO">CREDITO PARCELADO</option>
+    <option value="BOLETO">BOLETO</option>
+    <option value="CHEQUE">CHEQUE</option>
+    <option value="OUTROS">OUTROS</option>
+</select>
         <input type="text" name="pagamentos[${pagamentoIndex}][obs]" placeholder="Observação">
         <button type="button" onclick="removerPagamento(this)">Remover</button>
     `;
@@ -174,3 +172,124 @@ function removerTerceirizada(button) {
     button.closest('.terceirizada').remove();
 }
 </script>
+<form action="{{ route('formulario.store') }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fc;
+            margin: 0;
+            padding: 0;
+        }
+
+        form {
+            width: 60%;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h3 {
+            color: #333;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        input[type="date"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 15px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="file"]:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .item, .pagamento, .terceirizada {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            transition: all 0.3s;
+        }
+
+        .item:hover,
+        .pagamento:hover,
+        .terceirizada:hover {
+            border-color: #4CAF50;
+        }
+
+        .item input,
+        .pagamento input {
+            width: calc(100% - 22px); /* Ajuste para o padding */
+            margin-bottom: 10px;
+        }
+
+        .terceirizada input {
+            width: calc(100% - 32px); /* Ajuste para o padding do botão */
+        }
+
+        .terceirizadas-container {
+            margin-top: 10px;
+        }
+
+        .terceirizada button,
+        .item button,
+        .pagamento button {
+            background-color: #f44336;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: white;
+            font-size: 0.9em;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s;
+        }
+
+        .terceirizada button:hover,
+        .item button:hover,
+        .pagamento button:hover {
+            background-color: #e53935;
+        }
+
+        .terceirizadas-container {
+            margin-top: 15px;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            background-color: #2196F3;
+            padding: 12px;
+            border-radius: 5px;
+            color: white;
+            font-size: 1.2

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Item extends Model {
     use HasFactory;
-    protected $fillable = ['nomeItem', 'material', 'metragem', 'especifi', 'pedido_id']; // Adicione pedido_id
+    protected $fillable = ['nomeItem', 'material', 'metragem', 'especifi', 'pedido_id', 'material_disponib',]; // Adicione pedido_id
 
    public function pedido()
 {

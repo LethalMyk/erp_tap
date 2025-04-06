@@ -14,7 +14,9 @@ class CreatePedidosTable extends Migration
         $table->integer('qntItens');
         $table->date('data');
         $table->decimal('valor', 10, 2); // Valor do pedido
-        $table->string('status');
+        $table->decimal('valorResta', 10, 2)->nullable();
+        $table->string('status')->nullable();
+        $table->string('andamento')->nullable();
         $table->text('obs')->nullable(); // Observações do pedido
         $table->date('prazo');
         $table->string('imagem'); // Caminho do arquivo
