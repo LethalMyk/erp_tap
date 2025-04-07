@@ -14,6 +14,7 @@ class Servico extends Model
     protected $fillable = [
         'profissional_id',
         'pedido_id',
+        'codigo_servico',
         'data_inicio',
         'data_termino',
         'dificuldade',

@@ -9,5 +9,5 @@ class Profissional extends Model
 {
     use HasFactory;
     protected $table = 'profissional'; // Força o nome correto da tabela
-    protected $fillable = ['nome', 'cargo'];
+    protected $fillable = ['id', 'nome', 'cargo'];
 }
