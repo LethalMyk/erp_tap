@@ -32,7 +32,7 @@
                         @endif
                     </td>
                     <td>
-                        <a href="{{ route('pedidos.show', $pedido->id) }}">Ver</a>
+                        <a href="{{ route('pedido.visualizar', $pedido->id) }}">Ver</a>
                         <a href="{{ route('pedidos.edit', $pedido->id) }}">Editar</a>
                     </td>
                 </tr>

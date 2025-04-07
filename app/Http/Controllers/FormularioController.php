@@ -10,10 +10,13 @@ use App\Models\PedidoImagem;
 use App\Models\Terceirizada;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Servico;
+use App\Models\Profissional;
 
 class FormularioController extends Controller
 {
 public function store(Request $request)
+
 {
     // Valor total do pedido (já vem do formulário)
     $valorTotal = floatval($request->input('pedido.valor'));
@@ -99,12 +102,24 @@ public function store(Request $request)
         }
     }
 
+    // Criar o serviço associado
+    $servico = new Servico();
+    $servico->pedido_id = $pedido->id;
+    $servico->codigo_servico = 'O.S' . $pedido->id;
+$tapeceiroId = $request->input('pedido.tapeceiro'); // Aqui define a variável
+
+$servico->profissional_id = $tapeceiroId ?: null; // Se não veio nada, salva como null
+    
+    // ... outros campos do serviço que você quiser preencher
+    $servico->save();
+
     return redirect()->route('formulario.index')->with('success', 'Formulário salvo com sucesso!');
 }
 
     public function index()
     {
-        return view('formulario');
+$profissionais = Profissional::orderBy('nome')->get();
+    return view('formulario', compact('profissionais'));
     }
     public function visualizar($id)
 {

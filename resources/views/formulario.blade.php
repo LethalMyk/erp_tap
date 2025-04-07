@@ -47,6 +47,14 @@
     
 <br><br>
 
+<label for="tapeceiro">Tapeceiro:</label>
+<select name="pedido[tapeceiro]" id="tapeceiro" class="form-control">
+<option value="">Distribuir</option>
+    @foreach($profissionais as $prof)
+        <option value="{{ $prof->id }}">{{ $prof->nome }}</option>
+    @endforeach
+</select>
+
 
 <h3>Resumo Final</h3>
     <input type="number" step="0.01" name="pedido[valor]" placeholder="Valor Total" required>

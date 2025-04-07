@@ -9,13 +9,16 @@ return new class extends Migration {
     {
         Schema::create('servicos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('profissional_id')->constrained('profissional')->onDelete('cascade');
-            $table->foreignId('pedido_id')->constrained('pedidos')->onDelete('cascade');
-            $table->date('data_inicio');
+            $table->string('codigo_servico')->unique();
+            $table->foreignId('profissional_id')->nullable()    ->constrained('profissional')->onDelete('cascade');
+            $table->foreignId('pedido_id')->nullable()->constrained('pedidos')->onDelete('cascade');
+            $table->date('data_inicio')->nullable();
             $table->date('data_termino')->nullable();
-            $table->string('dificuldade');
+            $table->string('dificuldade')->nullable();
             $table->date('data_previsao')->nullable();
-            $table->text('obs')->nullable();
+            $table->text('obs')->nullable()->nullable();
+            
+
             $table->timestamps();
         });
     }

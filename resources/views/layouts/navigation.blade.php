@@ -28,10 +28,14 @@
                         </x-slot>
 
                         <x-slot name="content">
-                            <x-dropdown-link :href="route('pedidos.create')">
+                            <x-dropdown-link :href="route('formulario.index')">
                                 {{ __('Novo Pedido') }}
                             </x-dropdown-link>
+                            <x-dropdown-link :href="route('pedidos.index')">
+                                {{ __('Lista de Pedidos') }}
+                            </x-dropdown-link>
                         </x-slot>
+                         
                     </x-dropdown>
 
                      <!-- Dropdown de Produção -->
