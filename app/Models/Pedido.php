@@ -34,4 +34,8 @@ public function items()
         return $this->hasMany(Pagamento::class);
     }
     
+    public function servicos()
+{
+    return $this->hasMany(Servico::class);
+}
 }

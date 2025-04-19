@@ -10,4 +10,8 @@ class Profissional extends Model
     use HasFactory;
     protected $table = 'profissional'; // Força o nome correto da tabela
     protected $fillable = ['nome', 'cargo'];
+    public function servicos()
+{
+    return $this->hasMany(Servico::class);
+}
 }

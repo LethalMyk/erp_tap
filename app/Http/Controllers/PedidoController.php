@@ -12,11 +12,14 @@ use App\Models\Terceirizada;
 class PedidoController extends Controller
 {
     // Método para exibir a lista de pedidos
-    public function index()
-    {
-        $pedidos = Pedido::with(['cliente', 'imagens'])->get();
-        return view('pedidos.index', compact('pedidos'));
-    }
+   public function index()
+{
+    // Carregar pedidos com cliente, imagens, serviços e profissionais
+    $pedidos = Pedido::with(['cliente', 'imagens', 'servicos.profissional'])->get();
+    
+    return view('pedidos.index', compact('pedidos'));
+}
+
 
     // Método para exibir o formulário de criação de pedido
     public function create()

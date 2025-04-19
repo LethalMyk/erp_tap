@@ -13,6 +13,7 @@ class ServicoController extends Controller
     {
         $servicos = Servico::with('profissional', 'pedido')->get();
         return view('servico.index', compact('servicos'));
+        
     }
 
     public function create()
