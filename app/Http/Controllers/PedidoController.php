@@ -12,13 +12,61 @@ use App\Models\Terceirizada;
 class PedidoController extends Controller
 {
     // Método para exibir a lista de pedidos
-   public function index()
+public function index(Request $request)
 {
-    // Carregar pedidos com cliente, imagens, serviços e profissionais
-    $pedidos = Pedido::with(['cliente', 'imagens', 'servicos.profissional'])->get();
-    
-    return view('pedidos.index', compact('pedidos'));
+    // Captura os filtros da requisição
+    $id = $request->input('id');
+    $clienteNome = $request->input('cliente_nome');
+    $endereco = $request->input('endereco');
+    $telefone = $request->input('telefone');
+    $data = $request->input('data');
+    $andamento = $request->input('andamento');
+    $tapeceiro = $request->input('tapeceiro');
+
+    // Carregar pedidos com filtros aplicados
+    $pedidos = Pedido::with(['cliente', 'imagens', 'servicos.profissional'])
+        ->when($id, function($query) use ($id) {
+            // Filtro por ID do pedido
+            return $query->where('id', $id);
+        })
+        ->when($clienteNome, function($query) use ($clienteNome) {
+            // Filtro por nome do cliente
+            return $query->whereHas('cliente', function($query) use ($clienteNome) {
+                $query->where('nome', 'like', '%' . $clienteNome . '%');
+            });
+        })
+        ->when($endereco, function($query) use ($endereco) {
+            // Filtro por endereço do cliente
+            return $query->whereHas('cliente', function($query) use ($endereco) {
+                $query->where('endereco', 'like', '%' . $endereco . '%');
+            });
+        })
+        ->when($telefone, function($query) use ($telefone) {
+            // Filtro por telefone do cliente
+            return $query->whereHas('cliente', function($query) use ($telefone) {
+                $query->where('telefone', 'like', '%' . $telefone . '%');
+            });
+        })
+        ->when($data, function($query) use ($data) {
+            // Filtro por data do pedido
+            return $query->whereDate('data', $data);
+        })
+        ->when($andamento, function($query) use ($andamento) {
+            // Filtro por andamento do pedido
+            return $query->where('status', 'like', '%' . $andamento . '%');
+        })
+        ->when($tapeceiro, function($query) use ($tapeceiro) {
+            // Filtro por tapeceiro (profissional)
+            return $query->whereHas('servicos.profissional', function($query) use ($tapeceiro) {
+                $query->where('nome', 'like', '%' . $tapeceiro . '%');
+            });
+        })
+        ->get();
+
+    // Passa os filtros e pedidos para a view
+    return view('pedidos.index', compact('pedidos', 'id', 'clienteNome', 'endereco', 'telefone', 'data', 'andamento', 'tapeceiro'));
 }
+
 
 
     // Método para exibir o formulário de criação de pedido

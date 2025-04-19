@@ -2,6 +2,24 @@
     <div class="container">
         <h1 class="page-title">Lista de Pedidos</h1>
         <a href="{{ route('formulario.index') }}" class="btn-create">Criar Pedido</a>
+        <br><br>        <br><br>
+
+
+        <!-- Formulário de Filtros -->
+        <form action="{{ route('pedidos.index') }}" method="GET" class="mb-4">
+            <button type="submit" class="btn-filter">Filtrar</button>
+            
+                 <a href="{{ route('pedidos.index') }}" class="btn-clear">Limpar Filtros</a>
+            <div class="filters">
+                <input type="text" name="id" value="{{ $id }}" placeholder="Filtrar por ID" class="filter-input">
+                <input type="text" name="cliente_nome" value="{{ $clienteNome }}" placeholder="Filtrar por Nome do Cliente" class="filter-input">
+                <input type="text" name="endereco" value="{{ $endereco }}" placeholder="Filtrar por Endereço" class="filter-input">
+                <input type="text" name="telefone" value="{{ $telefone }}" placeholder="Filtrar por Telefone" class="filter-input">
+                <input type="date" name="data" value="{{ $data }}" class="filter-input">
+                <input type="text" name="andamento" value="{{ $andamento }}" placeholder="Filtrar por Andamento" class="filter-input">
+                <input type="text" name="tapeceiro" value="{{ $tapeceiro }}" placeholder="Filtrar por Tapeceiro" class="filter-input">
+            </div>
+        </form>
 
         <div class="table-container">
             <table>
@@ -44,8 +62,7 @@
                                     <span class="text-gray-400 italic">Sem imagens</span>
                                 @endif
                             </td>
-                            <td>{{ $pedido->status }}</td>
-
+                            <td>{{ $pedido->andamento }}</td>
                             <td>
                                 @if($pedido->servicos->count())
                                     @foreach($pedido->servicos as $servico)
@@ -55,7 +72,6 @@
                                     'Profissional não encontrado'
                                 @endif
                             </td>
-
                             <td>{{ $pedido->status }}</td>
                             <td>
                                 <div class="action-buttons">
@@ -127,6 +143,43 @@
 
         .btn-create:hover {
             background-color: #218838;
+        }
+
+        .filters {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .filter-group input, .filter-group select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        .btn-filter {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-filter:hover {
+            background-color: #0056b3;
         }
 
         .table-container {
