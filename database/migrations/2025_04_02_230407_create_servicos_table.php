@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('servicos', function (Blueprint $table) {
             $table->id();
             $table->string('codigo_servico')->unique();
-            $table->foreignId('profissional_id')->nullable()    ->constrained('profissional')->onDelete('cascade');
+            $table->foreignId('profissional_id')->nullable();
             $table->foreignId('pedido_id')->nullable()->constrained('pedidos')->onDelete('cascade');
             $table->date('data_inicio')->nullable();
             $table->date('data_termino')->nullable();

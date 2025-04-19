@@ -52,7 +52,7 @@ public function store(Request $request)
         'valorResta' => $valorTotal - $totalPago,
         'qntItens' => $qntItens,
         'status' => $status, // ⬅️ aqui adiciona o status calculado
-         'andamento' => 'RETIRAR',  // Definindo o valor padrão 'retirar' para a coluna 'andamento'
+        'andamento' => 'Retirar',  // Definindo o valor padrão 'retirar' para a coluna 'andamento'
     ]);
 
     // 3️⃣ Criar Itens e Serviços Terceirizados
