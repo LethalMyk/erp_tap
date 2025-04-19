@@ -53,14 +53,15 @@ class ServicoController extends Controller
 
     public function update(Request $request, Servico $servico)
     {
-        $request->validate([
-            'profissional_id' => 'required|exists:profissional,id',
-            'pedido_id' => 'required|exists:pedidos,id',
-            'data_inicio' => 'required|date',
-            'dificuldade' => 'required|string',
-            'data_previsao' => 'nullable|date',
-            'obs' => 'nullable|string',
-        ]);
+       $request->validate([
+    'profissional_id' => 'required|exists:profissional,id', // <- CORRETO
+    'pedido_id' => 'required|exists:pedidos,id',
+    'data_inicio' => 'required|date',
+    'dificuldade' => 'required|string',
+    'data_previsao' => 'nullable|date',
+    'obs' => 'nullable|string',
+]);
+
 
         $servico->update($request->all());
 

@@ -4,6 +4,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Pedido;
+use App\Models\Servico;
 
 class Pedido extends Model
 {
@@ -33,9 +34,15 @@ public function items()
     {
         return $this->hasMany(Pagamento::class);
     }
+<<<<<<< HEAD
     
     public function servicos()
 {
     return $this->hasMany(Servico::class);
+=======
+   public function servico()
+{
+    return $this->hasOne(Servico::class);
+>>>>>>> 584ccf135e8a120770c8fde68cc414c3886ccea4
 }
 }

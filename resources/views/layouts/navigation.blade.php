@@ -31,11 +31,17 @@
                             <x-dropdown-link :href="route('formulario.index')">
                                 {{ __('Novo Pedido') }}
                             </x-dropdown-link>
+<<<<<<< HEAD
                             
                             <x-dropdown-link :href="route('pedidos.store')">
                                 {{ __('Lista Pedidos') }}
+=======
+                            <x-dropdown-link :href="route('pedidos.index')">
+                                {{ __('Lista de Pedidos') }}
+>>>>>>> 584ccf135e8a120770c8fde68cc414c3886ccea4
                             </x-dropdown-link>
                         </x-slot>
+                         
                     </x-dropdown>
 
                     
