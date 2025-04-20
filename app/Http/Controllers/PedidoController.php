@@ -183,11 +183,28 @@ public function store(Request $request)
 }
 
 
-public function imprimir($id)
-{
-    $pedido = Pedido::with(['cliente', 'items.terceirizadas', 'pagamentos', 'imagens'])->findOrFail($id);
-    return view('pedidos.imprimirviatap', compact('pedido'));
-}
+    // Impressão da via padrão TAP
+    public function imprimir($id)
+    {
+        $pedido = Pedido::with(['cliente', 'items.terceirizadas', 'pagamentos', 'imagens'])->findOrFail($id);
+        return view('pedidos.imprimirviatap', compact('pedido'));
+    }
+
+    // Impressão de cada via individualmente
+    public function imprimirViaCompleta(Pedido $pedido)
+    {
+        return view('pedidos.impressoes.viacompleta', compact('pedido'));
+    }
+
+    public function imprimirViaSimplificada(Pedido $pedido)
+    {
+        return view('pedidos.impressoes.viasimplificada', compact('pedido'));
+    }
+
+    public function imprimirViaRetirada(Pedido $pedido)
+    {
+        return view('pedidos.impressoes.viaretirada', compact('pedido'));
+    }
 
 
 }

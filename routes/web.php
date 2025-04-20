@@ -84,4 +84,10 @@ Route::get('/pedidos/{id}/imprimirviatap', [PedidoController::class, 'imprimir']
 
 Route::post('/itens/store', [ItemController::class, 'store'])->name('items.store');
 
+
+Route::get('/pedidos/{id}/viacompleta', [PedidoController::class, 'viacompleta'])->name('pedidos.viacompleta');
+Route::get('/pedidos/{id}/viasimplificada', [PedidoController::class, 'viasimplificada'])->name('pedidos.viasimplificada');
+Route::get('/pedidos/{id}/viaretirada', [PedidoController::class, 'viaretirada'])->name('pedidos.viaretirada');
+
+
 require __DIR__.'/auth.php';
