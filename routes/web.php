@@ -79,15 +79,13 @@ Route::post('/formulario', [FormularioController::class, 'store'])->name('formul
 
 
 Route::get('/pedido/{id}/visualizar', [FormularioController::class, 'visualizar'])->name('pedido.visualizar');
-Route::get('/pedidos/{id}/imprimirviatap', [PedidoController::class, 'imprimir'])->name('pedidos.imprimirviatap');
-
+Route::get('/pedidos/{id}/imprimirviatap', [PedidoController::class, 'imprimirviatap'])->name('pedidos.imprimirviatap');
+Route::get('/pedidos/{id}/imprimirviaretirada', [PedidoController::class, 'imprimirviaretirada'])->name('pedidos.imprimirviaretirada');
+Route::get('/pedidos/{id}/imprimirviacompleta', [PedidoController::class, 'imprimirviacompleta'])->name('pedidos.imprimirviacompleta');
 
 Route::post('/itens/store', [ItemController::class, 'store'])->name('items.store');
 
 
-Route::get('/pedidos/{id}/viacompleta', [PedidoController::class, 'viacompleta'])->name('pedidos.viacompleta');
-Route::get('/pedidos/{id}/viasimplificada', [PedidoController::class, 'viasimplificada'])->name('pedidos.viasimplificada');
-Route::get('/pedidos/{id}/viaretirada', [PedidoController::class, 'viaretirada'])->name('pedidos.viaretirada');
 
 
 require __DIR__.'/auth.php';

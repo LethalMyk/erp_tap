@@ -184,27 +184,27 @@ public function store(Request $request)
 
 
     // Impressão da via padrão TAP
-    public function imprimir($id)
+    public function imprimirviatap($id)
     {
         $pedido = Pedido::with(['cliente', 'items.terceirizadas', 'pagamentos', 'imagens'])->findOrFail($id);
-        return view('pedidos.imprimirviatap', compact('pedido'));
+        return view('pedidos.vias.imprimirviatap', compact('pedido'));
     }
 
-    // Impressão de cada via individualmente
-    public function imprimirViaCompleta(Pedido $pedido)
+ // Impressão da via padrão Retirada
+    public function imprimirviaretirada($id)
     {
-        return view('pedidos.impressoes.viacompleta', compact('pedido'));
+        $pedido = Pedido::with(['cliente', 'items.terceirizadas', 'pagamentos', 'imagens'])->findOrFail($id);
+        return view('pedidos.vias.imprimirviaretirada', compact('pedido'));
     }
 
-    public function imprimirViaSimplificada(Pedido $pedido)
+        public function imprimirviacompleta($id)
     {
-        return view('pedidos.impressoes.viasimplificada', compact('pedido'));
+        $pedido = Pedido::with(['cliente', 'items.terceirizadas', 'pagamentos', 'imagens'])->findOrFail($id);
+        return view('pedidos.vias.imprimirviacompleta', compact('pedido'));
     }
-
-    public function imprimirViaRetirada(Pedido $pedido)
+      public function imprimirviasimplificada($id)
     {
-        return view('pedidos.impressoes.viaretirada', compact('pedido'));
+        $pedido = Pedido::with(['cliente', 'items.terceirizadas', 'pagamentos', 'imagens'])->findOrFail($id);
+        return view('pedidos.vias.imprimirviasimplificada', compact('pedido'));
     }
-
-
 }
