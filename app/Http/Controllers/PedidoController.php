@@ -22,49 +22,55 @@ public function index(Request $request)
     $data = $request->input('data');
     $andamento = $request->input('andamento');
     $tapeceiro = $request->input('tapeceiro');
+    $mes = $request->input('mes'); // Filtro de mês agora incluído
 
     // Carregar pedidos com filtros aplicados
     $pedidos = Pedido::with(['cliente', 'imagens', 'servicos.profissional'])
         ->when($id, function($query) use ($id) {
-            // Filtro por ID do pedido
             return $query->where('id', $id);
         })
         ->when($clienteNome, function($query) use ($clienteNome) {
-            // Filtro por nome do cliente
             return $query->whereHas('cliente', function($query) use ($clienteNome) {
                 $query->where('nome', 'like', '%' . $clienteNome . '%');
             });
         })
         ->when($endereco, function($query) use ($endereco) {
-            // Filtro por endereço do cliente
             return $query->whereHas('cliente', function($query) use ($endereco) {
                 $query->where('endereco', 'like', '%' . $endereco . '%');
             });
         })
         ->when($telefone, function($query) use ($telefone) {
-            // Filtro por telefone do cliente
             return $query->whereHas('cliente', function($query) use ($telefone) {
                 $query->where('telefone', 'like', '%' . $telefone . '%');
             });
         })
         ->when($data, function($query) use ($data) {
-            // Filtro por data do pedido
             return $query->whereDate('data', $data);
         })
         ->when($andamento, function($query) use ($andamento) {
-            // Filtro por andamento do pedido
-            return $query->where('status', 'like', '%' . $andamento . '%');
+            if (is_array($andamento)) {
+                return $query->whereIn('andamento', $andamento);
+            } else {
+                return $query->where('andamento', 'like', '%' . $andamento . '%');
+            }
         })
         ->when($tapeceiro, function($query) use ($tapeceiro) {
-            // Filtro por tapeceiro (profissional)
             return $query->whereHas('servicos.profissional', function($query) use ($tapeceiro) {
                 $query->where('nome', 'like', '%' . $tapeceiro . '%');
+            });
+        })
+        ->when($mes, function($query) use ($mes) {
+            // Filtro de mês no data_termino dos serviços
+            return $query->whereHas('servicos', function($query) use ($mes) {
+                return $query->whereMonth('data_termino', '=', $mes);
             });
         })
         ->get();
 
     // Passa os filtros e pedidos para a view
-    return view('pedidos.index', compact('pedidos', 'id', 'clienteNome', 'endereco', 'telefone', 'data', 'andamento', 'tapeceiro'));
+    return view('pedidos.index', compact(
+        'pedidos', 'id', 'clienteNome', 'endereco', 'telefone', 'data', 'andamento', 'tapeceiro', 'mes'
+    ));
 }
 
 
@@ -100,6 +106,7 @@ public function store(Request $request)
         'status' => 'RESTA', // Sempre inicia como RESTA
         'obs' => $request->obs,
         'prazo' => $request->prazo,
+        'andamento' => 'Retirar', // Sempre inicia como RESTA
     ]);
 
     // Armazenamento de imagens (se houver)
