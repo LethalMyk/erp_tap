@@ -15,6 +15,8 @@ use App\Models\Terceirizada; // Certifique-se de importar o Model
 use App\Http\Controllers\ServicoController;
 use App\Http\Controllers\PagamentoController;
 use App\Http\Controllers\FormularioController;
+use App\Http\Controllers\PesquisarController;
+use App\Http\Controllers\AgendamentoController;
 
 
 Route::get('/', function () {
@@ -86,6 +88,10 @@ Route::get('/pedidos/{id}/imprimirviacompleta', [PedidoController::class, 'impri
 Route::post('/itens/store', [ItemController::class, 'store'])->name('items.store');
 
 
+
+
+Route::resource('agendamentos', AgendamentoController::class);
+Route::get('/calendario', [App\Http\Controllers\AgendamentoController::class, 'calendario'])->name('agendamentos.calendario');
 
 
 require __DIR__.'/auth.php';

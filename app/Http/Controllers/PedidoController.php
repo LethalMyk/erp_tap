@@ -8,6 +8,8 @@ use App\Models\PedidoImagem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Terceirizada;
+use App\Models\Agendamento;
+
 
 class PedidoController extends Controller
 {
@@ -119,6 +121,19 @@ public function store(Request $request)
             ]);
         }
     }
+// Depois de criar o pedido
+
+Agendamento::create([
+    'tipo' => 'retirada',
+    'data' => $request->data_retirada,
+    'horario' => '08:00', // Pode ajustar, ou adicionar campo no formulário se quiser horário dinâmico
+    'nome_cliente' => $cliente->nome,
+    'endereco' => $cliente->endereco,
+    'telefone' => $cliente->telefone,
+    'status' => 'pendente',
+    'items' => 'Pedido #' . $pedido->pedido_id, // Ou outra descrição dos itens se preferir
+    'obs' => 'Agendamento automático gerado pelo pedido.',
+]);
 
     return redirect()->route('pedidos.index')->with('success', 'Pedido criado com sucesso!');
 }
