@@ -80,13 +80,13 @@ td, th {
 /* 1-2 imagens */
 .imagens-1 img,
 .imagens-2 img {
-    max-width: 150%;
+    max-width: 50%;
 }
 
 /* 3-4 imagens */
 .imagens-3 img,
 .imagens-4 img {
-    max-width: 60%;
+    max-width: 30%;
 }
 
 /* 5 ou mais imagens */

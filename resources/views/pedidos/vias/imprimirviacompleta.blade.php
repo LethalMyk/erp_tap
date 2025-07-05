@@ -169,7 +169,7 @@ td, th {
         <h3>Imagens</h3>
         <div style="display: flex; flex-wrap: wrap;">
             @foreach($pedido->imagens as $imagem)
-                <img src="{{ asset('storage/' . $imagem->imagem) }}" alt="Imagem do pedido" style="max-width: 200px; margin: 10px;">
+                <img src="{{ asset('storage/' . $imagem->imagem) }}" alt="Imagem do pedido" style="max-width: 100px; margin: 10px;">
             @endforeach
         </div>
 

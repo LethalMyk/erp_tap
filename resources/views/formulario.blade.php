@@ -1,3 +1,5 @@
+    <x-app-layout>
+
 <form action="{{ route('formulario.store') }}" method="POST" enctype="multipart/form-data">
 
     @csrf
@@ -300,3 +302,4 @@ function removerTerceirizada(button) {
             border-radius: 5px;
             color: white;
             font-size: 1.2}
+    </x-app-layout>

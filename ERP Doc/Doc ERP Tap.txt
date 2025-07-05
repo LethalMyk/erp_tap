@@ -1,0 +1,293 @@
+📘 Documentação do ERP – Tapeçaria Novollar
+📌 Objetivo Geral
+Desenvolver um sistema ERP personalizado para a Tapeçaria Novollar, com o objetivo de:
+
+Organizar procedimentos internos;
+
+Armazenar e gerenciar dados com segurança;
+
+Automatizar tarefas e processos operacionais e administrativos.
+
+
+
+
++---------------------------------------------------------------+
+|                     ERP Tapeçaria Novollar                   |
++--------------------+-------------------+----------------------+
+|     Pedidos       |     Pagamentos    | Materiais Pendentes  |
+|-------------------|-------------------|----------------------|
+| - Cadastro        | - Registro        | - Listar materiais   |
+| - Consulta        | - Visualização    | - Gerar lista de     |
+| - Visualizar      | - Relatórios      |   compras            |
+| - Editar          |                   | - Marcar recebidos   |
++-------------------+-------------------+----------------------+
+| Produção Interna  |    Terceirizados  | Relatório Produção   |
+|-------------------|-------------------|----------------------|
+| - Controle        | - Cadastro        | - Lista por tapeceiro|
+| - Atribuição      | - Associar        | - Filtro por período |
+| - Acompanhamento  | - Controle        | - Exportação         |
+| - Notificações    | - Registro        |   (PDF/Excel)        |
++-------------------+-------------------+----------------------+
+| Assistência Técnica| Agenda Retirada   | Estoque Matéria-Prima|
+|-------------------|-------------------|----------------------|
+| - Registro        | - Agendamento     | - Cadastro           |
+| - Histórico       | - Visualização    | - Entrada/Saída      |
+| - Controle        | - Notificações    | - Controle de níveis |
++-------------------+-------------------+----------------------+
+
+
+🛠️ Roteiro para Desenvolvimento do ERP Tapeçaria Novollar (Solo Dev)
+✅ Etapa 1: Levantamento e Entendimento (Você já iniciou!)
+Objetivo: Ter clareza de tudo que o sistema precisa fazer.
+
+🔹 Você já fez:
+
+Identificação de módulos e funcionalidades
+
+Definição de objetivos gerais
+
+🔹 O que complementar:
+
+Conversar com possíveis usuários reais (mesmo que simulado)
+
+Definir prioridades de módulos (essencial x opcional)
+
+📐 Etapa 2: Planejamento Visual e Técnico
+Objetivo: Traduzir o sistema em algo visual + definir a tecnologia que será usada.
+
+Criação de Wireframes (protótipos simples das telas):
+
+Use o Figma ou papel mesmo
+
+Faça telas como: "Novo Pedido", "Lista de Pedidos", "Cadastro de Cliente"
+
+Fluxos de Usuário:
+
+Desenhar passo a passo de como o usuário navega
+
+Exemplo: Novo Pedido → Selecionar Cliente → Adicionar Itens → Confirmar → Salvar
+
+Escolha da Stack Técnica:
+
+Frontend: HTML + CSS + JS puro, ou framework como React (recomendado)
+
+Backend: Node.js (Express), Laravel (PHP), ou Django (Python)
+
+Banco de Dados: MySQL
+
+Hospedagem: Render, Vercel (frontend), Railway (backend + DB), ou local no início
+
+🔄 Etapa 3: Arquitetura Inicial e Configuração
+Objetivo: Criar a base do projeto e preparar o ambiente.
+
+Criar repositório Git (GitHub)
+
+Organizar as pastas do projeto (ex: frontend/, backend/, db/, docs/)
+
+Criar base de dados no MySQL (mesmo local)
+
+Começar com um módulo: Pedidos
+
+🚀 Etapa 4: Desenvolvimento por Fases (MVP)
+Objetivo: Ter um sistema funcional com o mínimo necessário.
+
+🔹 Fase 1 - Módulo Pedidos
+
+Cadastro de cliente + itens + pagamentos simples
+
+Visualizar e editar pedidos
+
+🔹 Fase 2 - Produção + Terceirizados
+
+Atribuir pedido
+
+Status de produção
+
+🔹 Fase 3 - Pagamentos e Relatórios
+
+Gerar relatórios simples
+
+Ver saldo por cliente
+
+🔹 Fase 4 - Assistência Técnica + Agenda + Estoque
+
+Fase mais avançada
+
+🧪 Etapa 5: Testes e Validação
+Objetivo: Garantir que tudo funcione bem antes de usar "de verdade".
+
+Testar com dados simulados
+
+Verificar telas em dispositivos diferentes
+
+Checar se os fluxos estão intuitivos
+
+☁️ Etapa 6: Deploy e Uso Real
+Escolher hospedagem (Railway, PlanetScale, Vercel, etc)
+
+Colocar sistema no ar para uso interno
+
+Backup automático semanal
+
+🧭 Etapa 7: Pós-Lançamento e Melhorias
+Ouvir usuários (você mesmo, ou familiares, clientes)
+
+Corrigir problemas
+
+Adicionar novos recursos conforme necessidade real
+
+
+
+
+🧩 Módulos Funcionais
+1. 📋 Pedidos
+Funcionalidades:
+
+Cadastro de Pedido
+
+Cliente (nome,endereço,telefone,cpf,email)
+Items (nome_item1, tecido_item1, metragem_item1, descri_item1, terceirizados_item1) ++Item2?
+Valor Total, Valor Resta
+Pagamentos (pagamento1, forma_pagamento1, obs_pagamento1) ++ Pagamento?
+
+
+Consulta e Lista de Pedidos
+
+Filtros por:  cod_cliente, nome_cliente,endereco_cliente,telefone_cliente, cpf_cliente, status_pedido
+Botões: Ver, Editar
+
+Visualizar Pedido
+Dados completos do pedido, histórico, status atual.
+Imprimir vias: via_completa, via_tapeçeiro, via_retirada
+
+Editar Pedido
+Atualização de informações (exceto campos bloqueados por status avançado).
+Adicionar Items ao pedido
+Adicionar Valor extra
+
+
+
+
+
+
+
+
+
+
+
+
+2. 💳 Pagamentos
+Funcionalidades:
+Registro de Pagamento
+
+Valor, forma de pagamento, data.
+
+Visualização de Pagamentos
+
+Pedidos com saldo devedor, pagamentos pendentes ou quitados.
+
+Relatórios financeiros
+
+Recebimentos por período, por cliente, por forma de pagamento.
+
+
+
+
+3. 📦 Materiais e Metragens Pendentes
+Funcionalidades:
+Listar materiais faltantes por pedido.
+
+Gerar lista de compras para fornecedores.
+
+Marcar materiais como "recebidos".
+
+4. 🧵 Produção Interna
+Funcionalidades:
+Controle de pedidos a serem produzidos.
+
+Atribuir pedido a tapeceiro interno.
+
+Acompanhamento do status de produção.
+
+Notificações de conclusão.
+
+5. 🛠️ Terceirizados
+Funcionalidades:
+Cadastro de serviços terceirizados. (e ja incluso opcional em Items do pedido)
+
+Associar pedidos/parciais ao terceirizado.
+
+Controle de execução dos serviços.
+
+Registro de custos e prazos.
+
+
+
+6. 📊 Relatório de Produção por Tapeceiro
+Funcionalidades:
+Lista de pedidos executados por colaborador.
+
+Filtro por período.
+
+Totalização de serviços executados.
+
+Exportação de relatórios (PDF/Excel).
+
+7. 🛠️ Assistência Técnica
+Funcionalidades:
+Registro de retorno para reparo.
+
+Associar à ordem de serviço original.
+
+Histórico de assistências por cliente.
+
+Controle de prazos e conclusão.
+
+
+
+8. 📆 Agenda de Retirada e Entrega
+Funcionalidades:
+Agendamento de retirada 
+
+Agendamento de entrega.
+
+Visualização em formato de calendário.
+
+Notificações de agendamento do dia/semana.
+
+
+
+9. 📦 Estoque de Matéria-Prima
+Funcionalidades:
+Cadastro de matérias-primas.
+
+Entrada e saída de estoque.
+
+Controle de níveis mínimos.
+
+Geração de pedidos de compra automáticos.
+
+
+
+
+🧱 Requisitos Técnicos Iniciais (Sugestão)
+Backend: 
+
+Frontend: 
+
+Banco de Dados:  MySQL
+
+Hospedagem: 
+
+Autenticação: Login com controle de permissões por função
+
+
+
+📌 Observações Gerais
+O sistema deve ser responsivo para uso em tablets e celulares.
+
+Interfaces simples e diretas, pensadas para uso prático no dia a dia da oficina.
+
+Opção de impressão de pedidos, relatórios e ordens de serviço.
+
+Backup automático dos dados semanalmente.
