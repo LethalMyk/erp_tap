@@ -115,8 +115,11 @@ Route::middleware(['auth', CheckRole::class . ':admin,gerente'])->group(function
 Route::middleware(['auth', CheckRole::class . ':admin,gerente'])->group(function () {
     // Suas rotas aqui
 
+Route::get('/producao', [ProducaoController::class, 'index'])->name('producao.index');
+
     // Rotas de Pagamentos
 
 Route::resource('pagamento', PagamentoController::class);
 });
+
 require __DIR__.'/auth.php';
