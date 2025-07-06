@@ -11,8 +11,9 @@ class Pedido extends Model
     use HasFactory;
 
 protected $fillable = [
-    'cliente_id', 'qntItens', 'data', 'valor', 'status', 'obs', 'prazo', 'imagem', 'valorResta'
+    'cliente_id', 'qntItens', 'data', 'valor', 'status', 'obs', 'prazo', 'imagem', 'valorResta', 'data_retirada'
 ];
+
 
 
    public function cliente()

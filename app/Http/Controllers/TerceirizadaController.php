@@ -35,8 +35,10 @@ class TerceirizadaController extends Controller
 
         Terceirizada::create($request->all());
 
-        return redirect()->route('terceirizadas.index')->with('success', 'Serviço terceirizado cadastrado com sucesso!');
-    }
+       // Redireciona para a visualização do pedido (exemplo: /pedido/{id}/visualizar)
+    return redirect()->route('pedido.visualizar', $request->pedido_id)
+                     ->with('success', 'Serviço terceirizado adicionado com sucesso!');
+}
 
     public function show(Terceirizada $terceirizada)
     {
@@ -70,10 +72,13 @@ class TerceirizadaController extends Controller
     }
 
     public function destroy(Terceirizada $terceirizada)
-    {
-        $terceirizada->delete();
-        return redirect()->route('terceirizadas.index')->with('success', 'Serviço terceirizado removido!');
-    }
+{
+    $terceirizada->delete();
+
+    // Volta para a página anterior (por exemplo: /pedido/7/visualizar)
+    return redirect()->back()->with('success', 'Serviço terceirizado removido com sucesso!');
+}
+
 
     public function getItems($pedido_id)
     {

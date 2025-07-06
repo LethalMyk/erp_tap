@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
 
 // Rotas de Clientes
 Route::resource('clientes', ClienteController::class);
+Route::put('/pedido/{pedido}', [PedidoController::class, 'update'])->name('pedido.update');
 
 // Rotas de Pedidos
 Route::get('/pedidos/create', [PedidoController::class, 'create'])->name('pedidos.create');
@@ -96,5 +97,13 @@ Route::post('/pagamento/{id}/registrar', [\App\Http\Controllers\PagamentoControl
 Route::get('/pagamento/create/{cliente_id?}', [PagamentoController::class, 'create'])->name('pagamento.create');
 Route::get('/pedido/{id}/visualizar', [FormularioController::class, 'visualizar'])->name('pedido.visualizar');
 
+Route::put('/item/{item}', [ItemController::class, 'update'])->name('item.update');
+Route::delete('/terceirizada/{terceirizada}', [TerceirizadaController::class, 'destroy'])->name('terceirizada.destroy');
+Route::post('/terceirizada', [TerceirizadaController::class, 'store'])->name('terceirizada.store');
+
+
+
+Route::post('/pedido/{pedido}/imagens', [FormularioController::class, 'adicionarImagem'])->name('pedido.imagem.store');
+Route::delete('/pedido/imagens/{imagem}', [FormularioController::class, 'removerImagem'])->name('pedido.imagem.destroy');
 
 require __DIR__.'/auth.php';

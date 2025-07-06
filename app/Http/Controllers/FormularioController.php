@@ -129,6 +129,7 @@ foreach ($pagamentos as $pagamentoData) {
         }
     }
 
+    
     // Criar o serviço associado
     $servico = new Servico();
     $servico->pedido_id = $pedido->id;
@@ -141,6 +142,36 @@ $servico->profissional_id = $tapeceiroId ?: null; // Se não veio nada, salva co
     $servico->save();
 
     return redirect()->route('formulario.index')->with('success', 'Formulário salvo com sucesso!');
+}
+
+public function adicionarImagem(Request $request, Pedido $pedido)
+{
+    $request->validate([
+        'imagens' => 'required',
+        'imagens.*' => 'image|max:5120', // Máximo 5MB por arquivo
+    ]);
+
+    foreach ($request->file('imagens') as $imagem) {
+        $path = $imagem->store('pedidos', 'public');
+
+        PedidoImagem::create([
+            'pedido_id' => $pedido->id,
+            'imagem' => $path,
+        ]);
+    }
+
+    return redirect()->back()->with('success', 'Imagens adicionadas com sucesso!');
+}
+
+public function removerImagem(PedidoImagem $imagem)
+{
+    // Apaga arquivo físico da storage
+    \Illuminate\Support\Facades\Storage::disk('public')->delete($imagem->imagem);
+
+    // Apaga registro no banco
+    $imagem->delete();
+
+    return redirect()->back()->with('success', 'Imagem removida com sucesso!');
 }
 
     public function index()
@@ -156,6 +187,8 @@ $profissionais = Profissional::orderBy('nome')->get();
         'pagamentos',
         'imagens'
     ])->findOrFail($id);
+
+    
 
     return view('viewpedido', compact('pedido'));
 }

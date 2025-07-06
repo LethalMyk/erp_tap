@@ -147,39 +147,35 @@ Agendamento::create([
     }
 
     // Método para atualizar um pedido
-    public function update(Request $request, Pedido $pedido)
-    {
-        $request->validate([
-            'cliente_id' => 'required|exists:clientes,id',
-            'qntItens' => 'required|integer',
-            'data' => 'required|date',
-            'valor' => 'required|numeric',
-            'status' => 'required|string',
-            'obs' => 'nullable|string',
-            'prazo' => 'required|date',
-            'imagens.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
-        ]);
+   public function update(Request $request, $id)
+{
+    $pedido = Pedido::findOrFail($id);
 
-        $pedido->update($request->except('imagens'));
-
-        if ($request->hasFile('imagens')) {
-            foreach ($request->file('imagens') as $imagem) {
-                $path = $imagem->store('pedidos', 'public');
-                PedidoImagem::create([
-                    'pedido_id' => $pedido->id,
-                    'imagem' => $path
-                ]);
-            }
-        }
-
-        return redirect()->route('pedidos.index')->with('success', 'Pedido atualizado com sucesso!');
+    // Atualiza os dados do cliente
+    if ($request->has('cliente')) {
+        $clienteData = $request->input('cliente');
+        $pedido->cliente->update($clienteData);
     }
+
+    // Atualiza os dados do pedido
+    $pedido->update($request->only([
+        'data',
+        'prazo',
+        'data_retirada'
+    ]));
+
+    return redirect()->back()->with('success', 'Cliente e pedido atualizados com sucesso!');
+}
+
+
 
     // Método para exibir os detalhes de um pedido
-    public function show(Pedido $pedido)
-    {
-        return view('pedidos.show', compact('pedido'));
-    }
+   public function show($id)
+{
+    $pedido = Pedido::with(['cliente', 'items.terceirizadas', 'pagamentos', 'imagens'])->findOrFail($id);
+    return view('pedidos.show', compact('pedido'));
+}
+
 
     public function destroyImagem(Pedido $pedido, PedidoImagem $imagem)
 {

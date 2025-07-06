@@ -44,19 +44,40 @@ public function store(Request $request)
         return view('items.show', compact('item'));
     }
 
-    public function edit(Item $item) {
-        return view('items.edit', compact('item'));
+  public function edit(Item $item) {
+    $item->load('terceirizadas'); // eager load para vir as terceirizadas relacionadas
+    return view('items.edit', compact('item'));
+}
+
+
+    public function update(Request $request, Item $item)
+{
+    $request->validate([
+        'nomeItem' => 'required',
+        'material' => 'required',
+        'metragem' => 'required|numeric',
+    ]);
+
+    $item->update($request->only(['nomeItem', 'material', 'metragem', 'especifi']));
+
+    if ($request->has('terceirizadas')) {
+        foreach ($request->terceirizadas as $tercData) {
+            if (!empty($tercData['id'])) {
+                // Atualiza terceirizada existente
+                $terc = \App\Models\Terceirizada::find($tercData['id']);
+                if ($terc && $terc->item_id == $item->id) {
+                    $terc->update([
+                        'tipoServico' => $tercData['tipoServico'] ?? '',
+                        'obs' => $tercData['obs'] ?? '',
+                    ]);
+                }
+            }
+        }
     }
 
-    public function update(Request $request, Item $item) {
-        $request->validate([
-            'nomeItem' => 'required',
-            'material' => 'required',
-            'metragem' => 'required|numeric',
-        ]);
-        $item->update($request->all());
-        return redirect()->route('items.index')->with('success', 'Item atualizado com sucesso!');
-    }
+    return redirect()->back()->with('success', 'Item e serviços atualizados com sucesso!');
+}
+
 
     public function destroy(Item $item) {
         $item->delete();
