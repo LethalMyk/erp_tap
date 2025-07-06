@@ -94,6 +94,7 @@ Route::resource('agendamentos', AgendamentoController::class);
 Route::get('/calendario', [App\Http\Controllers\AgendamentoController::class, 'calendario'])->name('agendamentos.calendario');
 Route::post('/pagamento/{id}/registrar', [\App\Http\Controllers\PagamentoController::class, 'registrar'])->name('pagamento.registrar');
 Route::get('/pagamento/create/{cliente_id?}', [PagamentoController::class, 'create'])->name('pagamento.create');
+Route::get('/pedido/{id}/visualizar', [FormularioController::class, 'visualizar'])->name('pedido.visualizar');
 
 
 require __DIR__.'/auth.php';

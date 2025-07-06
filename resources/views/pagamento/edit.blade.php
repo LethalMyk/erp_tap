@@ -17,6 +17,5 @@
     <button type="submit">Salvar</button>
 </form>
 
-<a href="{{ route('pagamento.index') }}" class="btn btn-secondary">Voltar</a>
 </x-app-layout>
 
