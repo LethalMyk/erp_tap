@@ -43,14 +43,34 @@
             <p><strong>Valor Restante:</strong> R$ {{ number_format($pedido->valor_resta, 2, ',', '.') }}</p>
         </div>
 
-        <h3>Pagamentos Realizados</h3>
-        @foreach($pedido->pagamentos as $pagamento)
-            <div>
-                <p><strong>Valor:</strong> R$ {{ number_format($pagamento->valor, 2, ',', '.') }}</p>
-                <p><strong>Forma:</strong> {{ $pagamento->forma }}</p>
-                <p><strong>Obs:</strong> {{ $pagamento->obs }}</p>
-            </div>
-        @endforeach
+ 
+
+        @foreach ($pedido->pagamentos as $pagamento)
+    <div class="pagamento">
+        <p><strong>Data:</strong> {{ $pagamento->data }}</p>
+        <p><strong>Valor:</strong> R$ {{ number_format($pagamento->valor, 2, ',', '.') }}</p>
+        <p><strong>Forma:</strong> {{ $pagamento->forma }}</p>
+
+
+        @if ($pagamento->status === 'EM ABERTO')
+    <form action="{{ route('pagamento.registrar', $pagamento->id) }}" method="POST" style="margin-top:10px;">
+        @csrf
+        <input type="text" name="obs_registro" placeholder="Observação do registro (opcional)" style="width: 70%; padding: 5px;" />
+        <button type="submit" onclick="return confirm('Confirmar registro do pagamento?')">
+            ✅ Registrar Pagamento
+        </button>
+    </form>
+@endif
+
+    </div>
+            <p><strong>Status:</strong> {{ $pagamento->status }}</p>
+
+            @if ($pagamento->data_registro)
+            <p><strong>Registrado em:</strong> {{ \Carbon\Carbon::parse($pagamento->data_registro)->format('d/m/Y') }}</p>
+            @endif
+            <hr>
+            @endforeach
+
 
         <h3>Imagens</h3>
         <div style="display: flex; flex-wrap: wrap;">

@@ -14,7 +14,10 @@ class Pagamento extends Model
         'pedido_id',
         'valor',
         'forma',
-        'obs'
+        'obs',
+        'data',
+        'status',
+        'data_registro'
     ];
 
     // Relacionamento com Pedido

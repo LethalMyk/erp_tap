@@ -92,6 +92,7 @@ Route::post('/itens/store', [ItemController::class, 'store'])->name('items.store
 
 Route::resource('agendamentos', AgendamentoController::class);
 Route::get('/calendario', [App\Http\Controllers\AgendamentoController::class, 'calendario'])->name('agendamentos.calendario');
+Route::post('/pagamento/{id}/registrar', [\App\Http\Controllers\PagamentoController::class, 'registrar'])->name('pagamento.registrar');
 
 
 require __DIR__.'/auth.php';

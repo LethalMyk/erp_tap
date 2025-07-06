@@ -49,6 +49,23 @@ class PagamentoController extends Controller
         return redirect()->route('pagamento.index')->with('success', 'Pagamento registrado e status do pedido atualizado.');
     }
 
+public function registrar(Request $request, $id)
+{
+    $pagamento = Pagamento::findOrFail($id);
+
+    if ($pagamento->status === 'EM ABERTO') {
+        $pagamento->status = 'PAGAMENTO REGISTRADO';
+        $pagamento->data_registro = now();
+        $pagamento->obs_registro = $request->input('obs_registro'); // nova observação
+        $pagamento->save();
+
+        return redirect()->back()->with('success', 'Pagamento registrado com sucesso!');
+    }
+
+    return redirect()->back()->with('info', 'Este pagamento já está registrado.');
+}
+
+
 
     public function show(Pagamento $pagamento)
     {

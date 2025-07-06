@@ -79,22 +79,26 @@
 <h3>Pagamentos</h3>
 <div id="pagamentos">
     <div class="pagamento">
-        <input type="number" step="0.01" name="pagamentos[0][valor]" placeholder="Valor">
-<select name="pagamentos[0][forma]" required>
-    <option value="">Selecione</option>
-    <option value="PIX">PIX</option>
-    <option value="DEBITO">DEBITO</option>
-    <option value="DINHEIRO">DINHEIRO</option>
-    <option value="CREDITO À VISTA">CREDITO À VISTA</option>
-    <option value="CREDITO PARCELADO">CREDITO PARCELADO</option>
-    <option value="BOLETO">BOLETO</option>
-    <option value="CHEQUE">CHEQUE</option>
-    <option value="OUTROS">OUTROS</option>
-</select>
-        <input type="text" name="pagamentos[0][obs]" placeholder="Observação">
-            <button type="button" onclick="removerPagamento(this)">Remover</button>
+    <input type="number" step="0.01" name="pagamentos[0][valor]" placeholder="Valor" required>
+    <select name="pagamentos[0][forma]" required onchange="toggleDataPagamento(this)">
+        <option value="">Selecione</option>
+        <option value="PIX">PIX</option>
+        <option value="DEBITO">DEBITO</option>
+        <option value="DINHEIRO">DINHEIRO</option>
+        <option value="CREDITO À VISTA">CREDITO À VISTA</option>
+        <option value="CREDITO PARCELADO">CREDITO PARCELADO</option>
+        <option value="BOLETO">BOLETO</option>
+        <option value="CHEQUE">CHEQUE</option>
+        <option value="OUTROS">OUTROS</option>
+    </select>
+    <input type="text" name="pagamentos[0][obs]" placeholder="Observação">
+    
+    <!-- Campo data, inicialmente escondido -->
+    <input type="date" name="pagamentos[0][data]" placeholder="Data do Pagamento" style="display:none; margin-top:10px;">
+    
+    <button type="button" onclick="removerPagamento(this)">Remover</button>
+</div>
 
-    </div>
 </div>
 
 <button type="button" onclick="addPagamento()">+ Adicionar Pagamento</button>
@@ -142,22 +146,36 @@ function addPagamento() {
     newPagamento.classList.add('pagamento');
     newPagamento.innerHTML = `
         <input type="number" step="0.01" name="pagamentos[${pagamentoIndex}][valor]" placeholder="Valor" required>
-<select name="pagamentos[${pagamentoIndex}][forma]" required>
-    <option value="">Selecione</option>
-    <option value="PIX">PIX</option>
-    <option value="DEBITO">DEBITO</option>
-    <option value="DINHEIRO">DINHEIRO</option>
-    <option value="CREDITO À VISTA">CREDITO À VISTA</option>
-    <option value="CREDITO PARCELADO">CREDITO PARCELADO</option>
-    <option value="BOLETO">BOLETO</option>
-    <option value="CHEQUE">CHEQUE</option>
-    <option value="OUTROS">OUTROS</option>
-</select>
+        <select name="pagamentos[${pagamentoIndex}][forma]" required onchange="toggleDataPagamento(this)">
+            <option value="">Selecione</option>
+            <option value="PIX">PIX</option>
+            <option value="DEBITO">DEBITO</option>
+            <option value="DINHEIRO">DINHEIRO</option>
+            <option value="CREDITO À VISTA">CREDITO À VISTA</option>
+            <option value="CREDITO PARCELADO">CREDITO PARCELADO</option>
+            <option value="BOLETO">BOLETO</option>
+            <option value="CHEQUE">CHEQUE</option>
+            <option value="OUTROS">OUTROS</option>
+        </select>
         <input type="text" name="pagamentos[${pagamentoIndex}][obs]" placeholder="Observação">
+        <input type="date" name="pagamentos[${pagamentoIndex}][data]" placeholder="Data do Pagamento" style="display:none; margin-top:10px;">
         <button type="button" onclick="removerPagamento(this)">Remover</button>
     `;
     wrapper.appendChild(newPagamento);
     pagamentoIndex++;
+}
+
+function toggleDataPagamento(select) {
+    const pagamentoDiv = select.closest('.pagamento');
+    const inputData = pagamentoDiv.querySelector('input[type="date"]');
+    if (select.value === 'OUTROS') {
+        inputData.style.display = 'block';
+        inputData.required = true;
+    } else {
+        inputData.style.display = 'none';
+        inputData.required = false;
+        inputData.value = ''; // limpa o valor quando esconde
+    }
 }
 
 function addTerceirizada(itemIdx) {

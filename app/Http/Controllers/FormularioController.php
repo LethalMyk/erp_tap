@@ -95,15 +95,23 @@ public function store(Request $request)
         }
     }
 
-    // 4️⃣ Criar Pagamentos
-    foreach ($pagamentos as $pagamentoData) {
-        Pagamento::create([
-            'pedido_id' => $pedido->id,
-            'valor' => $pagamentoData['valor'],
-            'forma' => $pagamentoData['forma'],
-            'obs' => $pagamentoData['obs'],
-        ]);
-    }
+// 4️⃣ Criar Pagamentos
+foreach ($pagamentos as $pagamentoData) {
+    $forma = $pagamentoData['forma'] ?? '';
+    $ehEmAberto = in_array($forma, ['BOLETO', 'CHEQUE', 'OUTROS']);
+
+    Pagamento::create([
+        'pedido_id' => $pedido->id,
+        'valor' => $pagamentoData['valor'],
+        'forma' => $forma,
+        'obs' => $pagamentoData['obs'] ?? null,
+        'data' => $ehEmAberto
+            ? ($pagamentoData['data'] ?? null) // pega a data se for informada
+            : $request->input('pedido.data'), // usa a data do pedido se já for registrado
+        'status' => $ehEmAberto ? 'EM ABERTO' : 'PAGAMENTO REGISTRADO',
+    ]);
+}
+
 
     // 5️⃣ Upload de Imagens
     if ($request->hasFile('imagens')) {
