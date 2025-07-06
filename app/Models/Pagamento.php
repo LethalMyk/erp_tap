@@ -17,7 +17,7 @@ class Pagamento extends Model
         'obs',
         'data',
         'status',
-        'data_registro'
+        'data_registro',
     ];
 
     // Relacionamento com Pedido

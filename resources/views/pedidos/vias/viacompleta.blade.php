@@ -55,7 +55,7 @@
         @if ($pagamento->status === 'EM ABERTO')
     <form action="{{ route('pagamento.registrar', $pagamento->id) }}" method="POST" style="margin-top:10px;">
         @csrf
-        <input type="text" name="obs_registro" placeholder="Observação do registro (opcional)" style="width: 70%; padding: 5px;" />
+        <input type="text" name="obs" placeholder="Observação do registro (opcional)" style="width: 70%; padding: 5px;" />
         <button type="submit" onclick="return confirm('Confirmar registro do pagamento?')">
             ✅ Registrar Pagamento
         </button>

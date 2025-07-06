@@ -20,34 +20,48 @@ class PagamentoController extends Controller
         return view('pagamento.create', compact('pedidos'));
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'pedido_id' => 'required|exists:pedidos,id',
-            'valor' => 'required|numeric|min:0',
-            'forma' => 'required|in:PIX,DEBITO,DINHEIRO,CREDITO À VISTA,CREDITO PARCELADO,BOLETO,CHEQUE,OUTROS',
-            'obs' => 'nullable|string',
-        ]);
+   public function store(Request $request)
+{
+   $request->validate([
+    'pedido_id' => 'required|exists:pedidos,id',
+    'valor' => 'required|numeric|min:0',
+    'forma' => 'required|in:PIX,DEBITO,DINHEIRO,CREDITO À VISTA,CREDITO PARCELADO,BOLETO,CHEQUE,OUTROS',
+    'obs' => 'nullable|string',
+    'data' => 'nullable|date',  // aqui
+]);
 
-        // Criar o pagamento
-        $pagamento = Pagamento::create($request->all());
 
-        // Atualizar o valor restante no pedido
-        $pedido = Pedido::find($request->pedido_id);
-        $pedido->valorResta -= $pagamento->valor;
+    $pedido = Pedido::findOrFail($request->pedido_id);
 
-        // Garantir que o valor restante nunca seja negativo
-        if ($pedido->valorResta <= 0) {
-            $pedido->valorResta = 0;
-            $pedido->status = 'PAGO';
-        } else {
-            $pedido->status = 'RESTA';
-        }
+    // Regras de status e data
+    $forma = $request->forma;
+    $ehEmAberto = in_array($forma, ['BOLETO', 'CHEQUE', 'OUTROS']);
+    $status = $ehEmAberto ? 'EM ABERTO' : 'PAGAMENTO REGISTRADO';
+$data = $ehEmAberto ? ($request->input('data') ?? null) : $pedido->data;
 
-        $pedido->save();
+    // Criar pagamento
+    $pagamento = Pagamento::create([
+        'pedido_id' => $pedido->id,
+        'valor' => $request->valor,
+        'forma' => $forma,
+        'obs' => $request->obs,
+        'status' => $status,
+        'data' => $data,
+    ]);
 
-        return redirect()->route('pagamento.index')->with('success', 'Pagamento registrado e status do pedido atualizado.');
-    }
+    // Atualizar valor restante e status do pedido
+    $totalPago = Pagamento::where('pedido_id', $pedido->id)->sum('valor');
+    $novoValorResta = max(0, $pedido->valor - $totalPago);
+    $novoStatusPedido = ($novoValorResta == 0) ? 'PAGO' : 'RESTA';
+
+    $pedido->update([
+        'valorResta' => $novoValorResta,
+        'status' => $novoStatusPedido,
+    ]);
+
+    return redirect()->route('pagamento.index')->with('success', 'Pagamento registrado com sucesso.');
+}
+
 
 public function registrar(Request $request, $id)
 {
@@ -56,7 +70,7 @@ public function registrar(Request $request, $id)
     if ($pagamento->status === 'EM ABERTO') {
         $pagamento->status = 'PAGAMENTO REGISTRADO';
         $pagamento->data_registro = now();
-        $pagamento->obs_registro = $request->input('obs_registro'); // nova observação
+        $pagamento->obs = $request->input('obs'); // nova observação
         $pagamento->save();
 
         return redirect()->back()->with('success', 'Pagamento registrado com sucesso!');
