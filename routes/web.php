@@ -17,6 +17,7 @@ use App\Http\Controllers\PagamentoController;
 use App\Http\Controllers\FormularioController;
 use App\Http\Controllers\PesquisarController;
 use App\Http\Controllers\AgendamentoController;
+use App\Http\Middleware\CheckRole;
 
 
 Route::get('/', function () {
@@ -72,9 +73,7 @@ Route::resource('profissional', ProfissionalController::class);
 
 Route::resource('servico', ServicoController::class);
 
-// Rotas de Pagamentos
 
-Route::resource('pagamento', PagamentoController::class);
 
 Route::get('/formulario', [FormularioController::class, 'index'])->name('formulario.index');
 Route::post('/formulario', [FormularioController::class, 'store'])->name('formulario.store');
@@ -106,4 +105,18 @@ Route::post('/terceirizada', [TerceirizadaController::class, 'store'])->name('te
 Route::post('/pedido/{pedido}/imagens', [FormularioController::class, 'adicionarImagem'])->name('pedido.imagem.store');
 Route::delete('/pedido/imagens/{imagem}', [FormularioController::class, 'removerImagem'])->name('pedido.imagem.destroy');
 
+// Registrar middleware no grupo web (ou globalmente se quiser)
+Route::middleware(['auth', CheckRole::class . ':admin,gerente'])->group(function () {
+    Route::get('/admin-area', function () {
+        return 'Área admin';
+    });
+});
+
+Route::middleware(['auth', CheckRole::class . ':admin,gerente'])->group(function () {
+    // Suas rotas aqui
+
+    // Rotas de Pagamentos
+
+Route::resource('pagamento', PagamentoController::class);
+});
 require __DIR__.'/auth.php';

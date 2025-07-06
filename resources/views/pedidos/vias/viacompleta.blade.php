@@ -1,4 +1,8 @@
+@php
+    $userRole = Auth::user()->role ?? '';
+@endphp
 <div class="container">
+
     <h2>Visualização do Pedido</h2>
 
     <h3>Cliente</h3>
@@ -16,10 +20,11 @@
         <li><strong>Data de Retirada:</strong> {{ $pedido->data_retirada }}</li>
         <li><strong>Prazo:</strong> {{ $pedido->prazo }}</li>
     </ul>
+    @if(in_array($userRole, ['gerente', 'admin']))
 <button type="button" class="btn btn-outline-primary mb-3" data-bs-toggle="modal" data-bs-target="#editarClientePedidoModal">
     ✏️ Editar Cliente/Pedido
 </button>
-
+@endif
     <h3>Itens</h3>
     @foreach($pedido->items as $item)
         <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
@@ -35,12 +40,15 @@
                 <p>Sem serviços terceirizados</p>
             @endforelse
 
+    @if(in_array($userRole, ['gerente', 'admin']))
             <button type="button" class="btn btn-sm btn-warning mt-2" data-bs-toggle="modal" data-bs-target="#editarItemModal{{ $item->id }}">
                 ✏️ Editar Item
             </button>
             <button type="button" class="btn btn-sm btn-success mt-2 ms-2" data-bs-toggle="modal" data-bs-target="#adicionarTerceirizadaModal{{ $item->id }}">
     + Adicionar Terceirizada
 </button>
+@endif
+
 
 <!-- Modal para adicionar terceirizada -->
 <div class="modal fade" id="adicionarTerceirizadaModal{{ $item->id }}" tabindex="-1" aria-labelledby="adicionarTerceirizadaModalLabel{{ $item->id }}" aria-hidden="true">
@@ -210,22 +218,28 @@
         </div>
     @endforeach
 
-    <h3>Imagens</h3>
-    <div style="display: flex; flex-wrap: wrap;">
-@foreach($pedido->imagens as $imagem)
-    <div style="position: relative; display: inline-block; margin: 10px;">
-        <img src="{{ asset('storage/' . $imagem->imagem) }}" alt="Imagem do pedido" style="max-width: 200px; border-radius: 4px;">
-        <form method="POST" action="{{ route('pedido.imagem.destroy', $imagem->id) }}" style="position: absolute; top: 5px; right: 5px;">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Deseja realmente excluir essa imagem?')">✖</button>
-        </form>
-    </div>
-@endforeach
-       <button type="button" class="btn btn-sm btn-outline-success mb-3 px-2 py-1" style="font-size: 0.8rem;" data-bs-toggle="modal" data-bs-target="#adicionarImagemModal">
-    + Adicionar Imagem
-</button>
+<h3>Imagens</h3>
+<div style="display: flex; flex-wrap: wrap;">
+    @foreach($pedido->imagens as $imagem)
+        <div style="position: relative; display: inline-block; margin: 10px;">
+            <img src="{{ asset('storage/' . $imagem->imagem) }}" alt="Imagem do pedido" style="max-width: 200px; border-radius: 4px;">
+            
+            @if(in_array($userRole, ['gerente', 'admin']))
+                <form method="POST" action="{{ route('pedido.imagem.destroy', $imagem->id) }}" style="position: absolute; top: 5px; right: 5px;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Deseja realmente excluir essa imagem?')">✖</button>
+                </form>
+            @endif
+        </div>
+    @endforeach
 
+    @if(in_array($userRole, ['gerente', 'admin']))
+        <button type="button" class="btn btn-sm btn-outline-success mb-3 px-2 py-1" style="font-size: 0.8rem;" data-bs-toggle="modal" data-bs-target="#adicionarImagemModal">
+            + Adicionar Imagem
+        </button>
+    @endif
+</div>
 
 <!-- Modal para adicionar imagens -->
 <div class="modal fade" id="adicionarImagemModal" tabindex="-1" aria-labelledby="adicionarImagemModalLabel" aria-hidden="true">
@@ -278,11 +292,13 @@
             <hr>
         </div>
     @endforeach
+    @if(in_array($userRole, ['gerente', 'admin']))
 
     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
         <a href="{{ route('pagamento.create', ['cliente_id' => $pedido->cliente->id]) }}" class="btn btn-success">+ Novo Pagamento</a>
         <a href="{{ route('pagamento.index', ['cliente_id' => $pedido->cliente->id]) }}" class="btn btn-info">Ir para Pagamentos</a>
     </div>
+            @endif
 
     <a href="{{ route('pedidos.imprimirviacompleta', $pedido->id) }}" target="_blank" class="btn btn-primary">🖨️ Imprimir Via</a>
 </div>
