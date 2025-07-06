@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="container">
+    <div class="container" x-data="{ openModal: null }">
         <h1 class="page-title">Lista de Pedidos</h1>
         <a href="{{ route('formulario.index') }}" class="btn-create">Criar Pedido</a>
         <br><br><br><br>
@@ -95,7 +95,7 @@
                                         {{ $servico->profissional ? $servico->profissional->nome : 'Profissional não encontrado' }}
                                     @endforeach
                                 @else
-                                    'Profissional não encontrado'
+                                    Profissional não encontrado
                                 @endif
                             </td>
                             <td>
@@ -112,22 +112,176 @@
                                     Não registrado
                                 @endif
                             </td>
-
                             <td>{{ $pedido->status }}</td>
                             <td>
                                 <div class="action-buttons">
                                     <a href="{{ route('pedido.visualizar', $pedido->id) }}" class="btn-view">Ver</a>
-                                    <a href="{{ route('pedidos.edit', $pedido->id) }}" class="btn-edit">Editar</a>
+                                    <button @click="openModal = {{ $pedido->id }}" class="btn-edit">Editar Rápido</button>
                                 </div>
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
+
+            {{-- Modais de edição rápida --}}
+            @foreach($pedidos as $pedido)
+                <div 
+                    x-show="openModal === {{ $pedido->id }}" 
+                    x-transition 
+                    x-cloak
+                    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                >
+                    <div class="bg-white p-6 rounded shadow w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <h2 class="text-xl font-bold mb-4">Editar Pedido #{{ $pedido->id }}</h2>
+
+<form method="POST" action="{{ route('producao.update', $pedido->id) }}">
+    @csrf
+    @method('PUT')
+
+    {{-- Cliente Nome --}}
+    <div class="mb-4">
+        <label for="cliente_nome_{{ $pedido->id }}" class="block font-bold">Nome do Cliente</label>
+        <input 
+            type="text" 
+            name="cliente_nome" 
+            id="cliente_nome_{{ $pedido->id }}" 
+            value="{{ $pedido->cliente ? $pedido->cliente->nome : '' }}" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+
+    {{-- Cliente Endereço --}}
+    <div class="mb-4">
+        <label for="cliente_endereco_{{ $pedido->id }}" class="block font-bold">Endereço</label>
+        <input 
+            type="text" 
+            name="cliente_endereco" 
+            id="cliente_endereco_{{ $pedido->id }}" 
+            value="{{ $pedido->cliente ? $pedido->cliente->endereco : '' }}" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+
+    {{-- Cliente Telefone --}}
+    <div class="mb-4">
+        <label for="cliente_telefone_{{ $pedido->id }}" class="block font-bold">Telefone</label>
+        <input 
+            type="text" 
+            name="cliente_telefone" 
+            id="cliente_telefone_{{ $pedido->id }}" 
+            value="{{ $pedido->cliente ? $pedido->cliente->telefone : '' }}" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+
+    {{-- Data do Pedido --}}
+    <div class="mb-4">
+        <label for="data_{{ $pedido->id }}" class="block font-bold">Data do Pedido</label>
+        <input 
+            type="date" 
+            name="data" 
+            id="data_{{ $pedido->id }}" 
+            value="{{ $pedido->data }}" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+
+    {{-- Quantidade de Itens --}}
+    <div class="mb-4">
+        <label for="qntItens_{{ $pedido->id }}" class="block font-bold">Quantidade de Itens</label>
+        <input 
+            type="number" 
+            name="qntItens" 
+            id="qntItens_{{ $pedido->id }}" 
+            value="{{ $pedido->qntItens }}" 
+            min="1" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+
+    {{-- Andamento --}}
+    <div class="mb-4">
+        <label for="andamento_{{ $pedido->id }}" class="block font-bold">Andamento</label>
+       <select name="andamento" id="andamento_{{ $pedido->id }}">
+    <option value="produzindo" {{ $pedido->andamento === 'produzindo' ? 'selected' : '' }}>Produzindo</option>
+    <option value="retirar" {{ $pedido->andamento === 'retirar' ? 'selected' : '' }}>Retirar</option>
+    <option value="montado" {{ $pedido->andamento === 'montado' ? 'selected' : '' }}>Montado</option>
+    <option value="desmanchado" {{ $pedido->andamento === 'desmanchado' ? 'selected' : '' }}>Desmanchado</option>
+    <option value="entregar" {{ $pedido->andamento === 'entregar' ? 'selected' : '' }}>Entregar</option>
+    <option value="concluído" {{ $pedido->andamento === 'concluído' ? 'selected' : '' }}>Concluído</option>
+</select>
+
+    </div>
+
+    {{-- Tapeceiro --}}
+    <div class="mb-4">
+        <label for="tapeceiro_{{ $pedido->id }}" class="block font-bold">Tapeceiro</label>
+        <input 
+            type="text" 
+            name="tapeceiro" 
+            id="tapeceiro_{{ $pedido->id }}" 
+            value="{{ $pedido->tapeceiro }}" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+
+    {{-- Previsão Entrega --}}
+    <div class="mb-4">
+        <label for="previsao_entrega_{{ $pedido->id }}" class="block font-bold">Previsão Entrega</label>
+        <input 
+            type="date" 
+            name="previsao_entrega" 
+            id="previsao_entrega_{{ $pedido->id }}" 
+            value="{{ $pedido->servicos->count() ? $pedido->servicos->first()->data_previsao : '' }}" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+
+    {{-- Pronto Dia --}}
+    <div class="mb-4">
+        <label for="pronto_dia_{{ $pedido->id }}" class="block font-bold">Pronto Dia</label>
+        <input 
+            type="date" 
+            name="pronto_dia" 
+            id="pronto_dia_{{ $pedido->id }}" 
+            value="{{ $pedido->servicos->count() ? $pedido->servicos->first()->data_termino : '' }}" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+
+    {{-- Status Pagamento --}}
+    <div class="mb-4">
+        <label for="status_{{ $pedido->id }}" class="block font-bold">Status Pagamento</label>
+        <input 
+            type="text" 
+            name="status" 
+            id="status_{{ $pedido->id }}" 
+            value="{{ $pedido->status }}" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+
+    <div class="flex justify-between mt-4">
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            💾 Salvar
+        </button>
+        <button type="button" @click="openModal = null" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+            ✖ Cancelar
+        </button>
+    </div>
+</form>
+
+                    </div>
+                </div>
+            @endforeach
+
         </div>
     </div>
 
     <style>
+        [x-cloak] { display: none !important; }
+
         select.filter-input {
             font-size: 12px;
             min-width: 100px;

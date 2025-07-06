@@ -147,17 +147,23 @@ Agendamento::create([
     }
 
     // Método para atualizar um pedido
-   public function update(Request $request, $id)
+ public function update(Request $request, $id)
 {
     $pedido = Pedido::findOrFail($id);
 
-    // Atualiza os dados do cliente
+    // Atualiza dados rápidos do pedido (ex: modal de edição)
+    if ($request->hasAny(['andamento', 'status'])) {
+        $pedido->update($request->only(['andamento', 'status']));
+        return redirect()->back()->with('success', 'Pedido atualizado com sucesso!');
+    }
+
+    // Atualiza os dados do cliente (caso esteja vindo de outra view)
     if ($request->has('cliente')) {
         $clienteData = $request->input('cliente');
         $pedido->cliente->update($clienteData);
     }
 
-    // Atualiza os dados do pedido
+    // Atualiza os dados do pedido (completo)
     $pedido->update($request->only([
         'data',
         'prazo',
@@ -166,6 +172,7 @@ Agendamento::create([
 
     return redirect()->back()->with('success', 'Cliente e pedido atualizados com sucesso!');
 }
+
 
 
 

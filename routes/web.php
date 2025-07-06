@@ -121,5 +121,6 @@ Route::get('/producao', [ProducaoController::class, 'index'])->name('producao.in
 
 Route::resource('pagamento', PagamentoController::class);
 });
+Route::put('/producao/{id}', [ProducaoController::class, 'update'])->name('producao.update');
 
 require __DIR__.'/auth.php';
