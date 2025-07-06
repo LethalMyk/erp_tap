@@ -20,6 +20,7 @@ class ProducaoController extends Controller
         $andamento = $request->input('andamento');
         $mes = $request->input('mes');
         $data = $request->input('data');
+        
 
         $pedidos = Pedido::with(['cliente', 'servicos.profissional'])
             ->when($data, function($query) use ($data) {
@@ -76,25 +77,32 @@ class ProducaoController extends Controller
             'andamento', 'mes', 'tapeceiro', 'etapa', 'dataInicio', 'dataTermino', 'data'
         ));
     }
+public function update(Request $request, $id)
+{
+    $request->validate([
+        'andamento' => 'required|string',
+        'tapeceiro' => 'nullable|string',
+        'prazo' => 'nullable|string',
+        'previsao_entrega' => 'nullable|date',
+        'pronto_dia' => 'nullable|date',
+        'data_inicio' => 'nullable|date',
+        'data_retirada' => 'nullable|date',
+    ]);
 
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'andamento' => 'required|string',
-            'status' => 'required|string',
-            'tapeceiro' => 'nullable|string',
-        ]);
+    $pedido = Pedido::findOrFail($id);
 
-        $pedido = Pedido::findOrFail($id);
+    $pedido->andamento = strtolower($request->input('andamento'));
+    $pedido->tapeceiro = $request->input('tapeceiro');
+    $pedido->prazo = $request->input('prazo');
+    $pedido->data_inicio = $request->input('data_inicio');
+    $pedido->data_termino = $request->input('pronto_dia');
+    $pedido->previsto_para = $request->input('previsao_entrega');
+    $pedido->data_retirada = $request->input('data_retirada');
 
-        $pedido->andamento = $request->input('andamento');
-        $pedido->status = $request->input('status');
-        if ($request->has('tapeceiro')) {
-            $pedido->tapeceiro = $request->input('tapeceiro');
-        }
+    $pedido->save();
 
-        $pedido->save();
+    return redirect()->route('producao.index')->with('success', 'Pedido atualizado com sucesso!');
+}
 
-        return redirect()->route('producao.index')->with('success', 'Pedido atualizado com sucesso!');
-    }
+
 }

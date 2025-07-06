@@ -5,9 +5,9 @@
         <br><br><br><br>
 
         <!-- Formulário de Filtros (unificado) -->
-        <form action="{{ route('pedidos.index') }}" method="GET" class="mb-4">
+        <form action="{{ route('producao.index') }}" method="GET" class="mb-4">
             <button type="submit" class="btn-filter">Filtrar</button>
-            <a href="{{ route('pedidos.index') }}" class="btn-clear">Limpar Filtros</a>
+            <a href="{{ route('producao.index') }}" class="btn-clear">Limpar Filtros</a>
             
             <div class="filters">
                 <input type="text" name="id" value="{{ $id }}" placeholder="Filtrar por ID" class="filter-input">
@@ -47,81 +47,55 @@
 
         <div class="table-container">
             <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Cliente</th>
-                        <th>Endereço</th>
-                        <th>Telefone</th>
-                        <th>Data</th>
-                        <th>Quantidade de Itens</th>
-                        <th>Fotos</th>
-                        <th>Andamento</th>
-                        <th>Tapeceiro</th>
-                        <th>Previsão Entrega</th>
-                        <th>Pronto Dia</th>
-                        <th>StatusPG</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($pedidos as $pedido)
-                        <tr>
-                            <td>{{ $pedido->id }}</td>
-                            <td>{{ $pedido->cliente ? $pedido->cliente->nome : 'Cliente não encontrado' }}</td>
-                            <td>{{ $pedido->cliente ? $pedido->cliente->endereco : 'Endereço não encontrado' }}</td>
-                            <td>{{ $pedido->cliente ? $pedido->cliente->telefone : 'Telefone não encontrado' }}</td>
-                            <td>{{ $pedido->data }}</td>
-                            <td>{{ $pedido->qntItens }}</td>
-                            <td>
-                                @if($pedido->imagens->count())
-                                    <div class="thumbs">
-                                        @foreach($pedido->imagens->chunk(2) as $imagemChunk)
-                                            <div class="image-pair">
-                                                @foreach($imagemChunk as $imagem)
-                                                    <img src="{{ asset('storage/' . $imagem->imagem) }}" alt="Imagem do pedido" style="width: 100px; height: auto;">
-                                                @endforeach
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <span class="text-gray-400 italic">Sem imagens</span>
-                                @endif
-                            </td>
-                            <td>{{ $pedido->andamento }}</td>
-                            <td>
-                                @if($pedido->servicos->count())
-                                    @foreach($pedido->servicos as $servico)
-                                        {{ $servico->profissional ? $servico->profissional->nome : 'Profissional não encontrado' }}
-                                    @endforeach
-                                @else
-                                    Profissional não encontrado
-                                @endif
-                            </td>
-                            <td>
-                                @if($pedido->servicos->count())
-                                    {{ $pedido->servicos->pluck('data_previsao')->implode(', ') }}
-                                @else
-                                    Sem previsão
-                                @endif
-                            </td>
-                            <td>
-                                @if($pedido->servicos->count())
-                                    {{ $pedido->servicos->pluck('data_termino')->implode(', ') }}
-                                @else
-                                    Não registrado
-                                @endif
-                            </td>
-                            <td>{{ $pedido->status }}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="{{ route('pedido.visualizar', $pedido->id) }}" class="btn-view">Ver</a>
-                                    <button @click="openModal = {{ $pedido->id }}" class="btn-edit">Editar Rápido</button>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
+<thead>
+    <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Endereço</th>
+        <th>Imagens</th>
+        <th>Data Retirada</th>
+        <th>Andamento</th>
+        <th>Tapeceiro</th>
+        <th>Prazo</th>
+        <th>Data Início</th>
+        <th>Data Término</th>
+        <th>Previsão Entrega</th>
+        <th>Ações</th>
+    </tr>
+</thead>
+<tbody>
+    @foreach($pedidos as $pedido)
+        <tr>
+            <td>{{ $pedido->id }}</td>
+            <td>{{ $pedido->cliente->nome ?? 'Cliente não encontrado' }}</td>
+            <td>{{ $pedido->cliente->endereco ?? 'Endereço não encontrado' }}</td>
+            <td>
+                @if($pedido->imagens->count())
+                    <div class="thumbs">
+                        @foreach($pedido->imagens->take(4) as $imagem)
+                            <img src="{{ asset('storage/' . $imagem->imagem) }}" alt="Imagem" />
+                        @endforeach
+                    </div>
+                @else
+                    <span class="text-gray-400 italic">Sem imagens</span>
+                @endif
+            </td>
+            <td>{{ $pedido->data_retirada ? \Carbon\Carbon::parse($pedido->data_retirada)->format('d/m/Y') : '---' }}</td>
+            <td>{{ $pedido->andamento }}</td>
+            <td>{{ $pedido->tapeceiro ?? 'Tapeceiro não registrado' }}</td>
+            <td>{{ $pedido->prazo ?? '---' }}</td>
+            <td>{{ $pedido->data_inicio ?? '---' }}</td>
+            <td>{{ $pedido->data_termino ?? '---' }}</td>
+            <td>{{ $pedido->data_previsao ?? '---' }}</td>
+            <td>
+                <div class="action-buttons">
+                    <a href="{{ route('pedido.visualizar', $pedido->id) }}" class="btn-view">Ver</a>
+                    <button @click="openModal = {{ $pedido->id }}" class="btn-edit">Editar Rápido</button>
+                </div>
+            </td>
+        </tr>
+    @endforeach
+</tbody>
             </table>
 
             {{-- Modais de edição rápida --}}
@@ -132,87 +106,29 @@
                     x-cloak
                     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
                 >
-                    <div class="bg-white p-6 rounded shadow w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <h2 class="text-xl font-bold mb-4">Editar Pedido #{{ $pedido->id }}</h2>
+               <div class="bg-white p-4 rounded shadow w-full max-w-lg max-h-[70vh] overflow-y-auto">
+<h2 class="text-xl font-bold mb-2">Editar Pedido #{{ $pedido->id }}</h2>
+
+<!-- Informações rápidas -->
+<div class="mb-4 p-2 border rounded bg-gray-50">
+    <p><strong>ID:</strong> {{ $pedido->id }}</p>
+    <p><strong>Nome:</strong> {{ $pedido->cliente ? $pedido->cliente->nome : 'Não informado' }}</p>
+    <p><strong>Endereço:</strong> {{ $pedido->cliente ? $pedido->cliente->endereco : 'Não informado' }}</p>
+    
+    @if($pedido->imagens->count())
+        <div class="flex flex-wrap gap-2 mt-2">
+            @foreach($pedido->imagens as $imagem)
+                <img src="{{ asset('storage/' . $imagem->imagem) }}" alt="Imagem do pedido" class="w-6 h-6 object-cover rounded border" />
+            @endforeach
+        </div>
+    @else
+        <p class="text-sm text-gray-500 italic mt-2">Sem imagens</p>
+    @endif
+</div>
 
 <form method="POST" action="{{ route('producao.update', $pedido->id) }}">
     @csrf
     @method('PUT')
-
-    {{-- Cliente Nome --}}
-    <div class="mb-4">
-        <label for="cliente_nome_{{ $pedido->id }}" class="block font-bold">Nome do Cliente</label>
-        <input 
-            type="text" 
-            name="cliente_nome" 
-            id="cliente_nome_{{ $pedido->id }}" 
-            value="{{ $pedido->cliente ? $pedido->cliente->nome : '' }}" 
-            class="w-full border rounded p-2"
-        >
-    </div>
-
-    {{-- Cliente Endereço --}}
-    <div class="mb-4">
-        <label for="cliente_endereco_{{ $pedido->id }}" class="block font-bold">Endereço</label>
-        <input 
-            type="text" 
-            name="cliente_endereco" 
-            id="cliente_endereco_{{ $pedido->id }}" 
-            value="{{ $pedido->cliente ? $pedido->cliente->endereco : '' }}" 
-            class="w-full border rounded p-2"
-        >
-    </div>
-
-    {{-- Cliente Telefone --}}
-    <div class="mb-4">
-        <label for="cliente_telefone_{{ $pedido->id }}" class="block font-bold">Telefone</label>
-        <input 
-            type="text" 
-            name="cliente_telefone" 
-            id="cliente_telefone_{{ $pedido->id }}" 
-            value="{{ $pedido->cliente ? $pedido->cliente->telefone : '' }}" 
-            class="w-full border rounded p-2"
-        >
-    </div>
-
-    {{-- Data do Pedido --}}
-    <div class="mb-4">
-        <label for="data_{{ $pedido->id }}" class="block font-bold">Data do Pedido</label>
-        <input 
-            type="date" 
-            name="data" 
-            id="data_{{ $pedido->id }}" 
-            value="{{ $pedido->data }}" 
-            class="w-full border rounded p-2"
-        >
-    </div>
-
-    {{-- Quantidade de Itens --}}
-    <div class="mb-4">
-        <label for="qntItens_{{ $pedido->id }}" class="block font-bold">Quantidade de Itens</label>
-        <input 
-            type="number" 
-            name="qntItens" 
-            id="qntItens_{{ $pedido->id }}" 
-            value="{{ $pedido->qntItens }}" 
-            min="1" 
-            class="w-full border rounded p-2"
-        >
-    </div>
-
-    {{-- Andamento --}}
-    <div class="mb-4">
-        <label for="andamento_{{ $pedido->id }}" class="block font-bold">Andamento</label>
-       <select name="andamento" id="andamento_{{ $pedido->id }}">
-    <option value="produzindo" {{ $pedido->andamento === 'produzindo' ? 'selected' : '' }}>Produzindo</option>
-    <option value="retirar" {{ $pedido->andamento === 'retirar' ? 'selected' : '' }}>Retirar</option>
-    <option value="montado" {{ $pedido->andamento === 'montado' ? 'selected' : '' }}>Montado</option>
-    <option value="desmanchado" {{ $pedido->andamento === 'desmanchado' ? 'selected' : '' }}>Desmanchado</option>
-    <option value="entregar" {{ $pedido->andamento === 'entregar' ? 'selected' : '' }}>Entregar</option>
-    <option value="concluído" {{ $pedido->andamento === 'concluído' ? 'selected' : '' }}>Concluído</option>
-</select>
-
-    </div>
 
     {{-- Tapeceiro --}}
     <div class="mb-4">
@@ -226,40 +142,74 @@
         >
     </div>
 
-    {{-- Previsão Entrega --}}
-    <div class="mb-4">
-        <label for="previsao_entrega_{{ $pedido->id }}" class="block font-bold">Previsão Entrega</label>
+    
+    {{-- Datas lado a lado --}}
+    <div class="flex flex-wrap gap-4 mb-4">
+
+     <div class="flex-1 min-w-[150px]">
+        <label for="data_retirada_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Data Retirada</label>
         <input 
             type="date" 
-            name="previsao_entrega" 
-            id="previsao_entrega_{{ $pedido->id }}" 
-            value="{{ $pedido->servicos->count() ? $pedido->servicos->first()->data_previsao : '' }}" 
+            name="data_retirada" 
+            id="data_retirada_{{ $pedido->id }}" 
+            value="{{ $pedido->data_retirada }}" 
             class="w-full border rounded p-2"
         >
     </div>
 
-    {{-- Pronto Dia --}}
-    <div class="mb-4">
-        <label for="pronto_dia_{{ $pedido->id }}" class="block font-bold">Pronto Dia</label>
-        <input 
-            type="date" 
-            name="pronto_dia" 
-            id="pronto_dia_{{ $pedido->id }}" 
-            value="{{ $pedido->servicos->count() ? $pedido->servicos->first()->data_termino : '' }}" 
-            class="w-full border rounded p-2"
-        >
+        <div class="flex-1 min-w-[150px]">
+            <label for="data_inicio_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Data Início</label>
+            <input 
+                type="date" 
+                name="data_inicio" 
+                id="data_inicio_{{ $pedido->id }}" 
+                value="{{ $pedido->data_inicio }}" 
+                class="w-full border rounded p-2"
+            >
+        </div>
+        <div class="flex-1 min-w-[150px]">
+            <label for="prazo_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Prazo</label>
+            <input 
+                type="text" 
+                name="prazo" 
+                id="prazo_{{ $pedido->id }}" 
+                value="{{ $pedido->prazo }}" 
+                class="w-full border rounded p-2"
+            >
+        </div>
+        <div class="flex-1 min-w-[150px]">
+            <label for="pronto_dia_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Pronto Dia</label>
+            <input 
+                type="date" 
+                name="pronto_dia" 
+                id="pronto_dia_{{ $pedido->id }}" 
+                value="{{ $pedido->data_termino }}" 
+                class="w-full border rounded p-2"
+            >
+        </div>
+        <div class="flex-1 min-w-[150px]">
+            <label for="previsao_entrega_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Previsão Entrega</label>
+            <input 
+                type="date" 
+                name="previsao_entrega" 
+                id="previsao_entrega_{{ $pedido->id }}" 
+                value="{{ $pedido->data_previsao }}" 
+                class="w-full border rounded p-2"
+            >
+        </div>
     </div>
 
-    {{-- Status Pagamento --}}
+    {{-- Andamento --}}
     <div class="mb-4">
-        <label for="status_{{ $pedido->id }}" class="block font-bold">Status Pagamento</label>
-        <input 
-            type="text" 
-            name="status" 
-            id="status_{{ $pedido->id }}" 
-            value="{{ $pedido->status }}" 
-            class="w-full border rounded p-2"
-        >
+        <label for="andamento_{{ $pedido->id }}" class="block font-bold">Andamento</label>
+        <select name="andamento" id="andamento_{{ $pedido->id }}">
+            <option value="produzindo" {{ $pedido->andamento === 'produzindo' ? 'selected' : '' }}>Produzindo</option>
+            <option value="retirar" {{ $pedido->andamento === 'retirar' ? 'selected' : '' }}>Retirar</option>
+            <option value="montado" {{ $pedido->andamento === 'montado' ? 'selected' : '' }}>Montado</option>
+            <option value="desmanchado" {{ $pedido->andamento === 'desmanchado' ? 'selected' : '' }}>Desmanchado</option>
+            <option value="entregar" {{ $pedido->andamento === 'entregar' ? 'selected' : '' }}>Entregar</option>
+            <option value="concluído" {{ $pedido->andamento === 'concluído' ? 'selected' : '' }}>Concluído</option>
+        </select>
     </div>
 
     <div class="flex justify-between mt-4">
