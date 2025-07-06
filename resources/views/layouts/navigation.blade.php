@@ -74,7 +74,7 @@
                         </x-slot>
 
                         <x-slot name="content">
-                            <x-dropdown-link :href="route('pedidos.create')">
+                            <x-dropdown-link :href="route('agendamentos.calendario')">
                                 {{ __('Logistica') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('pedidos.create')">

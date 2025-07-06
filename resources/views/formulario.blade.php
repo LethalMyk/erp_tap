@@ -12,10 +12,24 @@
 <input type="email" name="cliente[email]" placeholder="E-mail" required>
 
     <h3>Datas e Prazos</h3>
-    <input type="date" name="pedido[data]" placeholder="Data do Pedido" required>
-    <input type="date" name="pedido[data_retirada]" placeholder="Data de Retirada">
-    <input type="date" name="pedido[prazo]" placeholder="Prazo">
+
+<div>
+  <label for="data_pedido">Data do Pedido</label><br>
+  <input type="date" id="data_pedido" name="pedido[data]" placeholder="Data do Pedido" required>
+</div>
+
+<div>
+  <label for="data_retirada">Data de Retirada</label><br>
+  <input type="date" id="data_retirada" name="pedido[data_retirada]" placeholder="Data de Retirada">
+</div>
+
+<div>
+  <label for="prazo">Prazo</label><br>
+  <input type="date" id="prazo" name="pedido[prazo]" placeholder="Prazo">
+</div>
+
 <br><br><br>
+
 
 <h3>Itens</h3>
 <div id="itens">

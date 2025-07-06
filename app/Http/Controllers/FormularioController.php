@@ -12,7 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Servico;
 use App\Models\Profissional;
+use App\Models\Agendamento; // no topo do arquivo, se ainda não estiver
 
+     
 class FormularioController extends Controller
 {
 public function store(Request $request)
@@ -53,6 +55,19 @@ public function store(Request $request)
         'qntItens' => $qntItens,
         'status' => $status, // ⬅️ aqui adiciona o status calculado
         'andamento' => 'Retirar',  // Definindo o valor padrão 'retirar' para a coluna 'andamento'
+    ]);
+
+     // *** Cria o agendamento para a retirada AQUI (fora dos loops) ***
+    Agendamento::create([
+        'tipo' => 'retirada',
+        'data' => $request->input('pedido.data_retirada'),
+        'horario' => '08:00', // Pode ajustar para pegar do formulário se quiser
+        'nome_cliente' => $cliente->nome,
+        'endereco' => $cliente->endereco,
+        'telefone' => $cliente->telefone,
+        'status' => 'pendente',
+        'items' => 'Pedido #' . $pedido->id,
+        'obs' => 'Agendamento automático criado ao salvar pedido.',
     ]);
 
     // 3️⃣ Criar Itens e Serviços Terceirizados
