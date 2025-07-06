@@ -36,14 +36,22 @@
                 @endforelse
             </div>
         @endforeach
-
+   <h3>Imagens</h3>
+        <div style="display: flex; flex-wrap: wrap;">
+            @foreach($pedido->imagens as $imagem)
+                <img src="{{ asset('storage/' . $imagem->imagem) }}" alt="Imagem do pedido" style="max-width: 200px; margin: 10px;">
+            @endforeach
+        </div>
+        <br><br>
         <div style="border: 2px solid #000; padding: 15px; margin: 20px 0; border-radius: 8px;">
             <h3 style="color:rgb(22, 22, 22);">Valor do Pedido</h3>
             <p><strong>Total:</strong> R$ {{ number_format($pedido->valor, 2, ',', '.') }}</p>
             <p><strong>Valor Restante:</strong> R$ {{ number_format($pedido->valor_resta, 2, ',', '.') }}</p>
+            
         </div>
 
- 
+
+
 
         @foreach ($pedido->pagamentos as $pagamento)
     <div class="pagamento">
@@ -70,14 +78,27 @@
             @endif
             <hr>
             @endforeach
+  <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+    <a href="{{ route('pagamento.create', ['cliente_id' => $pedido->cliente->id]) }}"
+       style="background-color: #28a745; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; font-weight: 600;">
+        + Novo Pagamento
+    </a>
 
+    @php
+        $clienteId = $pedido->cliente->id ?? ($cliente->id ?? null);
+    @endphp
 
-        <h3>Imagens</h3>
-        <div style="display: flex; flex-wrap: wrap;">
-            @foreach($pedido->imagens as $imagem)
-                <img src="{{ asset('storage/' . $imagem->imagem) }}" alt="Imagem do pedido" style="max-width: 200px; margin: 10px;">
-            @endforeach
-        </div>
+    @if($clienteId)
+        <a href="{{ route('pagamento.index', ['cliente_id' => $clienteId]) }}" 
+           style="background-color: #17a2b8; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: 600;">
+           Ir para Pagamentos
+        </a>
+    @endif
+</div>
+
+<br><br>
+
+     
 
 <a href="{{ route('pedidos.imprimirviacompleta', $pedido->id) }}" target="_blank" class="btn btn-primary" style="margin-bottom: 20px;">
 🖨️ Imprimir Via

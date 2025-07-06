@@ -24,14 +24,17 @@ public function store(Request $request)
     $valorTotal = floatval($request->input('pedido.valor'));
     $pagamentos = $request->input('pagamentos', []);
 
-    // Soma os pagamentos
-    $totalPago = 0;
-    foreach ($pagamentos as $pagamento) {
+  // Soma os pagamentos excluindo 'BOLETO', 'CHEQUE' e 'OUTROS'
+$totalPago = 0;
+foreach ($pagamentos as $pagamento) {
+    $forma = $pagamento['forma'] ?? '';
+    if (!in_array($forma, ['BOLETO', 'CHEQUE', 'OUTROS'])) {
         $totalPago += floatval($pagamento['valor']);
     }
+}
 
-    // Define status
-    $status = $totalPago >= $valorTotal ? 'PAGO' : 'RESTA';
+// Define status
+$status = $totalPago >= $valorTotal ? 'PAGO' : 'RESTA';
 
     // 1️⃣ Criar Cliente
     $cliente = Cliente::create([

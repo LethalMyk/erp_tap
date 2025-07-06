@@ -8,17 +8,72 @@ use Illuminate\Http\Request;
 
 class PagamentoController extends Controller
 {
-    public function index()
-    {
-        $pagamentos = Pagamento::with('pedido')->get();
-        return view('pagamento.index', compact('pagamentos'));
+ public function index(Request $request)
+{
+    $query = Pagamento::with(['pedido.cliente'])
+        ->when($request->status, function ($query) use ($request) {
+            $query->where('status', $request->status);
+        })
+        ->when($request->forma, function ($query) use ($request) {
+            $query->where('forma', $request->forma);
+        })
+        ->when($request->nome, function ($query) use ($request) {
+            $query->whereHas('pedido.cliente', function ($q) use ($request) {
+                $q->where('nome', 'like', '%' . $request->nome . '%');
+            });
+        })
+        ->when($request->endereco, function ($query) use ($request) {
+            $query->whereHas('pedido.cliente', function ($q) use ($request) {
+                $q->where('endereco', 'like', '%' . $request->endereco . '%');
+            });
+        })
+        ->when($request->data_inicio, function ($query) use ($request) {
+            $query->whereDate('data', '>=', $request->data_inicio);
+        })
+        ->when($request->data_fim, function ($query) use ($request) {
+            $query->whereDate('data', '<=', $request->data_fim);
+        })
+        ->when($request->cliente_id, function ($query) use ($request) {
+            $query->whereHas('pedido', function ($q) use ($request) {
+                $q->where('cliente_id', $request->cliente_id);
+            });
+        })
+        ->orderByDesc('created_at');
+
+    // Usar paginate para não carregar tudo
+    $pagamentos = $query->paginate(20);
+
+    // Calcular valor resta para cada pagamento da página atual
+    foreach ($pagamentos as $pagamento) {
+        $pedido = $pagamento->pedido;
+
+        // Somar pagamentos registrados para o pedido
+        $totalPago = Pagamento::where('pedido_id', $pedido->id)
+            ->where('status', 'PAGAMENTO REGISTRADO')
+            ->sum('valor');
+
+        $pagamento->valor_resta_pedido = max($pedido->valor - $totalPago, 0);
     }
 
-    public function create()
-    {
+    return view('pagamento.index', compact('pagamentos'))
+        ->with([
+            'statusFilter' => $request->status,
+            'formaFilter' => $request->forma,
+        ]);
+}
+
+
+public function create($cliente_id = null)
+{
+    if ($cliente_id) {
+        $pedidos = Pedido::where('cliente_id', $cliente_id)->get();
+    } else {
         $pedidos = Pedido::all();
-        return view('pagamento.create', compact('pedidos'));
     }
+    return view('pagamento.create', compact('pedidos', 'cliente_id'));
+}
+
+
 
    public function store(Request $request)
 {
@@ -50,14 +105,19 @@ $data = $ehEmAberto ? ($request->input('data') ?? null) : $pedido->data;
     ]);
 
     // Atualizar valor restante e status do pedido
-    $totalPago = Pagamento::where('pedido_id', $pedido->id)->sum('valor');
-    $novoValorResta = max(0, $pedido->valor - $totalPago);
-    $novoStatusPedido = ($novoValorResta == 0) ? 'PAGO' : 'RESTA';
+    // Atualizar valor restante e status do pedido
+$totalPago = Pagamento::where('pedido_id', $pedido->id)
+    ->whereNotIn('forma', ['BOLETO', 'CHEQUE', 'OUTROS'])
+    ->sum('valor');
 
-    $pedido->update([
-        'valorResta' => $novoValorResta,
-        'status' => $novoStatusPedido,
-    ]);
+$novoValorResta = max(0, $pedido->valor - $totalPago);
+$novoStatusPedido = ($novoValorResta == 0) ? 'PAGO' : 'RESTA';
+
+$pedido->update([
+    'valorResta' => $novoValorResta,
+    'status' => $novoStatusPedido,
+]);
+
 
     return redirect()->route('pagamento.index')->with('success', 'Pagamento registrado com sucesso.');
 }
@@ -73,11 +133,27 @@ public function registrar(Request $request, $id)
         $pagamento->obs = $request->input('obs'); // nova observação
         $pagamento->save();
 
+        // Soma somente pagamentos registrados para atualizar valor restante e status
+        $totalPago = Pagamento::where('pedido_id', $pagamento->pedido_id)
+            ->where('status', '!=', 'EM ABERTO')
+            ->sum('valor');
+
+        $pedido = $pagamento->pedido;
+        $novoValorResta = max(0, $pedido->valor - $totalPago);
+        $novoStatusPedido = ($novoValorResta == 0) ? 'PAGO' : 'RESTA';
+
+        $pedido->update([
+            'valorResta' => $novoValorResta,
+            'status' => $novoStatusPedido,
+        ]);
+
         return redirect()->back()->with('success', 'Pagamento registrado com sucesso!');
     }
 
     return redirect()->back()->with('info', 'Este pagamento já está registrado.');
 }
+
+
 
 
 

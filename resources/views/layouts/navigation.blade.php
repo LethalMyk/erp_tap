@@ -101,8 +101,8 @@
                             <x-dropdown-link :href="route('pedidos.create')">
                                 {{ __('Consulta') }}
                             </x-dropdown-link>
-                            <x-dropdown-link :href="route('pedidos.create')">
-                                {{ __('Recebimentos') }}
+                            <x-dropdown-link :href="route('pagamento.index')">
+                                {{ __('Pagamento de Clientes') }}
                             </x-dropdown-link>
                         </x-slot>
                     </x-dropdown>
