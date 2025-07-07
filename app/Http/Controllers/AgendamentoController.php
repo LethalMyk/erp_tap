@@ -15,19 +15,16 @@ class AgendamentoController extends Controller
         $fimSemana = $hoje->copy()->endOfWeek();
         $fimDuasSemanas = $hoje->copy()->addWeeks(2)->endOfWeek();
 
-        // Função para buscar agendamentos excluindo orçamentos
         $buscarAgendamentosExcetoOrcamento = fn($start, $end = null) => 
             $end 
                 ? Agendamento::whereBetween('data', [$start, $end])->where('tipo', '!=', 'orcamento')->orderBy('data')->orderBy('horario')->get()
                 : Agendamento::whereDate('data', $start)->where('tipo', '!=', 'orcamento')->orderBy('horario')->get();
 
-        // Função para buscar só orçamentos
         $buscarOrcamentos = fn($start, $end = null) =>
             $end
                 ? Agendamento::whereBetween('data', [$start, $end])->where('tipo', 'orcamento')->orderBy('data')->orderBy('horario')->get()
                 : Agendamento::whereDate('data', $start)->where('tipo', 'orcamento')->orderBy('horario')->get();
 
-        // Periodos
         $agendamentosHoje = $buscarAgendamentosExcetoOrcamento($hoje);
         $orcamentosHoje = $buscarOrcamentos($hoje);
 
@@ -111,7 +108,12 @@ class AgendamentoController extends Controller
         $agendamento = Agendamento::findOrFail($id);
         $agendamento->update($request->all());
 
-        return redirect()->route('agendamentos.calendario')->with('success', 'Agendamento atualizado!');
+        // Redireciona conforme origem do formulário
+        if ($request->input('redirect_to') === 'calendario') {
+            return redirect()->route('agendamentos.calendario')->with('success', 'Agendamento atualizado!');
+        }
+
+        return redirect()->route('agendamentos.index')->with('success', 'Agendamento atualizado!');
     }
 
     public function calendario(Request $request)

@@ -3,8 +3,11 @@
 
     <!-- Lado esquerdo: Calendário -->
     <div style="flex: 2;">
-        <h2 class="mb-4">📅 Calendário de Agendamentos</h2>
+        <a href="{{ route('agendamentos.index') }}" class="btn btn-info btn-sm mb-3">
+            📋 Visualizar Lista
+        </a>
 
+        <h2 class="mb-4">Calendário de Agendamentos</h2>
         <div id="calendar"></div>
 
         <!-- Nova área para detalhes, inicialmente oculta -->
@@ -104,17 +107,13 @@
                 const container = document.getElementById('conteudoDetalhes');
                 container.innerHTML = detalhes;
 
-                // Mostrar a div de detalhes
                 document.getElementById('detalhesAgendamento').style.display = 'block';
-
-                // Opcional: rolar suavemente para a área dos detalhes
                 document.getElementById('detalhesAgendamento').scrollIntoView({ behavior: 'smooth' });
             },
 
             eventDidMount: function(info) {
                 info.el.addEventListener('dblclick', function () {
-                    const confirmar = confirm("Deseja carregar este agendamento no formulário para editar?");
-                    if (!confirmar) return;
+                    if (!confirm("Deseja carregar este agendamento no formulário para editar?")) return;
 
                     const agendamento = info.event.extendedProps;
 
@@ -136,8 +135,7 @@
             },
 
             dateClick: function(info) {
-                const confirmar = confirm("Deseja criar um novo agendamento nesta data?");
-                if (!confirmar) return;
+                if (!confirm("Deseja criar um novo agendamento nesta data?")) return;
 
                 limparFormulario();
 
@@ -156,14 +154,13 @@
         document.getElementById('formAgendamento').addEventListener('submit', function (e) {
             const id = document.getElementById('agendamento_id').value;
             if (id) {
-                const confirmar = confirm("Tem certeza que deseja atualizar este agendamento?");
-                if (!confirmar) {
+                if (!confirm("Tem certeza que deseja atualizar este agendamento?")) {
                     e.preventDefault();
                 }
             }
         });
 
-        // *** NOVO: preencher formulário se vier dados para isso do Controller ***
+        // Preencher formulário se vier dados do controller
         const cliente = @json($cliente);
         const dataPreenchida = @json($dataPreenchida);
         const horarioPreenchido = @json($horarioPreenchido);
