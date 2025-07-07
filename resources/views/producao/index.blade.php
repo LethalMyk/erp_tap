@@ -60,6 +60,8 @@
         <th>Data Início</th>
         <th>Data Término</th>
         <th>Previsão Entrega</th>
+                <th>Observação</th>
+
         <th>Ações</th>
     </tr>
 </thead>
@@ -87,10 +89,14 @@
             <td>{{ $pedido->data_inicio ?? '---' }}</td>
             <td>{{ $pedido->data_termino ?? '---' }}</td>
             <td>{{ $pedido->data_previsao ?? '---' }}</td>
+                         <td>{{ $pedido->obs ?? '-' }}</td> 
+
             <td>
                 <div class="action-buttons">
                     <a href="{{ route('pedido.visualizar', $pedido->id) }}" class="btn-view">Ver</a>
                     <button @click="openModal = {{ $pedido->id }}" class="btn-edit">Editar Rápido</button>
+                     <a href="{{ route('pagamento.index', ['cliente_id' => $pedido->cliente->id]) }}" class="btn btn-info">Ir para Pagamentos</a>
+    </div>
                 </div>
             </td>
         </tr>
@@ -211,6 +217,16 @@
             <option value="concluído" {{ $pedido->andamento === 'concluído' ? 'selected' : '' }}>Concluído</option>
         </select>
     </div>
+{{-- Observação --}}
+<div class="mb-4">
+    <label for="observacao_{{ $pedido->id }}" class="block font-bold">Observação</label>
+    <textarea 
+        name="observacao" 
+        id="observacao_{{ $pedido->id }}" 
+        rows="3" 
+        class="w-full border rounded p-2"
+    >{{ $pedido->obs }}</textarea>
+</div>
 
     <div class="flex justify-between mt-4">
         <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">

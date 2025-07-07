@@ -4,45 +4,62 @@
         <a href="{{ route('formulario.index') }}" class="btn-create">Criar Pedido</a>
         <br><br><br><br>
 
-        <!-- Formulário de Filtros (unificado) -->
+        <!-- Formulário de Filtros e Ordenação -->
         <form action="{{ route('pedidos.index') }}" method="GET" class="mb-4">
-            <button type="submit" class="btn-filter">Filtrar</button>
-            <a href="{{ route('pedidos.index') }}" class="btn-clear">Limpar Filtros</a>
-            
             <div class="filters">
-                <input type="text" name="id" value="{{ $id }}" placeholder="Filtrar por ID" class="filter-input">
-                <input type="text" name="cliente_nome" value="{{ $clienteNome }}" placeholder="Filtrar por Nome do Cliente" class="filter-input">
-                <input type="text" name="endereco" value="{{ $endereco }}" placeholder="Filtrar por Endereço" class="filter-input">
-                <input type="text" name="telefone" value="{{ $telefone }}" placeholder="Filtrar por Telefone" class="filter-input">
-                <input type="date" name="data" value="{{ $data }}" class="filter-input">
+                <input type="text" name="id" value="{{ request('id') }}" placeholder="Filtrar por ID" class="filter-input">
+                <input type="text" name="cliente_nome" value="{{ request('cliente_nome') }}" placeholder="Filtrar por Nome do Cliente" class="filter-input">
+                <input type="text" name="endereco" value="{{ request('endereco') }}" placeholder="Filtrar por Endereço" class="filter-input">
+                <input type="text" name="telefone" value="{{ request('telefone') }}" placeholder="Filtrar por Telefone" class="filter-input">
+                <input type="date" name="data" value="{{ request('data') }}" class="filter-input">
 
                 <select name="andamento[]" multiple class="filter-input" style="height: auto;">
-                    <option value="Produzindo" {{ in_array('Produzindo', (array) $andamento ?? []) ? 'selected' : '' }}>Produzindo</option>
-                    <option value="Retirar" {{ in_array('Retirar', (array) $andamento ?? []) ? 'selected' : '' }}>Retirar</option>
-                    <option value="Resta" {{ in_array('Resta', (array) $andamento ?? []) ? 'selected' : '' }}>Resta</option>
-                    <option value="Entregue" {{ in_array('Entregue', (array) $andamento ?? []) ? 'selected' : '' }}>Entregue</option>
+                    <option value="Produzindo" {{ in_array('Produzindo', (array) request('andamento', [])) ? 'selected' : '' }}>Produzindo</option>
+                    <option value="Retirar" {{ in_array('Retirar', (array) request('andamento', [])) ? 'selected' : '' }}>Retirar</option>
+                    <option value="Resta" {{ in_array('Resta', (array) request('andamento', [])) ? 'selected' : '' }}>Resta</option>
+                    <option value="Entregue" {{ in_array('Entregue', (array) request('andamento', [])) ? 'selected' : '' }}>Entregue</option>
                 </select>
 
-                <input type="text" name="tapeceiro" value="{{ $tapeceiro }}" placeholder="Filtrar por Tapeceiro" class="filter-input">
-                
-                <!-- Filtro de mês -->
+                <input type="text" name="tapeceiro" value="{{ request('tapeceiro') }}" placeholder="Filtrar por Tapeceiro" class="filter-input">
+
                 <label for="mes">Pronto no mês de</label>
                 <select name="mes" id="mes" class="filter-input">
                     <option value="">Selecione o Mês</option>
-                    <option value="1" {{ request('mes') == 1 ? 'selected' : '' }}>Janeiro</option>
-                    <option value="2" {{ request('mes') == 2 ? 'selected' : '' }}>Fevereiro</option>
-                    <option value="3" {{ request('mes') == 3 ? 'selected' : '' }}>Março</option>
-                    <option value="4" {{ request('mes') == 4 ? 'selected' : '' }}>Abril</option>
-                    <option value="5" {{ request('mes') == 5 ? 'selected' : '' }}>Maio</option>
-                    <option value="6" {{ request('mes') == 6 ? 'selected' : '' }}>Junho</option>
-                    <option value="7" {{ request('mes') == 7 ? 'selected' : '' }}>Julho</option>
-                    <option value="8" {{ request('mes') == 8 ? 'selected' : '' }}>Agosto</option>
-                    <option value="9" {{ request('mes') == 9 ? 'selected' : '' }}>Setembro</option>
-                    <option value="10" {{ request('mes') == 10 ? 'selected' : '' }}>Outubro</option>
-                    <option value="11" {{ request('mes') == 11 ? 'selected' : '' }}>Novembro</option>
-                    <option value="12" {{ request('mes') == 12 ? 'selected' : '' }}>Dezembro</option>
+                    @for ($m = 1; $m <= 12; $m++)
+                        <option value="{{ $m }}" {{ request('mes') == $m ? 'selected' : '' }}>
+                            {{ \Carbon\Carbon::create()->month($m)->format('F') }}
+                        </option>
+                    @endfor
+                </select>
+
+                <!-- Campo para ordenar tapeceiros em ordem customizada -->
+                <input
+                    type="text"
+                    name="custom_order"
+                    value="{{ request('custom_order') }}"
+                    placeholder="Ordenar Tapeceiro (ex: Samuel,Paulo,João)"
+                    class="filter-input"
+                />
+
+                <!-- Select para ordenação tradicional -->
+                <select name="sort_field" class="filter-input">
+                    <option value="">Ordenar por</option>
+                    <option value="id" {{ request('sort_field') == 'id' ? 'selected' : '' }}>ID</option>
+                    <option value="data" {{ request('sort_field') == 'data' ? 'selected' : '' }}>Data</option>
+                    <option value="cliente_nome" {{ request('sort_field') == 'cliente_nome' ? 'selected' : '' }}>Nome do Cliente</option>
+                    <option value="andamento" {{ request('sort_field') == 'andamento' ? 'selected' : '' }}>Andamento</option>
+                    <option value="tapeceiro" {{ request('sort_field') == 'tapeceiro' ? 'selected' : '' }}>Tapeceiro</option>
+                    <option value="prazo" {{ request('sort_field') == 'prazo' ? 'selected' : '' }}>Prazo</option>
+                </select>
+
+                <select name="sort_direction" class="filter-input">
+                    <option value="asc" {{ request('sort_direction') == 'asc' ? 'selected' : '' }}>Ascendente</option>
+                    <option value="desc" {{ request('sort_direction') == 'desc' ? 'selected' : '' }}>Descendente</option>
                 </select>
             </div>
+
+            <button type="submit" class="btn-filter">Filtrar</button>
+            <a href="{{ route('pedidos.index') }}" class="btn-clear">Limpar Filtros</a>
         </form>
 
         <div class="table-container">
@@ -50,18 +67,21 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Cliente</th>
+                        <th>Nome</th>
                         <th>Endereço</th>
                         <th>Telefone</th>
                         <th>Data</th>
-                        <th>Quantidade de Itens</th>
-                        <th>Fotos</th>
+                        <th>Itens</th>
+                        <th>Imagens</th>
+                        <th>Data Retirada</th>
                         <th>Andamento</th>
                         <th>Tapeceiro</th>
-                        <th>Previsão Entrega</th>
-                        <th>Pronto Dia</th>
-                        <th>StatusPG</th>
-                        <th>Ações</th>
+                        <th>Prazo</th>
+                        <th>Data Início</th>
+                        <th>Data Término</th>
+                        <th>Data Previsão</th>
+                        <th>Status</th>
+                        <th>Observação</th> 
                     </tr>
                 </thead>
                 <tbody>
@@ -79,7 +99,7 @@
                                         @foreach($pedido->imagens->chunk(2) as $imagemChunk)
                                             <div class="image-pair">
                                                 @foreach($imagemChunk as $imagem)
-                                                    <img src="{{ asset('storage/' . $imagem->imagem) }}" alt="Imagem do pedido" style="width: 100px; height: auto;">
+                                                    <img src="{{ asset('storage/' . $imagem->imagem) }}" alt="Imagem do pedido" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
                                                 @endforeach
                                             </div>
                                         @endforeach
@@ -88,38 +108,15 @@
                                     <span class="text-gray-400 italic">Sem imagens</span>
                                 @endif
                             </td>
+                            <td>{{ $pedido->data_retirada ?? 'Não registrada' }}</td>
                             <td>{{ $pedido->andamento }}</td>
-                            <td>
-                                @if($pedido->servicos->count())
-                                    @foreach($pedido->servicos as $servico)
-                                        {{ $servico->profissional ? $servico->profissional->nome : 'Profissional não encontrado' }}
-                                    @endforeach
-                                @else
-                                    'Profissional não encontrado'
-                                @endif
-                            </td>
-                            <td>
-                                @if($pedido->servicos->count())
-                                    {{ $pedido->servicos->pluck('data_previsao')->implode(', ') }}
-                                @else
-                                    Sem previsão
-                                @endif
-                            </td>
-                            <td>
-                                @if($pedido->servicos->count())
-                                    {{ $pedido->servicos->pluck('data_termino')->implode(', ') }}
-                                @else
-                                    Não registrado
-                                @endif
-                            </td>
-
+                            <td>{{ $pedido->tapeceiro ?? 'Tapeceiro não informado' }}</td>
+                            <td>{{ $pedido->prazo ?? 'Não informado' }}</td>
+                            <td>{{ $pedido->data_inicio ?? 'Não informado' }}</td>
+                            <td>{{ $pedido->data_termino ?? 'Não informado' }}</td>
+                            <td>{{ $pedido->data_previsao ?? 'Sem previsão' }}</td>
                             <td>{{ $pedido->status }}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="{{ route('pedido.visualizar', $pedido->id) }}" class="btn-view">Ver</a>
-                                    <a href="{{ route('pedidos.edit', $pedido->id) }}" class="btn-edit">Editar</a>
-                                </div>
-                            </td>
+                            <td>{{ $pedido->obs ?? '-' }}</td> 
                         </tr>
                     @endforeach
                 </tbody>
@@ -198,6 +195,7 @@
         .filters {
             display: flex;
             gap: 20px;
+            flex-wrap: wrap;
             margin-bottom: 20px;
         }
 
@@ -215,40 +213,19 @@
             background-color: #0056b3;
         }
 
-        /* Estilo dos botões "Ver" e "Editar" */
-        .btn-view {
-            color: #007bff;
-            padding: 5px 10px;
-            margin-right: 10px;
-            border: 1px solid #007bff;
+        .btn-clear {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 10px 20px;
             border-radius: 5px;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .btn-view:hover {
-            background-color: #007bff;
+            background-color: #6c757d;
             color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
         }
 
-        .btn-edit {
-            color: #ffc107;
-            padding: 5px 10px;
-            border: 1px solid #ffc107;
-            border-radius: 5px;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .btn-edit:hover {
-            background-color: #ffc107;
-            color: white;
-        }
-
-        .table-container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            margin-top: 20px;
+        .btn-clear:hover {
+            background-color: #5a6268;
         }
 
         table {
@@ -274,12 +251,6 @@
         td {
             font-size: 1rem;
             color: #555;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            align-items: center;
         }
     </style>
 </x-app-layout>
