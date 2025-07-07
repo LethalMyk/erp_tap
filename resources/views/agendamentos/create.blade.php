@@ -30,6 +30,9 @@
             <label>Nome do Cliente</label>
             <input type="text" name="nome_cliente" class="form-control" required>
         </div>
+<input type="text" name="nome_cliente" class="form-control" required value="{{ old('nome_cliente', $cliente->nome ?? '') }}">
+
+<textarea name="endereco" class="form-control" required>{{ old('endereco', $cliente->endereco ?? '') }}</textarea>
 
         <div class="mb-3">
             <label>Endereço</label>

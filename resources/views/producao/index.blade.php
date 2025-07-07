@@ -95,6 +95,18 @@
                 <div class="action-buttons">
                     <a href="{{ route('pedido.visualizar', $pedido->id) }}" class="btn-view">Ver</a>
                     <button @click="openModal = {{ $pedido->id }}" class="btn-edit">Editar Rápido</button>
+                    <a 
+    href="{{ route('agendamentos.calendario', [
+        'cliente_id' => $pedido->cliente->id ?? null,
+        'data' => $pedido->prazo ?? now()->format('Y-m-d'),
+        'horario' => '09:00'
+    ]) }}" 
+    class="btn btn-primary" 
+    style="padding: 5px 10px; border-radius: 5px;"
+>
+    Realizar Agendamento
+</a>
+
                      <a href="{{ route('pagamento.index', ['cliente_id' => $pedido->cliente->id]) }}" class="btn btn-info">Ir para Pagamentos</a>
     </div>
                 </div>
