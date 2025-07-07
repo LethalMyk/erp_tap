@@ -7,17 +7,10 @@
 
         <div id="calendar"></div>
 
-        <!-- Modal para detalhes -->
-        <div class="modal fade" id="detalheModal" tabindex="-1" aria-labelledby="detalheModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="detalheModalLabel">Detalhes do Agendamento</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                    </div>
-                    <div class="modal-body" id="modalBodyContent"></div>
-                </div>
-            </div>
+        <!-- Nova área para detalhes, inicialmente oculta -->
+        <div id="detalhesAgendamento" style="display:none; margin-top: 15px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background-color: #f8f9fa;">
+            <h5>Detalhes do Agendamento</h5>
+            <div id="conteudoDetalhes"></div>
         </div>
     </div>
 
@@ -108,8 +101,14 @@
                     <p><strong>Telefone:</strong> ${info.event.extendedProps.telefone}</p>
                 `;
 
-                document.getElementById('modalBodyContent').innerHTML = detalhes;
-                new bootstrap.Modal(document.getElementById('detalheModal')).show();
+                const container = document.getElementById('conteudoDetalhes');
+                container.innerHTML = detalhes;
+
+                // Mostrar a div de detalhes
+                document.getElementById('detalhesAgendamento').style.display = 'block';
+
+                // Opcional: rolar suavemente para a área dos detalhes
+                document.getElementById('detalhesAgendamento').scrollIntoView({ behavior: 'smooth' });
             },
 
             eventDidMount: function(info) {
