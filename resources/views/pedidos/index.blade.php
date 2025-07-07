@@ -81,7 +81,8 @@
                         <th>Data Término</th>
                         <th>Data Previsão</th>
                         <th>Status</th>
-                        <th>Observação</th> 
+                        <th>Observação</th>
+                        <th>Ações</th> <!-- NOVA COLUNA AÇÕES -->
                     </tr>
                 </thead>
                 <tbody>
@@ -117,6 +118,9 @@
                             <td>{{ $pedido->data_previsao ?? 'Sem previsão' }}</td>
                             <td>{{ $pedido->status }}</td>
                             <td>{{ $pedido->obs ?? '-' }}</td> 
+                            <td>
+                                <a href="{{ route('pedido.visualizar', $pedido->id) }}" class="btn-view">Ver</a>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -251,6 +255,20 @@
         td {
             font-size: 1rem;
             color: #555;
+        }
+
+        /* Estilo botão Ver */
+        .btn-view {
+            background-color: #17a2b8;
+            color: white;
+            padding: 6px 12px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+        .btn-view:hover {
+            background-color: #117a8b;
         }
     </style>
 </x-app-layout>
