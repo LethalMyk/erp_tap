@@ -12,41 +12,73 @@ class AgendamentoController extends Controller
     public function index()
     {
         $hoje = Carbon::today();
-        $fimSemana = $hoje->copy()->endOfWeek();
-        $fimDuasSemanas = $hoje->copy()->addWeeks(2)->endOfWeek();
 
+        // Funções auxiliares para buscar agendamentos e orçamentos por data (ou intervalo)
         $buscarAgendamentosExcetoOrcamento = fn($start, $end = null) => 
             $end 
-                ? Agendamento::whereBetween('data', [$start, $end])->where('tipo', '!=', 'orcamento')->orderBy('data')->orderBy('horario')->get()
-                : Agendamento::whereDate('data', $start)->where('tipo', '!=', 'orcamento')->orderBy('horario')->get();
+                ? Agendamento::whereBetween('data', [$start, $end])
+                    ->where('tipo', '!=', 'orcamento')
+                    ->orderBy('data')
+                    ->orderBy('horario')
+                    ->get()
+                : Agendamento::whereDate('data', $start)
+                    ->where('tipo', '!=', 'orcamento')
+                    ->orderBy('horario')
+                    ->get();
 
         $buscarOrcamentos = fn($start, $end = null) =>
             $end
-                ? Agendamento::whereBetween('data', [$start, $end])->where('tipo', 'orcamento')->orderBy('data')->orderBy('horario')->get()
-                : Agendamento::whereDate('data', $start)->where('tipo', 'orcamento')->orderBy('horario')->get();
+                ? Agendamento::whereBetween('data', [$start, $end])
+                    ->where('tipo', 'orcamento')
+                    ->orderBy('data')
+                    ->orderBy('horario')
+                    ->get()
+                : Agendamento::whereDate('data', $start)
+                    ->where('tipo', 'orcamento')
+                    ->orderBy('horario')
+                    ->get();
 
-        $agendamentosHoje = $buscarAgendamentosExcetoOrcamento($hoje);
-        $orcamentosHoje = $buscarOrcamentos($hoje);
+        // Preparar arrays para agendamentos e orçamentos por dia para os próximos 15 dias
+        $agendamentosPorDia = [];
+        $orcamentosPorDia = [];
+        for ($i = 0; $i <= 14; $i++) {
+            $data = $hoje->copy()->addDays($i)->toDateString();
+            $agendamentosPorDia[$i] = $buscarAgendamentosExcetoOrcamento($data);
+            $orcamentosPorDia[$i] = $buscarOrcamentos($data);
+        }
 
-        $agendamentosSemana = $buscarAgendamentosExcetoOrcamento($hoje, $fimSemana)->where('data', '!=', $hoje);
-        $orcamentosSemana = $buscarOrcamentos($hoje, $fimSemana)->where('data', '!=', $hoje);
+        // Agendamentos futuros além dos 15 dias
+        $dataLimite = $hoje->copy()->addDays(15)->toDateString();
+        $agendamentosFuturos = Agendamento::where('data', '>', $dataLimite)
+            ->where('tipo', '!=', 'orcamento')
+            ->orderBy('data')
+            ->orderBy('horario')
+            ->get();
 
-        $agendamentosProximasSemanas = $buscarAgendamentosExcetoOrcamento($fimSemana->copy()->addDay(), $fimDuasSemanas);
-        $orcamentosProximasSemanas = $buscarOrcamentos($fimSemana->copy()->addDay(), $fimDuasSemanas);
+        $orcamentosFuturos = Agendamento::where('data', '>', $dataLimite)
+            ->where('tipo', 'orcamento')
+            ->orderBy('data')
+            ->orderBy('horario')
+            ->get();
 
-        $agendamentosFuturos = $buscarAgendamentosExcetoOrcamento($fimDuasSemanas->copy()->addDay());
-        $orcamentosFuturos = $buscarOrcamentos($fimDuasSemanas->copy()->addDay());
+        // Agendamentos passados (limitados a 10)
+        $agendamentosPassados = Agendamento::where('data', '<', $hoje)
+            ->where('tipo', '!=', 'orcamento')
+            ->orderByDesc('data')
+            ->orderBy('horario')
+            ->limit(10)
+            ->get();
 
-        $agendamentosPassados = Agendamento::where('data', '<', $hoje)->where('tipo', '!=', 'orcamento')->orderByDesc('data')->orderBy('horario')->limit(10)->get();
-        $orcamentosPassados = Agendamento::where('data', '<', $hoje)->where('tipo', 'orcamento')->orderByDesc('data')->orderBy('horario')->limit(10)->get();
+        $orcamentosPassados = Agendamento::where('data', '<', $hoje)
+            ->where('tipo', 'orcamento')
+            ->orderByDesc('data')
+            ->orderBy('horario')
+            ->limit(10)
+            ->get();
 
         return view('agendamentos.index', [
-            'agendamentosHoje' => $agendamentosHoje,
-            'orcamentosHoje' => $orcamentosHoje,
-            'agendamentosSemana' => $agendamentosSemana,
-            'orcamentosSemana' => $orcamentosSemana,
-            'agendamentosProximasSemanas' => $agendamentosProximasSemanas,
-            'orcamentosProximasSemanas' => $orcamentosProximasSemanas,
+            'agendamentosPorDia' => $agendamentosPorDia,
+            'orcamentosPorDia' => $orcamentosPorDia,
             'agendamentosFuturos' => $agendamentosFuturos,
             'orcamentosFuturos' => $orcamentosFuturos,
             'agendamentosPassados' => $agendamentosPassados,
@@ -108,7 +140,6 @@ class AgendamentoController extends Controller
         $agendamento = Agendamento::findOrFail($id);
         $agendamento->update($request->all());
 
-        // Redireciona conforme origem do formulário
         if ($request->input('redirect_to') === 'calendario') {
             return redirect()->route('agendamentos.calendario')->with('success', 'Agendamento atualizado!');
         }

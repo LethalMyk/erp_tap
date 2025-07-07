@@ -20,35 +20,29 @@
             <label class="form-check-label" for="toggleOrcamentos">Mostrar Orçamentos</label>
         </div>
 
-        {{-- HOJE --}}
-        <h4>📌 Hoje ({{ now()->format('d/m/Y') }})</h4>
-        <div class="agendamentos-gerais" id="geraisHoje">
-            @include('agendamentos.partials.lista-geral', ['agendamentos' => $agendamentosHoje])
-        </div>
-        <div class="orcamentos" id="orcamentosHoje">
-            @include('agendamentos.partials.lista-orcamentos', ['orcamentos' => $orcamentosHoje])
-        </div>
+        {{-- Loop dos próximos 15 dias --}}
+        @for ($i = 0; $i <= 14; $i++)
+            @php
+                $dataFormatada = \Carbon\Carbon::today()->addDays($i)->format('d/m/Y');
+                $tituloDia = match ($i) {
+                    0 => '📌 Hoje',
+                    1 => '📅 Amanhã',
+                    default => '📅 ' . \Carbon\Carbon::today()->addDays($i)->format('d/m/Y'),
+                };
+            @endphp
 
-        {{-- ESTA SEMANA --}}
-        <h4 class="mt-4">📆 Esta Semana</h4>
-        <div class="agendamentos-gerais" id="geraisSemana">
-            @include('agendamentos.partials.lista-geral', ['agendamentos' => $agendamentosSemana])
-        </div>
-        <div class="orcamentos" id="orcamentosSemana">
-            @include('agendamentos.partials.lista-orcamentos', ['orcamentos' => $orcamentosSemana])
-        </div>
+            <h4 class="mt-4">{{ $tituloDia }} ({{ $dataFormatada }})</h4>
 
-        {{-- PRÓXIMAS SEMANAS --}}
-        <h4 class="mt-4">📆 Próximas 2 Semanas</h4>
-        <div class="agendamentos-gerais" id="geraisProximasSemanas">
-            @include('agendamentos.partials.lista-geral', ['agendamentos' => $agendamentosProximasSemanas])
-        </div>
-        <div class="orcamentos" id="orcamentosProximasSemanas">
-            @include('agendamentos.partials.lista-orcamentos', ['orcamentos' => $orcamentosProximasSemanas])
-        </div>
+            <div class="agendamentos-gerais" id="geraisDia{{ $i }}">
+                @include('agendamentos.partials.lista-geral', ['agendamentos' => $agendamentosPorDia[$i]])
+            </div>
+            <div class="orcamentos" id="orcamentosDia{{ $i }}">
+                @include('agendamentos.partials.lista-orcamentos', ['orcamentos' => $orcamentosPorDia[$i]])
+            </div>
+        @endfor
 
-        {{-- FUTUROS --}}
-        <h4 class="mt-4">🗓️ Todos os Futuros</h4>
+        {{-- Agendamentos Futuros além dos 15 dias --}}
+        <h4 class="mt-4">🗓️ Demais Futuros</h4>
         <div class="agendamentos-gerais" id="geraisFuturos">
             @include('agendamentos.partials.lista-geral', ['agendamentos' => $agendamentosFuturos])
         </div>
@@ -56,7 +50,7 @@
             @include('agendamentos.partials.lista-orcamentos', ['orcamentos' => $orcamentosFuturos])
         </div>
 
-        {{-- PASSADOS - Inicialmente ocultos --}}
+        {{-- Passados (inicialmente ocultos) --}}
         <div id="blocoPassados" style="display: none;">
             <h4 class="mt-4">📁 Anteriores</h4>
             <div class="agendamentos-gerais" id="geraisPassados">
