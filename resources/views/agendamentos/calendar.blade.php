@@ -204,6 +204,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const cliente = @json($cliente);
     const dataPreenchida = @json($dataPreenchida);
     const horarioPreenchido = @json($horarioPreenchido);
+    const items = @json($items ?? '');
+    const obs_retirada = @json($obs_retirada ?? '');
 
     if (cliente) {
         limparFormulario();
@@ -214,6 +216,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (dataPreenchida) document.getElementById('inputData').value = dataPreenchida;
     if (horarioPreenchido) document.getElementById('inputHorario').value = horarioPreenchido;
+
+    // Preencher itens e observação (se tiver)
+    document.querySelector('[name="itens"]').value = items || '';
+    document.querySelector('[name="observacao"]').value = obs_retirada || '';
 });
 
 function limparFormulario() {

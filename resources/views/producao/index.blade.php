@@ -52,6 +52,7 @@
         <th>ID</th>
         <th>Nome</th>
         <th>Endereço</th>
+        <th>Items</th>
         <th>Imagens</th>
         <th>Data Retirada</th>
         <th>Andamento</th>
@@ -71,6 +72,13 @@
             <td>{{ $pedido->id }}</td>
             <td>{{ $pedido->cliente->nome ?? 'Cliente não encontrado' }}</td>
             <td>{{ $pedido->cliente->endereco ?? 'Endereço não encontrado' }}</td>
+<td>
+    @if($pedido->items->count())
+        {{ $pedido->items->pluck('nomeItem')->filter()->implode(', ') }}
+    @else
+        -
+    @endif
+</td>
             <td>
                 @if($pedido->imagens->count())
                     <div class="thumbs">
@@ -95,11 +103,13 @@
                 <div class="action-buttons">
                     <a href="{{ route('pedido.visualizar', $pedido->id) }}" class="btn-view">Ver</a>
                     <button @click="openModal = {{ $pedido->id }}" class="btn-edit">Editar Rápido</button>
-                    <a 
+<a 
     href="{{ route('agendamentos.calendario', [
         'cliente_id' => $pedido->cliente->id ?? null,
         'data' => $pedido->prazo ?? now()->format('Y-m-d'),
-        'horario' => '09:00'
+        'horario' => '09:00',
+        'items' => urlencode($pedido->itens ?? ''),
+        'obs_retirada' => urlencode($pedido->obs_retirada ?? ''),
     ]) }}" 
     class="btn btn-primary" 
     style="padding: 5px 10px; border-radius: 5px;"
@@ -162,9 +172,9 @@
 
     
     {{-- Datas lado a lado --}}
-    <div class="flex flex-wrap gap-4 mb-4">
+<div class="flex flex-wrap gap-4 mb-4">
 
-     <div class="flex-1 min-w-[150px]">
+    <div class="flex-1 min-w-[150px]">
         <label for="data_retirada_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Data Retirada</label>
         <input 
             type="date" 
@@ -175,47 +185,57 @@
         >
     </div>
 
-        <div class="flex-1 min-w-[150px]">
-            <label for="data_inicio_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Data Início</label>
-            <input 
-                type="date" 
-                name="data_inicio" 
-                id="data_inicio_{{ $pedido->id }}" 
-                value="{{ $pedido->data_inicio }}" 
-                class="w-full border rounded p-2"
-            >
-        </div>
-        <div class="flex-1 min-w-[150px]">
-            <label for="prazo_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Prazo</label>
-            <input 
-                type="text" 
-                name="prazo" 
-                id="prazo_{{ $pedido->id }}" 
-                value="{{ $pedido->prazo }}" 
-                class="w-full border rounded p-2"
-            >
-        </div>
-        <div class="flex-1 min-w-[150px]">
-            <label for="pronto_dia_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Pronto Dia</label>
-            <input 
-                type="date" 
-                name="pronto_dia" 
-                id="pronto_dia_{{ $pedido->id }}" 
-                value="{{ $pedido->data_termino }}" 
-                class="w-full border rounded p-2"
-            >
-        </div>
-        <div class="flex-1 min-w-[150px]">
-            <label for="previsao_entrega_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Previsão Entrega</label>
-            <input 
-                type="date" 
-                name="previsao_entrega" 
-                id="previsao_entrega_{{ $pedido->id }}" 
-                value="{{ $pedido->data_previsao }}" 
-                class="w-full border rounded p-2"
-            >
-        </div>
+    <div class="flex-1 min-w-[150px]">
+        <label for="obs_retirada_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Observação Retirada</label>
+        <textarea 
+            name="obs_retirada" 
+            id="obs_retirada_{{ $pedido->id }}" 
+            rows="3" 
+            class="w-full border rounded p-2"
+        >{{ $pedido->obs_retirada ?? '' }}</textarea>
     </div>
+
+    <div class="flex-1 min-w-[150px]">
+        <label for="data_inicio_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Data Início</label>
+        <input 
+            type="date" 
+            name="data_inicio" 
+            id="data_inicio_{{ $pedido->id }}" 
+            value="{{ $pedido->data_inicio }}" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+    <div class="flex-1 min-w-[150px]">
+        <label for="prazo_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Prazo</label>
+        <input 
+            type="text" 
+            name="prazo" 
+            id="prazo_{{ $pedido->id }}" 
+            value="{{ $pedido->prazo }}" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+    <div class="flex-1 min-w-[150px]">
+        <label for="pronto_dia_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Pronto Dia</label>
+        <input 
+            type="date" 
+            name="pronto_dia" 
+            id="pronto_dia_{{ $pedido->id }}" 
+            value="{{ $pedido->data_termino }}" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+    <div class="flex-1 min-w-[150px]">
+        <label for="previsao_entrega_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Previsão Entrega</label>
+        <input 
+            type="date" 
+            name="previsao_entrega" 
+            id="previsao_entrega_{{ $pedido->id }}" 
+            value="{{ $pedido->data_previsao }}" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+</div>
 
     {{-- Andamento --}}
     <div class="mb-4">

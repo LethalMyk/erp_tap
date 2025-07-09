@@ -206,6 +206,22 @@ class AgendamentoController extends Controller
         $dataPreenchida = $request->input('data');
         $horarioPreenchido = $request->input('horario');
 
+$items = '';
+$obs_retirada = '';
+
+if ($request->filled('cliente_id')) {
+    $cliente = Cliente::find($request->cliente_id);
+
+    if ($cliente) {
+        $itens = Item::with('pedido')->whereHas('pedido', function ($query) use ($cliente) {
+            $query->where('cliente_id', $cliente->id);
+        })->get();
+
+        $items = $itens->pluck('nomeItem')->filter()->implode(' - ');
+        $obs_retirada = $itens->pluck('pedido.obs_retirada')->filter()->unique()->implode(' | ');
+    }
+}
+
         if ($request->filled('cliente_id')) {
             $cliente = Cliente::find($request->cliente_id);
         }
@@ -218,24 +234,26 @@ class AgendamentoController extends Controller
             'dataPreenchida' => $dataPreenchida,
             'horarioPreenchido' => $horarioPreenchido,
             'clientes' => $clientes,
+            'items' => $items,
+            'obs_retirada' => $obs_retirada,
         ]);
     }
 
-public function getItensCliente($id)
-{
-    $itens = Item::with('pedido')->whereHas('pedido', function ($query) use ($id) {
-        $query->where('cliente_id', $id);
-    })->get();
+    public function getItensCliente($id)
+    {
+        $itens = Item::with('pedido')->whereHas('pedido', function ($query) use ($id) {
+            $query->where('cliente_id', $id);
+        })->get();
 
-    // Pegar nomes dos itens, filtrando vazios
-    $nomes = $itens->pluck('nomeItem')->filter()->values();
+        // Pegar nomes dos itens, filtrando vazios
+        $nomes = $itens->pluck('nomeItem')->filter()->values();
 
-    // Pegar observações únicas dos pedidos relacionados
-    $observacoes = $itens->pluck('pedido.obs_retirada')->filter()->unique()->values();
+        // Pegar observações únicas dos pedidos relacionados
+        $observacoes = $itens->pluck('pedido.obs_retirada')->filter()->unique()->values();
 
-    return response()->json([
-        'itens' => $nomes->implode(' - '),
-        'observacao' => $observacoes->implode(' | '), // concatena observações, se houver mais de uma
-    ]);
-}
+        return response()->json([
+            'itens' => $nomes->implode(' - '),
+            'observacao' => $observacoes->implode(' | '), // concatena observações, se houver mais de uma
+        ]);
+    }
 }
