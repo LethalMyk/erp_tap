@@ -4,7 +4,7 @@
     <div class="container">
 
         <div class="mb-4 d-flex gap-2 flex-wrap">
-            <a href="{{ route('agendamentos.create') }}" class="btn btn-primary">➕ Novo Agendamento</a>
+            <a href="{{ route('agendamentos.create') }}" class="btn btn-primary abrir-novo-agendamento">➕ Novo Agendamento</a>
             <button id="btnMostrarPassados" class="btn btn-outline-secondary">📁 Mostrar Anteriores</button>
         </div>
 
@@ -65,10 +65,9 @@
     <!-- Modal de Edição -->
     <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
       <div class="modal-dialog">
-        <form method="POST" id="formEditar" class="modal-content">
+        <form method="POST" id="formEditar" class="modal-content" action="">
             @csrf
-            @method('PUT')
-
+            <input type="hidden" name="_method" id="form_method" value="POST" />
             {{-- INPUT OCULTO PARA REDIRECIONAMENTO --}}
             <input type="hidden" name="redirect_to" value="lista">
 
@@ -148,14 +147,15 @@
             this.innerText = visivel ? '📁 Mostrar Anteriores' : '📁 Ocultar Anteriores';
         });
 
-        // Dblclick: abrir modal com dados
+        // Dblclick: abrir modal com dados para edição
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('[data-agendamento]').forEach(function(card) {
                 card.addEventListener('dblclick', function () {
                     const agendamento = JSON.parse(this.dataset.agendamento);
 
-                    // Define a rota de atualização
-                    document.getElementById('formEditar').action = `/agendamentos/${agendamento.id}`;
+                    const form = document.getElementById('formEditar');
+                    form.action = `/agendamentos/${agendamento.id}`;
+                    document.getElementById('form_method').value = 'PUT';
 
                     // Preenche os campos
                     document.getElementById('edit_id').value = agendamento.id || '';
@@ -168,9 +168,76 @@
                     document.getElementById('edit_itens').value = agendamento.itens || '';
                     document.getElementById('edit_observacao').value = agendamento.observacao || '';
 
+                    document.getElementById('modalEditarLabel').innerText = '✏️ Editar ' + capitalizeFirstLetter(agendamento.tipo);
+
                     new bootstrap.Modal(document.getElementById('modalEditar')).show();
                 });
             });
+        });
+
+        // Função para capitalizar a primeira letra
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        // Abrir modal para novo agendamento
+        document.querySelectorAll('.abrir-novo-agendamento').forEach(function (el) {
+            el.addEventListener('click', function (e) {
+                e.preventDefault();
+                const form = document.getElementById('formEditar');
+                form.reset();
+                document.getElementById('edit_id').value = '';
+                document.getElementById('edit_tipo').value = 'entrega';
+                form.action = "{{ route('agendamentos.store') }}";
+                document.getElementById('form_method').value = 'POST';
+                document.getElementById('modalEditarLabel').innerText = '➕ Novo Agendamento';
+
+                new bootstrap.Modal(document.getElementById('modalEditar')).show();
+            });
+        });
+
+        // Abrir modal para novo orçamento
+        document.querySelectorAll('.abrir-novo-orcamento').forEach(function (el) {
+            el.addEventListener('click', function (e) {
+                e.preventDefault();
+                const form = document.getElementById('formEditar');
+                form.reset();
+                document.getElementById('edit_id').value = '';
+                document.getElementById('edit_tipo').value = 'orcamento';
+                form.action = "{{ route('agendamentos.store') }}";
+                document.getElementById('form_method').value = 'POST';
+                document.getElementById('modalEditarLabel').innerText = '➕ Novo Orçamento';
+
+                new bootstrap.Modal(document.getElementById('modalEditar')).show();
+            });
+        });
+
+        // Atualiza título do modal conforme tipo selecionado
+        document.addEventListener('DOMContentLoaded', function () {
+            const tipoSelect = document.getElementById('edit_tipo');
+            const tituloModal = document.getElementById('modalEditarLabel');
+
+            if (tipoSelect && tituloModal) {
+                tipoSelect.addEventListener('change', function () {
+                    const tipo = tipoSelect.value;
+                    switch (tipo) {
+                        case 'orcamento':
+                            tituloModal.innerText = '✏️ Editar Orçamento';
+                            break;
+                        case 'entrega':
+                            tituloModal.innerText = '✏️ Editar Entrega';
+                            break;
+                        case 'retirada':
+                            tituloModal.innerText = '✏️ Editar Retirada';
+                            break;
+                        case 'assistencia':
+                            tituloModal.innerText = '✏️ Editar Assistência';
+                            break;
+                        default:
+                            tituloModal.innerText = '✏️ Editar Agendamento';
+                    }
+                });
+            }
         });
     </script>
 </x-app-layout>
