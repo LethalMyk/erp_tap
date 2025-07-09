@@ -127,6 +127,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <p><strong>Início:</strong> ${new Date(info.event.start).toLocaleString('pt-BR')}</p>
                 <p><strong>Endereço:</strong> ${ag.endereco}</p>
                 <p><strong>Telefone:</strong> ${ag.telefone}</p>
+                <p><strong>Itens:</strong> ${ag.itens}</p>
+                <p><strong>Observação:</strong> ${ag.observacao}</p>
             `;
             document.getElementById('conteudoDetalhes').innerHTML = detalhes;
             document.getElementById('detalhesAgendamento').style.display = 'block';
@@ -233,15 +235,52 @@ document.addEventListener('DOMContentLoaded', function () {
 
     checkbox.addEventListener('change', () => {
         selectWrapper.style.display = checkbox.checked ? 'block' : 'none';
-        if (!checkbox.checked) selectCliente.value = '';
+        if (!checkbox.checked) {
+            selectCliente.value = '';
+            document.querySelector('[name="nome_cliente"]').value = '';
+            document.querySelector('[name="endereco"]').value = '';
+            document.querySelector('[name="telefone"]').value = '';
+            document.querySelector('[name="itens"]').value = '';
+            document.querySelector('[name="observacao"]').value = '';
+        }
     });
 
     selectCliente.addEventListener('change', () => {
         const option = selectCliente.options[selectCliente.selectedIndex];
-        document.getElementById('nome_cliente').value = option.dataset.nome || '';
-        document.getElementById('endereco').value = option.dataset.endereco || '';
-        document.getElementById('telefone').value = option.dataset.telefone || '';
+
+        const nome = option.dataset.nome || '';
+        const endereco = option.dataset.endereco || '';
+        const telefone = option.dataset.telefone || '';
+        const clienteId = option.value;
+
+        document.getElementById('nome_cliente').value = nome;
+        document.getElementById('endereco').value = endereco;
+        document.getElementById('telefone').value = telefone;
+
+        // Buscar itens e observação via AJAX
+        if (clienteId) {
+            fetch(`/clientes/${clienteId}/itens`)
+                .then(response => response.json())
+                .then(data => {
+                    const campoItens = document.querySelector('[name="itens"]');
+                    const campoObs = document.querySelector('[name="observacao"]');
+
+                    campoItens.value = data.itens || '';
+                    campoObs.value = data.observacao || '';
+
+                    // Forçar atualização dos campos (se necessário)
+                    campoItens.dispatchEvent(new Event('input'));
+                    campoObs.dispatchEvent(new Event('input'));
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar itens e observação do cliente:', error);
+                });
+        } else {
+            document.querySelector('[name="itens"]').value = '';
+            document.querySelector('[name="observacao"]').value = '';
+        }
     });
 });
 </script>
+
 </x-app-layout>
