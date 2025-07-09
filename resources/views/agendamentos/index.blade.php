@@ -31,14 +31,32 @@
                 };
             @endphp
 
-            <h4 class="mt-4">{{ $tituloDia }} ({{ $dataFormatada }})</h4>
+@php
+    $dataCarbon = \Carbon\Carbon::today()->addDays($i)->locale('pt_BR');
+    $dataFormatada = $dataCarbon->translatedFormat('d/m/Y l'); // 09/07/2025 Quarta-feira
+
+    $tituloDia = match ($i) {
+        0 => '📌 Hoje',
+        1 => '📅 Amanhã',
+        default => '📅 ' . $dataFormatada,
+    };
+    $dataIso = $dataCarbon->format('Y-m-d');
+@endphp
+<h4 class="mt-4 dia-agendamento" data-data="{{ $dataIso }}" style="cursor:pointer;">
+    {{ $tituloDia }} ({{ $dataFormatada }}) - Entregas e Retiradas
+</h4>
 
             <div class="agendamentos-gerais" id="geraisDia{{ $i }}">
                 @include('agendamentos.partials.lista-geral', ['agendamentos' => $agendamentosPorDia[$i]])
             </div>
+            <h4 class="mt-4 dia-agendamento" data-data="{{ $dataIso }}" data-tipo="orcamento" style="cursor:pointer;">
+    {{ $tituloDia }} ({{ $dataFormatada }}) - Orçamentos
+</h4>
+
             <div class="orcamentos" id="orcamentosDia{{ $i }}">
                 @include('agendamentos.partials.lista-orcamentos', ['orcamentos' => $orcamentosPorDia[$i]])
             </div>
+            <hr>
         @endfor
 
         {{-- Agendamentos Futuros além dos 15 dias --}}
@@ -239,5 +257,44 @@
                 });
             }
         });
+
+        document.querySelectorAll('.dia-agendamento').forEach(function(element) {
+    element.addEventListener('click', function() {
+        const dataSelecionada = this.getAttribute('data-data');
+        const tipoSelecionado = this.getAttribute('data-tipo') || 'entrega'; // <- aqui pegamos o tipo dinamicamente
+
+        const form = document.getElementById('formEditar');
+        form.reset();
+
+        document.getElementById('form_method').value = 'POST';
+        form.action = "{{ route('agendamentos.store') }}";
+
+        document.getElementById('edit_data').value = dataSelecionada;
+        document.getElementById('edit_tipo').value = tipoSelecionado;
+        document.getElementById('edit_id').value = '';
+        document.getElementById('edit_nome_cliente').value = '';
+        document.getElementById('edit_endereco').value = '';
+        document.getElementById('edit_telefone').value = '';
+        document.getElementById('edit_itens').value = '';
+        document.getElementById('edit_observacao').value = '';
+
+        // Ajusta título do modal de acordo com o tipo
+        let tituloModal = '➕ Novo Agendamento';
+        if (tipoSelecionado === 'orcamento') {
+            tituloModal = '➕ Novo Orçamento';
+        } else if (tipoSelecionado === 'entrega') {
+            tituloModal = '➕ Nova Entrega';
+        } else if (tipoSelecionado === 'retirada') {
+            tituloModal = '➕ Nova Retirada';
+        } else if (tipoSelecionado === 'assistencia') {
+            tituloModal = '➕ Nova Assistência';
+        }
+
+        document.getElementById('modalEditarLabel').innerText = tituloModal;
+
+        new bootstrap.Modal(document.getElementById('modalEditar')).show();
+    });
+});
+
     </script>
 </x-app-layout>

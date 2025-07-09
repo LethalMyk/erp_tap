@@ -85,6 +85,9 @@
             initialView: 'dayGridMonth',
             locale: 'pt-br',
             height: 'auto',
+            slotMinTime: "09:00:00",
+slotMaxTime: "18:00:00",
+
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
@@ -134,18 +137,43 @@
                 });
             },
 
-            dateClick: function(info) {
-                if (!confirm("Deseja criar um novo agendamento nesta data?")) return;
+            // NOVO BLOCO COM CLICK + DOUBLE CLICK
+            dateClick: (function () {
+                let lastClickTime = 0;
+                let clickTimeout;
 
-                limparFormulario();
+                return function(info) {
+                    const currentTime = new Date().getTime();
+                    const timeDiff = currentTime - lastClickTime;
 
-                const dataStr = info.date.toISOString().slice(0,10);
-                const horarioStr = info.date.getHours().toString().padStart(2, '0') + ':' + info.date.getMinutes().toString().padStart(2, '0');
+                    if (clickTimeout) clearTimeout(clickTimeout);
 
-                document.getElementById('inputData').value = dataStr;
-                document.getElementById('inputHorario').value = horarioStr;
-                document.querySelector('input[name="nome_cliente"]').focus();
-            }
+                    if (timeDiff < 400) {
+                        // Duplo clique → confirmar novo agendamento
+                        if (confirm("Deseja criar um novo agendamento nesta data?")) {
+                            limparFormulario();
+
+                            const dataStr = info.date.toISOString().slice(0, 10);
+                            const horarioStr = info.date.getHours().toString().padStart(2, '0') + ':' + info.date.getMinutes().toString().padStart(2, '0');
+
+                            document.getElementById('inputData').value = dataStr;
+                            document.getElementById('inputHorario').value = horarioStr;
+                            document.querySelector('input[name="nome_cliente"]').focus();
+                        }
+                    } else {
+                        // Clique único → apenas preenche a data
+                        clickTimeout = setTimeout(() => {
+                            const dataStr = info.date.toISOString().slice(0, 10);
+                            const horarioStr = info.date.getHours().toString().padStart(2, '0') + ':' + info.date.getMinutes().toString().padStart(2, '0');
+
+                            document.getElementById('inputData').value = dataStr;
+                            document.getElementById('inputHorario').value = horarioStr;
+                        }, 300);
+                    }
+
+                    lastClickTime = currentTime;
+                };
+            })()
         });
 
         calendar.render();

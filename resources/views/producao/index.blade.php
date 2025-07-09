@@ -260,6 +260,8 @@
     <style>
         [x-cloak] { display: none !important; }
 
+
+        
         select.filter-input {
             font-size: 12px;
             min-width: 100px;
@@ -379,7 +381,7 @@
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            overflow: auto;
             margin-top: 20px;
         }
 
