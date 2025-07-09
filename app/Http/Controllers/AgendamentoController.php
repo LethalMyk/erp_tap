@@ -13,9 +13,8 @@ class AgendamentoController extends Controller
     {
         $hoje = Carbon::today();
 
-        // Funções auxiliares para buscar agendamentos e orçamentos por data (ou intervalo)
-        $buscarAgendamentosExcetoOrcamento = fn($start, $end = null) => 
-            $end 
+        $buscarAgendamentosExcetoOrcamento = fn($start, $end = null) =>
+            $end
                 ? Agendamento::whereBetween('data', [$start, $end])
                     ->where('tipo', '!=', 'orcamento')
                     ->orderBy('data')
@@ -38,7 +37,6 @@ class AgendamentoController extends Controller
                     ->orderBy('horario')
                     ->get();
 
-        // Preparar arrays para agendamentos e orçamentos por dia para os próximos 15 dias
         $agendamentosPorDia = [];
         $orcamentosPorDia = [];
         for ($i = 0; $i <= 14; $i++) {
@@ -47,7 +45,6 @@ class AgendamentoController extends Controller
             $orcamentosPorDia[$i] = $buscarOrcamentos($data);
         }
 
-        // Agendamentos futuros além dos 15 dias
         $dataLimite = $hoje->copy()->addDays(15)->toDateString();
         $agendamentosFuturos = Agendamento::where('data', '>', $dataLimite)
             ->where('tipo', '!=', 'orcamento')
@@ -61,7 +58,6 @@ class AgendamentoController extends Controller
             ->orderBy('horario')
             ->get();
 
-        // Agendamentos passados (limitados a 10)
         $agendamentosPassados = Agendamento::where('data', '<', $hoje)
             ->where('tipo', '!=', 'orcamento')
             ->orderByDesc('data')
@@ -191,9 +187,12 @@ class AgendamentoController extends Controller
             $cliente = Cliente::find($request->cliente_id);
         }
 
+        $clientes = Cliente::orderBy('nome')->get();
+
         return view('agendamentos.calendar', [
             'eventos' => $eventos,
             'cliente' => $cliente,
+            'clientes' => $clientes,
             'dataPreenchida' => $dataPreenchida,
             'horarioPreenchido' => $horarioPreenchido,
         ]);

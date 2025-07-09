@@ -10,14 +10,13 @@
         <h2 class="mb-4">Calendário de Agendamentos</h2>
         <div id="calendar"></div>
 
-        <!-- Nova área para detalhes, inicialmente oculta -->
         <div id="detalhesAgendamento" style="display:none; margin-top: 15px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background-color: #f8f9fa;">
             <h5>Detalhes do Agendamento</h5>
             <div id="conteudoDetalhes"></div>
         </div>
     </div>
 
-    <!-- Lado direito: Formulário de agendamento -->
+    <!-- Formulário -->
     <div style="flex: 1; border: 1px solid #ccc; padding: 15px; border-radius: 8px; height: fit-content;">
         <h2 id="formTitle">Novo Agendamento</h2>
 
@@ -47,13 +46,34 @@
             </div>
 
             <div class="mb-3">
+                <input type="checkbox" id="clienteExistenteCheckbox">
+                <label for="clienteExistenteCheckbox">Cliente Existente</label>
+            </div>
+
+            <div class="mb-3" id="selectClienteWrapper" style="display: none;">
+                <label for="selectCliente">Selecione o Cliente</label>
+                <select id="selectCliente" class="form-select">
+                    <option value="">-- Escolha um cliente --</option>
+                    @foreach($clientes as $c)
+                        <option 
+                            value="{{ $c->id }}"
+                            data-nome="{{ $c->nome }}"
+                            data-endereco="{{ $c->endereco }}"
+                            data-telefone="{{ $c->telefone }}">
+                            {{ $c->nome }} - {{ $c->endereco }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="mb-3">
                 <label>Nome do Cliente</label>
-                <input type="text" name="nome_cliente" class="form-control" required>
+                <input type="text" name="nome_cliente" id="nome_cliente" class="form-control" required>
             </div>
 
             <div class="mb-3">
                 <label>Endereço</label>
-                <textarea name="endereco" class="form-control" required></textarea>
+                <textarea name="endereco" id="endereco" class="form-control" required></textarea>
             </div>
 
             <div class="mb-3">
@@ -77,146 +97,151 @@
 
 </div>
 
+{{-- Calendário e form JS --}}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const calendarEl = document.getElementById('calendar');
+document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
 
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'pt-br',
-            height: 'auto',
-            slotMinTime: "09:00:00",
-slotMaxTime: "18:00:00",
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'pt-br',
+        height: 'auto',
+        slotMinTime: "09:00:00",
+        slotMaxTime: "18:00:00",
 
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
-            events: @json($eventos),
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: @json($eventos),
 
-            eventClick: function(info) {
-                info.jsEvent.preventDefault();
+        eventClick: function(info) {
+            info.jsEvent.preventDefault();
+            const ag = info.event.extendedProps;
 
-                const detalhes = `
-                    <p><strong>Tipo:</strong> ${info.event.extendedProps.tipo}</p>
-                    <p><strong>Cliente:</strong> ${info.event.title}</p>
-                    <p><strong>Status:</strong> ${info.event.extendedProps.status}</p>
-                    <p><strong>Início:</strong> ${new Date(info.event.start).toLocaleString('pt-BR')}</p>
-                    <p><strong>Endereço:</strong> ${info.event.extendedProps.endereco}</p>
-                    <p><strong>Telefone:</strong> ${info.event.extendedProps.telefone}</p>
-                `;
+            const detalhes = `
+                <p><strong>Tipo:</strong> ${ag.tipo}</p>
+                <p><strong>Cliente:</strong> ${info.event.title}</p>
+                <p><strong>Status:</strong> ${ag.status}</p>
+                <p><strong>Início:</strong> ${new Date(info.event.start).toLocaleString('pt-BR')}</p>
+                <p><strong>Endereço:</strong> ${ag.endereco}</p>
+                <p><strong>Telefone:</strong> ${ag.telefone}</p>
+            `;
+            document.getElementById('conteudoDetalhes').innerHTML = detalhes;
+            document.getElementById('detalhesAgendamento').style.display = 'block';
+            document.getElementById('detalhesAgendamento').scrollIntoView({ behavior: 'smooth' });
+        },
 
-                const container = document.getElementById('conteudoDetalhes');
-                container.innerHTML = detalhes;
+        eventDidMount: function(info) {
+            info.el.addEventListener('dblclick', function () {
+                if (!confirm("Deseja carregar este agendamento no formulário para editar?")) return;
 
-                document.getElementById('detalhesAgendamento').style.display = 'block';
-                document.getElementById('detalhesAgendamento').scrollIntoView({ behavior: 'smooth' });
-            },
+                const ag = info.event.extendedProps;
 
-            eventDidMount: function(info) {
-                info.el.addEventListener('dblclick', function () {
-                    if (!confirm("Deseja carregar este agendamento no formulário para editar?")) return;
+                document.getElementById('formAgendamento').action = `/agendamentos/${info.event.id}`;
+                document.getElementById('formMethod').value = 'PUT';
+                document.getElementById('agendamento_id').value = info.event.id;
+                document.getElementById('formTitle').innerText = 'Editar Agendamento';
+                document.getElementById('submitBtn').innerText = 'Atualizar';
 
-                    const agendamento = info.event.extendedProps;
+                document.getElementById('inputData').value = info.event.startStr.slice(0,10);
+                document.getElementById('inputHorario').value = new Date(info.event.start).toISOString().slice(11,16);
+                document.querySelector('[name="tipo"]').value = ag.tipo || '';
+                document.getElementById('nome_cliente').value = info.event.title || '';
+                document.getElementById('endereco').value = ag.endereco || '';
+                document.getElementById('telefone').value = ag.telefone || '';
+                document.querySelector('[name="itens"]').value = ag.itens || '';
+                document.querySelector('[name="observacao"]').value = ag.observacao || '';
+            });
+        },
 
-                    document.getElementById('formAgendamento').action = `/agendamentos/${info.event.id}`;
-                    document.getElementById('formMethod').value = 'PUT';
-                    document.getElementById('agendamento_id').value = info.event.id;
-                    document.getElementById('formTitle').innerText = 'Editar Agendamento';
-                    document.getElementById('submitBtn').innerText = 'Atualizar';
+        dateClick: (function () {
+            let lastClickTime = 0;
+            let clickTimeout;
 
-                    document.getElementById('inputData').value = info.event.startStr.slice(0,10);
-                    document.getElementById('inputHorario').value = new Date(info.event.start).toISOString().slice(11,16);
-                    document.querySelector('[name="tipo"]').value = agendamento.tipo || '';
-                    document.querySelector('[name="nome_cliente"]').value = info.event.title || '';
-                    document.querySelector('[name="endereco"]').value = agendamento.endereco || '';
-                    document.querySelector('[name="telefone"]').value = agendamento.telefone || '';
-                    document.querySelector('[name="itens"]').value = agendamento.itens || '';
-                    document.querySelector('[name="observacao"]').value = agendamento.observacao || '';
-                });
-            },
+            return function(info) {
+                const now = new Date().getTime();
+                const diff = now - lastClickTime;
+                if (clickTimeout) clearTimeout(clickTimeout);
 
-            // NOVO BLOCO COM CLICK + DOUBLE CLICK
-            dateClick: (function () {
-                let lastClickTime = 0;
-                let clickTimeout;
-
-                return function(info) {
-                    const currentTime = new Date().getTime();
-                    const timeDiff = currentTime - lastClickTime;
-
-                    if (clickTimeout) clearTimeout(clickTimeout);
-
-                    if (timeDiff < 400) {
-                        // Duplo clique → confirmar novo agendamento
-                        if (confirm("Deseja criar um novo agendamento nesta data?")) {
-                            limparFormulario();
-
-                            const dataStr = info.date.toISOString().slice(0, 10);
-                            const horarioStr = info.date.getHours().toString().padStart(2, '0') + ':' + info.date.getMinutes().toString().padStart(2, '0');
-
-                            document.getElementById('inputData').value = dataStr;
-                            document.getElementById('inputHorario').value = horarioStr;
-                            document.querySelector('input[name="nome_cliente"]').focus();
-                        }
-                    } else {
-                        // Clique único → apenas preenche a data
-                        clickTimeout = setTimeout(() => {
-                            const dataStr = info.date.toISOString().slice(0, 10);
-                            const horarioStr = info.date.getHours().toString().padStart(2, '0') + ':' + info.date.getMinutes().toString().padStart(2, '0');
-
-                            document.getElementById('inputData').value = dataStr;
-                            document.getElementById('inputHorario').value = horarioStr;
-                        }, 300);
+                if (diff < 400) {
+                    if (confirm("Deseja criar um novo agendamento nesta data?")) {
+                        limparFormulario();
+                        const dataStr = info.date.toISOString().slice(0, 10);
+                        const horaStr = info.date.getHours().toString().padStart(2, '0') + ':' + info.date.getMinutes().toString().padStart(2, '0');
+                        document.getElementById('inputData').value = dataStr;
+                        document.getElementById('inputHorario').value = horaStr;
+                        document.getElementById('nome_cliente').focus();
                     }
-
-                    lastClickTime = currentTime;
-                };
-            })()
-        });
-
-        calendar.render();
-
-        // Confirmação ao atualizar
-        document.getElementById('formAgendamento').addEventListener('submit', function (e) {
-            const id = document.getElementById('agendamento_id').value;
-            if (id) {
-                if (!confirm("Tem certeza que deseja atualizar este agendamento?")) {
-                    e.preventDefault();
+                } else {
+                    clickTimeout = setTimeout(() => {
+                        const dataStr = info.date.toISOString().slice(0, 10);
+                        const horaStr = info.date.getHours().toString().padStart(2, '0') + ':' + info.date.getMinutes().toString().padStart(2, '0');
+                        document.getElementById('inputData').value = dataStr;
+                        document.getElementById('inputHorario').value = horaStr;
+                    }, 300);
                 }
-            }
-        });
 
-        // Preencher formulário se vier dados do controller
-        const cliente = @json($cliente);
-        const dataPreenchida = @json($dataPreenchida);
-        const horarioPreenchido = @json($horarioPreenchido);
+                lastClickTime = now;
+            };
+        })()
+    });
 
-        if (cliente) {
-            limparFormulario();
+    calendar.render();
 
-            document.querySelector('input[name="nome_cliente"]').value = cliente.nome || '';
-            document.querySelector('textarea[name="endereco"]').value = cliente.endereco || '';
-            document.querySelector('input[name="telefone"]').value = cliente.telefone || '';
-        }
-
-        if (dataPreenchida) {
-            document.getElementById('inputData').value = dataPreenchida;
-        }
-
-        if (horarioPreenchido) {
-            document.getElementById('inputHorario').value = horarioPreenchido;
+    // Confirmação ao atualizar
+    document.getElementById('formAgendamento').addEventListener('submit', function (e) {
+        const id = document.getElementById('agendamento_id').value;
+        if (id && !confirm("Tem certeza que deseja atualizar este agendamento?")) {
+            e.preventDefault();
         }
     });
 
-    function limparFormulario() {
-        document.getElementById('formAgendamento').reset();
-        document.getElementById('formAgendamento').action = "{{ route('agendamentos.store') }}";
-        document.getElementById('formMethod').value = 'POST';
-        document.getElementById('agendamento_id').value = '';
-        document.getElementById('formTitle').innerText = 'Novo Agendamento';
-        document.getElementById('submitBtn').innerText = 'Agendar';
+    // Dados do controller
+    const cliente = @json($cliente);
+    const dataPreenchida = @json($dataPreenchida);
+    const horarioPreenchido = @json($horarioPreenchido);
+
+    if (cliente) {
+        limparFormulario();
+        document.getElementById('nome_cliente').value = cliente.nome || '';
+        document.getElementById('endereco').value = cliente.endereco || '';
+        document.getElementById('telefone').value = cliente.telefone || '';
     }
+
+    if (dataPreenchida) document.getElementById('inputData').value = dataPreenchida;
+    if (horarioPreenchido) document.getElementById('inputHorario').value = horarioPreenchido;
+});
+
+function limparFormulario() {
+    document.getElementById('formAgendamento').reset();
+    document.getElementById('formAgendamento').action = "{{ route('agendamentos.store') }}";
+    document.getElementById('formMethod').value = 'POST';
+    document.getElementById('agendamento_id').value = '';
+    document.getElementById('formTitle').innerText = 'Novo Agendamento';
+    document.getElementById('submitBtn').innerText = 'Agendar';
+}
+</script>
+
+{{-- Cliente Existente Script --}}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const checkbox = document.getElementById('clienteExistenteCheckbox');
+    const selectWrapper = document.getElementById('selectClienteWrapper');
+    const selectCliente = document.getElementById('selectCliente');
+
+    checkbox.addEventListener('change', () => {
+        selectWrapper.style.display = checkbox.checked ? 'block' : 'none';
+        if (!checkbox.checked) selectCliente.value = '';
+    });
+
+    selectCliente.addEventListener('change', () => {
+        const option = selectCliente.options[selectCliente.selectedIndex];
+        document.getElementById('nome_cliente').value = option.dataset.nome || '';
+        document.getElementById('endereco').value = option.dataset.endereco || '';
+        document.getElementById('telefone').value = option.dataset.telefone || '';
+    });
+});
 </script>
 </x-app-layout>
