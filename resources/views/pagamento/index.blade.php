@@ -145,6 +145,8 @@
                         <option value="DINHEIRO">DINHEIRO</option>
                         <option value="CREDITO À VISTA">CREDITO À VISTA</option>
                         <option value="CREDITO PARCELADO">CREDITO PARCELADO</option>
+<option value="NA ENTREGA">NA ENTREGA</option>
+<option value="A PRAZO">A PRAZO</option>
                         <option value="BOLETO">BOLETO</option>
                         <option value="CHEQUE">CHEQUE</option>
                         <option value="OUTROS">OUTROS</option>
