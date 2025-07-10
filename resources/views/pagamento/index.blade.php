@@ -1,5 +1,109 @@
 <x-app-layout>
     <!-- ... seu formulário e tabela acima ficam iguais ... -->
+     @php
+    // Pega os anos distintos dos pedidos (ou pode passar isso do Controller)
+    $anos = \App\Models\Pedido::selectRaw('YEAR(created_at) as ano')->distinct()->orderBy('ano', 'desc')->pluck('ano')->toArray();
+
+    // Meses fixos
+    $meses = [
+        1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril',
+        5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto',
+        9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro',
+    ];
+
+    // Pega os filtros já selecionados da request para manter o estado
+    $anosSelecionados = request('ano', []);
+    if (!is_array($anosSelecionados)) $anosSelecionados = [$anosSelecionados];
+
+    $mesesSelecionados = request('mes', []);
+    if (!is_array($mesesSelecionados)) $mesesSelecionados = [$mesesSelecionados];
+@endphp
+
+  <h2>Filtros</h2>
+    <form method="GET" action="{{ route('pagamento.index') }}" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
+        <div>
+            <label for="id" style="font-weight: 600;">ID:</label><br>
+            <input type="number" name="id" id="id" value="{{ request('id') }}" style="padding: 5px; width: 80px;">
+        </div>
+
+        <div>
+            <label for="nome" style="font-weight: 600;">Nome:</label><br>
+            <input type="text" name="nome" id="nome" value="{{ request('nome') }}" style="padding: 5px;">
+        </div>
+
+        <div>
+            <label for="endereco" style="font-weight: 600;">Endereço:</label><br>
+            <input type="text" name="endereco" id="endereco" value="{{ request('endereco') }}" style="padding: 5px;">
+        </div>
+
+        <div>
+            <label for="telefone" style="font-weight: 600;">Telefone:</label><br>
+            <input type="text" name="telefone" id="telefone" value="{{ request('telefone') }}" style="padding: 5px;">
+        </div>
+                <div>
+            <label style="font-weight: 600;">Status:</label><br>
+            <select name="status" style="padding: 5px;">
+                <option value="">Todos</option>
+                <option value="RESTA" {{ request('status') == 'RESTA' ? 'selected' : '' }}>RESTA</option>
+                <option value="PAGO" {{ request('status') == 'PAGO' ? 'selected' : '' }}>PAGO</option>
+            </select>
+        </div>
+
+<div style="margin-top: 10px;">
+    <label style="font-weight: 600; cursor: pointer;" onclick="togglePeriodo()" id="togglePeriodoLabel">
+        Período <span id="seta" style="display: inline-block; transition: transform 0.3s;">&#x25B6;</span>
+    </label>
+
+    <div id="periodoContainer" style="display: none; max-height: 220px; overflow-y: auto; border: 1px solid #ccc; padding: 8px; border-radius: 4px; margin-top: 5px;">
+        <strong>Ano:</strong><br>
+        @foreach($anos as $ano)
+            <label style="font-weight: normal; margin-right: 10px;">
+                <input type="checkbox" name="ano[]" value="{{ $ano }}" {{ in_array($ano, $anosSelecionados) ? 'checked' : '' }}>
+                {{ $ano }}
+            </label>
+        @endforeach
+
+        <br><br>
+        <strong>Mês:</strong><br>
+        @foreach($meses as $num => $nome)
+            <label style="font-weight: normal; margin-right: 10px;">
+                <input type="checkbox" name="mes[]" value="{{ $num }}" {{ in_array($num, $mesesSelecionados) ? 'checked' : '' }}>
+                {{ $nome }}
+            </label>
+        @endforeach
+    </div>
+</div>
+
+
+@php
+    $formasSelecionadas = request('forma', []);
+    if (!is_array($formasSelecionadas)) {
+        $formasSelecionadas = [$formasSelecionadas];
+    }
+    $formas = ['PIX', 'DEBITO', 'DINHEIRO', 'CREDITO À VISTA', 'CREDITO PARCELADO', 'NA ENTREGA', 'A PRAZO', 'BOLETO', 'CHEQUE', 'OUTROS'];
+@endphp
+
+<div style="margin-top: 10px;">
+    <label style="font-weight: 600; cursor: pointer;" onclick="toggleForma()" id="toggleFormaLabel">
+        Formas de Pagamento <span id="seta-forma" style="display: inline-block; transition: transform 0.3s;">&#x25B6;</span>
+    </label>
+
+    <div id="formaContainer" style="display: none; max-height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 8px; border-radius: 4px; margin-top: 5px;">
+        @foreach($formas as $forma)
+            <label style="font-weight: normal; margin-right: 10px;">
+                <input type="checkbox" name="forma[]" value="{{ $forma }}" {{ in_array($forma, $formasSelecionadas) ? 'checked' : '' }}>
+                {{ $forma }}
+            </label>
+        @endforeach
+    </div>
+</div>
+        <div>
+            <button type="submit" style="padding: 6px 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Filtrar</button>
+        </div>
+        <div>
+            <a href="{{ route('pagamento.index') }}" style="padding: 6px 12px; background-color: #6c757d; color: white; border-radius: 4px; text-decoration: none;">Limpar</a>
+        </div>
+    </form>
 
     <table style="width: 100%; border-collapse: collapse;" id="tabela-pedidos">
         <thead style="background-color: #f8f9fa;">
@@ -7,6 +111,7 @@
                 <th>ID</th>
                 <th>Nome</th>
                 <th>Endereço</th>
+                 <th>Data do Pedido</th> 
                 <th>Valor do Pedido</th>
                 <th>Total Pago</th>
                 <th>Valor Restante</th>
@@ -27,7 +132,7 @@
                     <td>{{ $pedido->id }}</td>
                     <td>{{ $pedido->cliente->nome ?? 'N/A' }}</td>
                     <td>{{ $pedido->cliente->endereco ?? 'N/A' }}</td>
-                    <td>R$ {{ number_format($pedido->valor ?? 0, 2, ',', '.') }}</td>
+   <td>{{ \Carbon\Carbon::parse($pedido->created_at)->format('d/m/Y') }}</td> <!-- NOVO -->                    <td>R$ {{ number_format($pedido->valor ?? 0, 2, ',', '.') }}</td>
                     <td>R$ {{ number_format($totalPago, 2, ',', '.') }}</td>
                     <td>R$ {{ number_format($valorResta, 2, ',', '.') }}</td>
                     <td>{{ $pedido->status ?? 'N/A' }}</td>
@@ -75,7 +180,11 @@
                                                     </form>
                                                 </div>
                                             @endif
-
+  <a href="{{ route('pedido.visualizar', $pedido->id) }}"
+       style="padding: 5px 10px; background-color: #17a2b8; color: white; border-radius: 4px; text-decoration: none;"
+       title="Ver pedido completo">
+        Ver Pedido
+    </a>
                                             <form action="{{ route('pagamento.destroy', $p->id) }}" method="POST" style="display:inline-block; margin-left: 5px;">
                                                 @csrf
                                                 @method('DELETE')
@@ -100,6 +209,7 @@
                             >
                                 + Novo Pagamento
                             </button>
+                            
                         </div>
                     </td>
                 </tr>
@@ -187,4 +297,45 @@
             document.getElementById('modal-pagamento').style.display = 'none';
         }
     </script>
+    <script>
+    function togglePagamentos(id) {
+        const row = document.getElementById('pagamentos-' + id);
+        row.style.display = (row.style.display === 'none') ? 'table-row' : 'none';
+    }
+
+    function toggleRegistrar(id) {
+        const form = document.getElementById('registrar-form-' + id);
+        form.style.display = (form.style.display === 'none') ? 'block' : 'none';
+    }
+
+    function openPagamentoModal(pedidoId, clienteNome) {
+        document.getElementById('pedido_id_modal').value = pedidoId;
+        document.getElementById('cliente_nome_modal').value = clienteNome;
+        document.getElementById('modal-pagamento').style.display = 'flex';
+    }
+
+    function closePagamentoModal() {
+        document.getElementById('modal-pagamento').style.display = 'none';
+    }
+
+    // Toggle dos meses (EXPANDIR/RECOLHER)
+function togglePeriodo() {
+    const container = document.getElementById('periodoContainer');
+    const seta = document.getElementById('seta');
+    const isVisible = container.style.display === 'block';
+
+    container.style.display = isVisible ? 'none' : 'block';
+    seta.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(90deg)';
+}
+function toggleForma() {
+    const container = document.getElementById('formaContainer');
+    const seta = document.getElementById('seta-forma');
+    const isVisible = container.style.display === 'block';
+
+    container.style.display = isVisible ? 'none' : 'block';
+    seta.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(90deg)';
+}
+
+</script>
+
 </x-app-layout>

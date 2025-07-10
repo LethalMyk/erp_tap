@@ -11,28 +11,64 @@ class PagamentoController extends Controller
 {
     public function index(Request $request)
     {
-        // Buscar todos os pedidos com dados relacionados (cliente e pagamentos)
-        $pedidos = Pedido::with(['cliente', 'pagamentos'])
-            ->when($request->nome, fn($q) => $q->whereHas('cliente', fn($sub) =>
-                $sub->where('nome', 'like', '%' . $request->nome . '%')))
-            ->when($request->endereco, fn($q) => $q->whereHas('cliente', fn($sub) =>
-                $sub->where('endereco', 'like', '%' . $request->endereco . '%')))
-            ->orderByDesc('created_at')
-            ->get();
+        $query = Pedido::with(['cliente', 'pagamentos']);
 
-        // Preparar estrutura final com pagamentos filtrados e totais
-        $resultado = $pedidos->map(function ($pedido) use ($request) {
-            // Filtrar pagamentos individualmente conforme filtros do request
-            $pagamentosFiltrados = $pedido->pagamentos->filter(function ($p) use ($request) {
-                return (!$request->forma || $p->forma === $request->forma)
-                    && (!$request->status || $p->status === $request->status)
-                    && (!$request->data_inicio || Carbon::parse($p->data)->gte($request->data_inicio))
-                    && (!$request->data_fim || Carbon::parse($p->data)->lte($request->data_fim));
+        // Filtrar por ID
+        if ($request->filled('id')) {
+            $query->where('id', $request->id);
+        }
+
+        // Filtrar por nome do cliente
+        if ($request->filled('nome')) {
+            $query->whereHas('cliente', function ($q) use ($request) {
+                $q->where('nome', 'like', '%' . $request->nome . '%');
             });
+        }
 
-            // Somar apenas pagamentos filtrados e com status PAGAMENTO REGISTRADO
+        // Filtrar por endereço do cliente
+        if ($request->filled('endereco')) {
+            $query->whereHas('cliente', function ($q) use ($request) {
+                $q->where('endereco', 'like', '%' . $request->endereco . '%');
+            });
+        }
+
+        // Filtrar por telefone do cliente
+        if ($request->filled('telefone')) {
+            $query->whereHas('cliente', function ($q) use ($request) {
+                $q->where('telefone', 'like', '%' . $request->telefone . '%');
+            });
+        }
+
+        // Filtrar por status do pedido
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filtrar por forma de pagamento (múltiplas formas)
+        if ($request->filled('forma')) {
+            $formas = is_array($request->forma) ? $request->forma : [$request->forma];
+            $query->whereHas('pagamentos', function ($q) use ($formas) {
+                $q->whereIn('forma', $formas);
+            });
+        }
+// Filtro por anos (array)
+if ($request->filled('ano')) {
+    $anos = $request->input('ano');
+    $query->whereIn(\DB::raw('YEAR(created_at)'), $anos);
+}
+
+// Filtro por meses (array)
+if ($request->filled('mes')) {
+    $meses = $request->input('mes');
+    $query->whereIn(\DB::raw('MONTH(created_at)'), $meses);
+}
+
+        $pedidos = $query->orderByDesc('created_at')->get();
+
+        $resultado = $pedidos->map(function ($pedido) {
+            $pagamentosFiltrados = $pedido->pagamentos;
+
             $totalPago = $pagamentosFiltrados->where('status', 'PAGAMENTO REGISTRADO')->sum('valor');
-
             $valorResta = max(0, $pedido->valor - $totalPago);
 
             return [
@@ -45,8 +81,7 @@ class PagamentoController extends Controller
 
         return view('pagamento.index', [
             'pedidos' => $resultado,
-            'statusFilter' => $request->status,
-            'formaFilter' => $request->forma,
+            'filters' => $request->only(['id', 'nome', 'endereco', 'telefone', 'status', 'forma']),
         ]);
     }
 
