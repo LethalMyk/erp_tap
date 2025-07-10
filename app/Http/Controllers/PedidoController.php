@@ -8,6 +8,7 @@ use App\Models\PedidoImagem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Agendamento;
+use App\Models\Terceirizadas;
 
 class PedidoController extends Controller
 {
@@ -225,4 +226,5 @@ class PedidoController extends Controller
         $pedido = Pedido::with(['cliente', 'items.terceirizadas', 'pagamentos', 'imagens'])->findOrFail($id);
         return view('pedidos.vias.imprimirviasimplificada', compact('pedido'));
     }
+
 }

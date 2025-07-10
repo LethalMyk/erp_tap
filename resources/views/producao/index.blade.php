@@ -60,6 +60,7 @@
         <th>Prazo</th>
         <th>Data Início</th>
         <th>Data Término</th>
+        <th>Terceirizadas</th>
         <th>Previsão Entrega</th>
                 <th>Observação</th>
 
@@ -96,6 +97,14 @@
             <td>{{ $pedido->prazo ?? '---' }}</td>
             <td>{{ $pedido->data_inicio ?? '---' }}</td>
             <td>{{ $pedido->data_termino ?? '---' }}</td>
+            <td>
+    @if($pedido->terceirizadas->count())
+        {{ $pedido->terceirizadas->pluck('tipoServico')->implode(', ') }}
+    @else
+        -
+    @endif
+</td>
+
             <td>{{ $pedido->data_previsao ?? '---' }}</td>
                          <td>{{ $pedido->obs ?? '-' }}</td> 
 
@@ -134,7 +143,7 @@
                     x-cloak
                     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
                 >
-               <div class="bg-white p-4 rounded shadow w-full max-w-lg max-h-[70vh] overflow-y-auto">
+               <div class="bg-white p-4 rounded shadow w-full max-w-lg max-h-[90vh] overflow-y-auto">
 <h2 class="text-xl font-bold mb-2">Editar Pedido #{{ $pedido->id }}</h2>
 
 <!-- Informações rápidas -->
@@ -157,18 +166,38 @@
 <form method="POST" action="{{ route('producao.update', $pedido->id) }}">
     @csrf
     @method('PUT')
+>@if($pedido->terceirizadas->count())
+        {{ $pedido->terceirizadas->pluck('tipoServico')->implode(', ') }}
+    @else
+        -
+    @endif
 
-    {{-- Tapeceiro --}}
-    <div class="mb-4">
-        <label for="tapeceiro_{{ $pedido->id }}" class="block font-bold">Tapeceiro</label>
-        <input 
-            type="text" 
-            name="tapeceiro" 
-            id="tapeceiro_{{ $pedido->id }}" 
-            value="{{ $pedido->tapeceiro }}" 
-            class="w-full border rounded p-2"
-        >
+{{-- Andamento e Tapeceiro lado a lado --}}
+<div class="flex flex-wrap gap-4 mb-4">
+    <div class="flex-1 min-w-[150px]">
+        <label for="andamento_{{ $pedido->id }}" class="block font-bold">Andamento</label>
+        <select name="andamento" id="andamento_{{ $pedido->id }}" class="w-full border rounded p-2">
+            <option value="produzindo" {{ $pedido->andamento === 'produzindo' ? 'selected' : '' }}>Produzindo</option>
+            <option value="retirar" {{ $pedido->andamento === 'retirar' ? 'selected' : '' }}>Retirar</option>
+            <option value="montado" {{ $pedido->andamento === 'montado' ? 'selected' : '' }}>Montado</option>
+            <option value="desmanchado" {{ $pedido->andamento === 'desmanchado' ? 'selected' : '' }}>Desmanchado</option>
+            <option value="entregar" {{ $pedido->andamento === 'entregar' ? 'selected' : '' }}>Entregar</option>
+            <option value="concluído" {{ $pedido->andamento === 'concluído' ? 'selected' : '' }}>Concluído</option>
+        </select>
     </div>
+
+    <div class="flex-1 min-w-[150px]">
+        <label for="tapeceiro_{{ $pedido->id }}" class="block font-bold">Tapeceiro</label>
+        <select name="tapeceiro" id="tapeceiro_{{ $pedido->id }}" class="w-full border rounded p-2">
+            <option value="">-- Selecione o Tapeceiro --</option>
+            <option value="André" {{ $pedido->tapeceiro === 'André' ? 'selected' : '' }}>André</option>
+            <option value="Samuel" {{ $pedido->tapeceiro === 'Samuel' ? 'selected' : '' }}>Samuel</option>
+            <option value="Paulo" {{ $pedido->tapeceiro === 'Paulo' ? 'selected' : '' }}>Paulo</option>
+            <option value="Adailton" {{ $pedido->tapeceiro === 'Adailton' ? 'selected' : '' }}>Adailton</option>
+            <option value="Distribuir" {{ $pedido->tapeceiro === 'Distribuir' ? 'selected' : '' }}>Distribuir</option>
+        </select>
+    </div>
+</div>
 
     
     {{-- Datas lado a lado --}}
@@ -206,6 +235,26 @@
         >
     </div>
     <div class="flex-1 min-w-[150px]">
+        <label for="pronto_dia_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Pronto Dia</label>
+        <input 
+        type="date" 
+        name="pronto_dia" 
+        id="pronto_dia_{{ $pedido->id }}" 
+        value="{{ $pedido->data_termino }}" 
+        class="w-full border rounded p-2"
+        >
+    </div>
+    <div class="flex-1 min-w-[150px]">
+        <label for="previsao_entrega_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Previsão Entrega</label>
+        <input 
+        type="date" 
+        name="previsao_entrega" 
+        id="previsao_entrega_{{ $pedido->id }}" 
+        value="{{ $pedido->data_previsao }}" 
+        class="w-full border rounded p-2"
+        >
+    </div>
+    <div class="flex-1 min-w-[150px]">
         <label for="prazo_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Prazo</label>
         <input 
             type="text" 
@@ -215,41 +264,7 @@
             class="w-full border rounded p-2"
         >
     </div>
-    <div class="flex-1 min-w-[150px]">
-        <label for="pronto_dia_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Pronto Dia</label>
-        <input 
-            type="date" 
-            name="pronto_dia" 
-            id="pronto_dia_{{ $pedido->id }}" 
-            value="{{ $pedido->data_termino }}" 
-            class="w-full border rounded p-2"
-        >
-    </div>
-    <div class="flex-1 min-w-[150px]">
-        <label for="previsao_entrega_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Previsão Entrega</label>
-        <input 
-            type="date" 
-            name="previsao_entrega" 
-            id="previsao_entrega_{{ $pedido->id }}" 
-            value="{{ $pedido->data_previsao }}" 
-            class="w-full border rounded p-2"
-        >
-    </div>
 </div>
-
-    {{-- Andamento --}}
-    <div class="mb-4">
-        <label for="andamento_{{ $pedido->id }}" class="block font-bold">Andamento</label>
-        <select name="andamento" id="andamento_{{ $pedido->id }}">
-            <option value="produzindo" {{ $pedido->andamento === 'produzindo' ? 'selected' : '' }}>Produzindo</option>
-            <option value="retirar" {{ $pedido->andamento === 'retirar' ? 'selected' : '' }}>Retirar</option>
-            <option value="montado" {{ $pedido->andamento === 'montado' ? 'selected' : '' }}>Montado</option>
-            <option value="desmanchado" {{ $pedido->andamento === 'desmanchado' ? 'selected' : '' }}>Desmanchado</option>
-            <option value="entregar" {{ $pedido->andamento === 'entregar' ? 'selected' : '' }}>Entregar</option>
-            <option value="concluído" {{ $pedido->andamento === 'concluído' ? 'selected' : '' }}>Concluído</option>
-        </select>
-    </div>
-{{-- Observação --}}
 <div class="mb-4">
     <label for="observacao_{{ $pedido->id }}" class="block font-bold">Observação</label>
     <textarea 

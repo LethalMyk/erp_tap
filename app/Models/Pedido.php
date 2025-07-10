@@ -40,4 +40,9 @@ public function items()
 {
     return $this->hasMany(Servico::class);
 }
+
+   public function terceirizadas()
+    {
+        return $this->hasMany(Terceirizada::class, 'pedido_id');
+    }
 }

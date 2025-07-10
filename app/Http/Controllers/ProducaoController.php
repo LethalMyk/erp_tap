@@ -31,7 +31,7 @@ class ProducaoController extends Controller
         // Campos permitidos para ordenar
         $allowedSortFields = ['id', 'data', 'andamento', 'tapeceiro', 'prazo', 'cliente_nome'];
 
-$query = Pedido::with(['cliente', 'servicos.profissional', 'items'])
+$query = Pedido::with(['cliente', 'servicos.profissional', 'items', 'terceirizadas'])
             ->when($data, fn($q) => $q->whereDate('data', $data))
             ->when($id, fn($q) => $q->where('id', $id))
             // Modificado aqui: aceita múltiplos tapeceiros separados por vírgula
