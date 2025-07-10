@@ -8,58 +8,43 @@ use Illuminate\Http\Request;
 
 class PagamentoController extends Controller
 {
- public function index(Request $request)
+public function index(Request $request)
 {
-    $query = Pagamento::with(['pedido.cliente'])
-        ->when($request->status, function ($query) use ($request) {
-            $query->where('status', $request->status);
-        })
-        ->when($request->forma, function ($query) use ($request) {
-            $query->where('forma', $request->forma);
-        })
-        ->when($request->nome, function ($query) use ($request) {
-            $query->whereHas('pedido.cliente', function ($q) use ($request) {
-                $q->where('nome', 'like', '%' . $request->nome . '%');
-            });
-        })
-        ->when($request->endereco, function ($query) use ($request) {
-            $query->whereHas('pedido.cliente', function ($q) use ($request) {
-                $q->where('endereco', 'like', '%' . $request->endereco . '%');
-            });
-        })
-        ->when($request->data_inicio, function ($query) use ($request) {
-            $query->whereDate('data', '>=', $request->data_inicio);
-        })
-        ->when($request->data_fim, function ($query) use ($request) {
-            $query->whereDate('data', '<=', $request->data_fim);
-        })
-        ->when($request->cliente_id, function ($query) use ($request) {
-            $query->whereHas('pedido', function ($q) use ($request) {
-                $q->where('cliente_id', $request->cliente_id);
-            });
-        })
-        ->orderByDesc('created_at');
+    // Buscar todos os pedidos com os dados relacionados (mesmo sem pagamentos)
+    $pedidos = Pedido::with(['cliente', 'pagamentos'])
+        ->when($request->nome, fn($q) => $q->whereHas('cliente', fn($sub) =>
+            $sub->where('nome', 'like', '%' . $request->nome . '%')))
+        ->when($request->endereco, fn($q) => $q->whereHas('cliente', fn($sub) =>
+            $sub->where('endereco', 'like', '%' . $request->endereco . '%')))
+        ->orderByDesc('created_at')
+        ->get();
 
-    // Usar paginate para não carregar tudo
-    $pagamentos = $query->paginate(20);
+    // Preparar estrutura final
+    $resultado = $pedidos->map(function ($pedido) use ($request) {
+        // Filtrar pagamentos individualmente
+        $pagamentosFiltrados = $pedido->pagamentos->filter(function ($p) use ($request) {
+            return (!$request->forma || $p->forma === $request->forma)
+                && (!$request->status || $p->status === $request->status)
+                && (!$request->data_inicio || \Carbon\Carbon::parse($p->data)->gte($request->data_inicio))
+                && (!$request->data_fim || \Carbon\Carbon::parse($p->data)->lte($request->data_fim));
+        });
 
-    // Calcular valor resta para cada pagamento da página atual
-    foreach ($pagamentos as $pagamento) {
-        $pedido = $pagamento->pedido;
+        $totalPago = $pedido->pagamentos->where('status', 'PAGAMENTO REGISTRADO')->sum('valor');
+        $valorResta = max(0, $pedido->valor - $totalPago);
 
-        // Somar pagamentos registrados para o pedido
-        $totalPago = Pagamento::where('pedido_id', $pedido->id)
-            ->where('status', 'PAGAMENTO REGISTRADO')
-            ->sum('valor');
+        return [
+            'pedido' => $pedido,
+            'pagamentos' => $pagamentosFiltrados,
+            'total_pago' => $totalPago,
+            'valor_resta' => $valorResta,
+        ];
+    });
 
-        $pagamento->valor_resta_pedido = max($pedido->valor - $totalPago, 0);
-    }
-
-    return view('pagamento.index', compact('pagamentos'))
-        ->with([
-            'statusFilter' => $request->status,
-            'formaFilter' => $request->forma,
-        ]);
+    return view('pagamento.index', [
+        'pedidos' => $resultado,
+        'statusFilter' => $request->status,
+        'formaFilter' => $request->forma,
+    ]);
 }
 
 
