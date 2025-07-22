@@ -18,6 +18,7 @@ use App\Http\Controllers\FormularioController;
 use App\Http\Controllers\PesquisarController;
 use App\Http\Controllers\AgendamentoController;
 use App\Http\Middleware\CheckRole;
+use App\Http\Controllers\DespesaController;
 
 
 Route::get('/', function () {
@@ -123,5 +124,12 @@ Route::resource('pagamento', PagamentoController::class);
 });
 Route::put('/producao/{id}', [ProducaoController::class, 'update'])->name('producao.update');
 Route::get('/agendamentos/create', [AgendamentoController::class, 'create'])->name('agendamentos.create');
+
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::resource('despesas', DespesaController::class)->except(['show']);
+});
+
 
 require __DIR__.'/auth.php';

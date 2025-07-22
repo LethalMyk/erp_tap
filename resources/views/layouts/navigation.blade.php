@@ -104,6 +104,9 @@
                             <x-dropdown-link :href="route('pagamento.index')">
                                 {{ __('Pagamento de Clientes') }}
                             </x-dropdown-link>
+                            <x-dropdown-link :href="route('despesas.index')">
+                                {{ __('Despesas') }}
+                            </x-dropdown-link>
                         </x-slot>
                     </x-dropdown>
 
