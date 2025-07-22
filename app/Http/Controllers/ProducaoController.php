@@ -31,7 +31,7 @@ class ProducaoController extends Controller
         // Campos permitidos para ordenar
         $allowedSortFields = ['id', 'data', 'andamento', 'tapeceiro', 'prazo', 'cliente_nome'];
 
-        $query = Pedido::with(['cliente', 'servicos.profissional'])
+$query = Pedido::with(['cliente', 'servicos.profissional', 'items', 'terceirizadas'])
             ->when($data, fn($q) => $q->whereDate('data', $data))
             ->when($id, fn($q) => $q->where('id', $id))
             // Modificado aqui: aceita múltiplos tapeceiros separados por vírgula
@@ -110,6 +110,7 @@ class ProducaoController extends Controller
         $pedido->previsto_para = $request->input('previsao_entrega');
         $pedido->data_retirada = $request->input('data_retirada');
         $pedido->obs = $request->input('observacao');
+        $pedido->obs_retirada = $request->input('obs_retirada'); // <- adiciona aqui
         $pedido->save();
 
         return redirect()->route('producao.index')->with('success', 'Pedido atualizado com sucesso!');

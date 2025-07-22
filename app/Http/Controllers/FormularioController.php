@@ -101,7 +101,7 @@ $status = $totalPago >= $valorTotal ? 'PAGO' : 'RESTA';
 // 4️⃣ Criar Pagamentos
 foreach ($pagamentos as $pagamentoData) {
     $forma = $pagamentoData['forma'] ?? '';
-    $ehEmAberto = in_array($forma, ['BOLETO', 'CHEQUE', 'OUTROS']);
+$ehEmAberto = in_array($forma, ['BOLETO', 'CHEQUE', 'OUTROS', 'NA ENTREGA', 'A PRAZO']);
 
     Pagamento::create([
         'pedido_id' => $pedido->id,

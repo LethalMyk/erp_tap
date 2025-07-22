@@ -132,4 +132,5 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
+Route::get('/clientes/{id}/itens', [AgendamentoController::class, 'getItensCliente']);
 require __DIR__.'/auth.php';

@@ -52,6 +52,7 @@
         <th>ID</th>
         <th>Nome</th>
         <th>Endereço</th>
+        <th>Items</th>
         <th>Imagens</th>
         <th>Data Retirada</th>
         <th>Andamento</th>
@@ -59,6 +60,7 @@
         <th>Prazo</th>
         <th>Data Início</th>
         <th>Data Término</th>
+        <th>Terceirizadas</th>
         <th>Previsão Entrega</th>
                 <th>Observação</th>
 
@@ -71,6 +73,13 @@
             <td>{{ $pedido->id }}</td>
             <td>{{ $pedido->cliente->nome ?? 'Cliente não encontrado' }}</td>
             <td>{{ $pedido->cliente->endereco ?? 'Endereço não encontrado' }}</td>
+<td>
+    @if($pedido->items->count())
+        {{ $pedido->items->pluck('nomeItem')->filter()->implode(', ') }}
+    @else
+        -
+    @endif
+</td>
             <td>
                 @if($pedido->imagens->count())
                     <div class="thumbs">
@@ -88,6 +97,14 @@
             <td>{{ $pedido->prazo ?? '---' }}</td>
             <td>{{ $pedido->data_inicio ?? '---' }}</td>
             <td>{{ $pedido->data_termino ?? '---' }}</td>
+            <td>
+    @if($pedido->terceirizadas->count())
+        {{ $pedido->terceirizadas->pluck('tipoServico')->implode(', ') }}
+    @else
+        -
+    @endif
+</td>
+
             <td>{{ $pedido->data_previsao ?? '---' }}</td>
                          <td>{{ $pedido->obs ?? '-' }}</td> 
 
@@ -95,11 +112,13 @@
                 <div class="action-buttons">
                     <a href="{{ route('pedido.visualizar', $pedido->id) }}" class="btn-view">Ver</a>
                     <button @click="openModal = {{ $pedido->id }}" class="btn-edit">Editar Rápido</button>
-                    <a 
+<a 
     href="{{ route('agendamentos.calendario', [
         'cliente_id' => $pedido->cliente->id ?? null,
         'data' => $pedido->prazo ?? now()->format('Y-m-d'),
-        'horario' => '09:00'
+        'horario' => '09:00',
+        'items' => urlencode($pedido->itens ?? ''),
+        'obs_retirada' => urlencode($pedido->obs_retirada ?? ''),
     ]) }}" 
     class="btn btn-primary" 
     style="padding: 5px 10px; border-radius: 5px;"
@@ -124,7 +143,7 @@
                     x-cloak
                     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
                 >
-               <div class="bg-white p-4 rounded shadow w-full max-w-lg max-h-[70vh] overflow-y-auto">
+               <div class="bg-white p-4 rounded shadow w-full max-w-lg max-h-[90vh] overflow-y-auto">
 <h2 class="text-xl font-bold mb-2">Editar Pedido #{{ $pedido->id }}</h2>
 
 <!-- Informações rápidas -->
@@ -147,24 +166,44 @@
 <form method="POST" action="{{ route('producao.update', $pedido->id) }}">
     @csrf
     @method('PUT')
+>@if($pedido->terceirizadas->count())
+        {{ $pedido->terceirizadas->pluck('tipoServico')->implode(', ') }}
+    @else
+        -
+    @endif
 
-    {{-- Tapeceiro --}}
-    <div class="mb-4">
-        <label for="tapeceiro_{{ $pedido->id }}" class="block font-bold">Tapeceiro</label>
-        <input 
-            type="text" 
-            name="tapeceiro" 
-            id="tapeceiro_{{ $pedido->id }}" 
-            value="{{ $pedido->tapeceiro }}" 
-            class="w-full border rounded p-2"
-        >
+{{-- Andamento e Tapeceiro lado a lado --}}
+<div class="flex flex-wrap gap-4 mb-4">
+    <div class="flex-1 min-w-[150px]">
+        <label for="andamento_{{ $pedido->id }}" class="block font-bold">Andamento</label>
+        <select name="andamento" id="andamento_{{ $pedido->id }}" class="w-full border rounded p-2">
+            <option value="produzindo" {{ $pedido->andamento === 'produzindo' ? 'selected' : '' }}>Produzindo</option>
+            <option value="retirar" {{ $pedido->andamento === 'retirar' ? 'selected' : '' }}>Retirar</option>
+            <option value="montado" {{ $pedido->andamento === 'montado' ? 'selected' : '' }}>Montado</option>
+            <option value="desmanchado" {{ $pedido->andamento === 'desmanchado' ? 'selected' : '' }}>Desmanchado</option>
+            <option value="entregar" {{ $pedido->andamento === 'entregar' ? 'selected' : '' }}>Entregar</option>
+            <option value="concluído" {{ $pedido->andamento === 'concluído' ? 'selected' : '' }}>Concluído</option>
+        </select>
     </div>
+
+    <div class="flex-1 min-w-[150px]">
+        <label for="tapeceiro_{{ $pedido->id }}" class="block font-bold">Tapeceiro</label>
+        <select name="tapeceiro" id="tapeceiro_{{ $pedido->id }}" class="w-full border rounded p-2">
+            <option value="">-- Selecione o Tapeceiro --</option>
+            <option value="André" {{ $pedido->tapeceiro === 'André' ? 'selected' : '' }}>André</option>
+            <option value="Samuel" {{ $pedido->tapeceiro === 'Samuel' ? 'selected' : '' }}>Samuel</option>
+            <option value="Paulo" {{ $pedido->tapeceiro === 'Paulo' ? 'selected' : '' }}>Paulo</option>
+            <option value="Adailton" {{ $pedido->tapeceiro === 'Adailton' ? 'selected' : '' }}>Adailton</option>
+            <option value="Distribuir" {{ $pedido->tapeceiro === 'Distribuir' ? 'selected' : '' }}>Distribuir</option>
+        </select>
+    </div>
+</div>
 
     
     {{-- Datas lado a lado --}}
-    <div class="flex flex-wrap gap-4 mb-4">
+<div class="flex flex-wrap gap-4 mb-4">
 
-     <div class="flex-1 min-w-[150px]">
+    <div class="flex-1 min-w-[150px]">
         <label for="data_retirada_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Data Retirada</label>
         <input 
             type="date" 
@@ -175,61 +214,57 @@
         >
     </div>
 
-        <div class="flex-1 min-w-[150px]">
-            <label for="data_inicio_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Data Início</label>
-            <input 
-                type="date" 
-                name="data_inicio" 
-                id="data_inicio_{{ $pedido->id }}" 
-                value="{{ $pedido->data_inicio }}" 
-                class="w-full border rounded p-2"
-            >
-        </div>
-        <div class="flex-1 min-w-[150px]">
-            <label for="prazo_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Prazo</label>
-            <input 
-                type="text" 
-                name="prazo" 
-                id="prazo_{{ $pedido->id }}" 
-                value="{{ $pedido->prazo }}" 
-                class="w-full border rounded p-2"
-            >
-        </div>
-        <div class="flex-1 min-w-[150px]">
-            <label for="pronto_dia_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Pronto Dia</label>
-            <input 
-                type="date" 
-                name="pronto_dia" 
-                id="pronto_dia_{{ $pedido->id }}" 
-                value="{{ $pedido->data_termino }}" 
-                class="w-full border rounded p-2"
-            >
-        </div>
-        <div class="flex-1 min-w-[150px]">
-            <label for="previsao_entrega_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Previsão Entrega</label>
-            <input 
-                type="date" 
-                name="previsao_entrega" 
-                id="previsao_entrega_{{ $pedido->id }}" 
-                value="{{ $pedido->data_previsao }}" 
-                class="w-full border rounded p-2"
-            >
-        </div>
+    <div class="flex-1 min-w-[150px]">
+        <label for="obs_retirada_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Observação Retirada</label>
+        <textarea 
+            name="obs_retirada" 
+            id="obs_retirada_{{ $pedido->id }}" 
+            rows="3" 
+            class="w-full border rounded p-2"
+        >{{ $pedido->obs_retirada ?? '' }}</textarea>
     </div>
 
-    {{-- Andamento --}}
-    <div class="mb-4">
-        <label for="andamento_{{ $pedido->id }}" class="block font-bold">Andamento</label>
-        <select name="andamento" id="andamento_{{ $pedido->id }}">
-            <option value="produzindo" {{ $pedido->andamento === 'produzindo' ? 'selected' : '' }}>Produzindo</option>
-            <option value="retirar" {{ $pedido->andamento === 'retirar' ? 'selected' : '' }}>Retirar</option>
-            <option value="montado" {{ $pedido->andamento === 'montado' ? 'selected' : '' }}>Montado</option>
-            <option value="desmanchado" {{ $pedido->andamento === 'desmanchado' ? 'selected' : '' }}>Desmanchado</option>
-            <option value="entregar" {{ $pedido->andamento === 'entregar' ? 'selected' : '' }}>Entregar</option>
-            <option value="concluído" {{ $pedido->andamento === 'concluído' ? 'selected' : '' }}>Concluído</option>
-        </select>
+    <div class="flex-1 min-w-[150px]">
+        <label for="data_inicio_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Data Início</label>
+        <input 
+            type="date" 
+            name="data_inicio" 
+            id="data_inicio_{{ $pedido->id }}" 
+            value="{{ $pedido->data_inicio }}" 
+            class="w-full border rounded p-2"
+        >
     </div>
-{{-- Observação --}}
+    <div class="flex-1 min-w-[150px]">
+        <label for="pronto_dia_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Pronto Dia</label>
+        <input 
+        type="date" 
+        name="pronto_dia" 
+        id="pronto_dia_{{ $pedido->id }}" 
+        value="{{ $pedido->data_termino }}" 
+        class="w-full border rounded p-2"
+        >
+    </div>
+    <div class="flex-1 min-w-[150px]">
+        <label for="previsao_entrega_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Previsão Entrega</label>
+        <input 
+        type="date" 
+        name="previsao_entrega" 
+        id="previsao_entrega_{{ $pedido->id }}" 
+        value="{{ $pedido->data_previsao }}" 
+        class="w-full border rounded p-2"
+        >
+    </div>
+    <div class="flex-1 min-w-[150px]">
+        <label for="prazo_{{ $pedido->id }}" class="block font-bold text-sm mb-1">Prazo</label>
+        <input 
+            type="text" 
+            name="prazo" 
+            id="prazo_{{ $pedido->id }}" 
+            value="{{ $pedido->prazo }}" 
+            class="w-full border rounded p-2"
+        >
+    </div>
+</div>
 <div class="mb-4">
     <label for="observacao_{{ $pedido->id }}" class="block font-bold">Observação</label>
     <textarea 
@@ -260,6 +295,8 @@
     <style>
         [x-cloak] { display: none !important; }
 
+
+        
         select.filter-input {
             font-size: 12px;
             min-width: 100px;
@@ -379,7 +416,7 @@
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            overflow: auto;
             margin-top: 20px;
         }
 

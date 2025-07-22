@@ -55,4 +55,9 @@ class Terceirizada extends Model
             'cliente_id'     // Chave estrangeira em Pedido (ligando ao Cliente)
         );
     }
+
+     public function terceirizadas()
+    {
+        return $this->hasMany(Terceirizada::class, 'pedido_id');
+    }
 }
