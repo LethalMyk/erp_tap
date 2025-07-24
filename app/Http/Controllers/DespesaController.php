@@ -11,18 +11,21 @@ class DespesaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Despesa::query();
+        $query = Despesa::with('usuario'); // incluir o relacionamento com o usuário
 
-        // Aplicar filtros se existirem
+        // Filtros
         if ($request->filled('descricao')) {
             $query->where('descricao', 'like', '%' . $request->descricao . '%');
         }
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
+
         if ($request->filled('categoria')) {
             $query->where('categoria', $request->categoria);
         }
+
         if ($request->filled('forma_pagamento')) {
             $query->where('forma_pagamento', $request->forma_pagamento);
         }
@@ -38,7 +41,8 @@ class DespesaController extends Controller
             $query->orderBy('data_vencimento', 'desc');
         }
 
-        $despesas = $query->paginate(10)->withQueryString();
+        // Paginação com filtros preservados
+        $despesas = $query->paginate(10)->appends($request->all());
 
         return view('despesas.index', compact('despesas'));
     }
@@ -95,7 +99,6 @@ class DespesaController extends Controller
         ]);
 
         if ($request->hasFile('comprovante')) {
-            // Apaga arquivo antigo se existir
             if ($despesa->comprovante) {
                 Storage::disk('public')->delete($despesa->comprovante);
             }
@@ -112,6 +115,7 @@ class DespesaController extends Controller
         if ($despesa->comprovante) {
             Storage::disk('public')->delete($despesa->comprovante);
         }
+
         $despesa->delete();
 
         return redirect()->route('despesas.index')->with('success', 'Despesa excluída com sucesso!');

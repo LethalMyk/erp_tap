@@ -11,12 +11,84 @@
             </div>
         @endif
 
-        <a href="{{ route('despesas.create') }}" 
-           class="bg-blue-700 text-white font-semibold px-5 py-3 rounded-lg mb-4 inline-block shadow border border-blue-900 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition">
-            Nova Despesa
-        </a>
+         <a href="{{ route('despesas.create') }}" 
+   class="bg-blue-700 text-white font-semibold px-5 py-3 rounded-lg mb-4 inline-block shadow border border-blue-900 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition">
+    Nova Despesa
+</a>
+
 
         <div class="overflow-x-auto bg-white shadow rounded" x-data="{ editModalOpen: false, editDespesa: null }">
+<form method="GET" action="{{ route('despesas.index') }}" class="mb-6 flex flex-wrap items-end gap-4">
+
+    <div>
+        <label class="block text-sm font-medium">Descrição</label>
+        <input type="text" name="descricao" value="{{ request('descricao') }}" class="border rounded px-2 py-1">
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium">Status</label>
+        <select name="status" class="border rounded px-2 py-1">
+            <option value="">Todos</option>
+            <option value="PENDENTE" @selected(request('status') == 'PENDENTE')>PENDENTE</option>
+            <option value="PAGO" @selected(request('status') == 'PAGO')>PAGO</option>
+            <option value="ATRASADO" @selected(request('status') == 'ATRASADO')>ATRASADO</option>
+        </select>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium">Categoria</label>
+        <select name="categoria" class="border rounded px-2 py-1">
+            <option value="">Todas</option>
+            <option value="FORNECEDOR" @selected(request('categoria') == 'FORNECEDOR')>FORNECEDOR</option>
+            <option value="AGUA" @selected(request('categoria') == 'AGUA')>AGUA</option>
+            <option value="LUZ" @selected(request('categoria') == 'LUZ')>LUZ</option>
+            <option value="MATERIAL" @selected(request('categoria') == 'MATERIAL')>MATERIAL</option>
+            <option value="PARTICULAR" @selected(request('categoria') == 'PARTICULAR')>PARTICULAR</option>
+            <option value="OUTROS" @selected(request('categoria') == 'OUTROS')>OUTROS</option>
+        </select>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium">Forma Pagamento</label>
+        <select name="forma_pagamento" class="border rounded px-2 py-1">
+            <option value="">Todas</option>
+            <option value="PIX" @selected(request('forma_pagamento') == 'PIX')>PIX</option>
+            <option value="DINHEIRO" @selected(request('forma_pagamento') == 'DINHEIRO')>DINHEIRO</option>
+            <option value="BOLETO" @selected(request('forma_pagamento') == 'BOLETO')>BOLETO</option>
+            <option value="CARTAO" @selected(request('forma_pagamento') == 'CARTAO')>CARTAO</option>
+            <option value="TRANSFERENCIA" @selected(request('forma_pagamento') == 'TRANSFERENCIA')>TRANSFERENCIA</option>
+            <option value="OUTROS" @selected(request('forma_pagamento') == 'OUTROS')>OUTROS</option>
+        </select>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium">Ordenar por</label>
+        <select name="sort" class="border rounded px-2 py-1">
+            <option value="">Padrão</option>
+            <option value="valor" @selected(request('sort') == 'valor')>Valor</option>
+            <option value="data_vencimento" @selected(request('sort') == 'data_vencimento')>Data Vencimento</option>
+            <option value="created_at" @selected(request('sort') == 'created_at')>Criado em</option>
+        </select>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium">Direção</label>
+        <select name="direction" class="border rounded px-2 py-1">
+            <option value="asc" @selected(request('direction') == 'asc')>Crescente</option>
+            <option value="desc" @selected(request('direction') == 'desc')>Decrescente</option>
+        </select>
+    </div>
+
+    <div class="flex gap-2">
+        <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded">
+            Filtrar
+        </button>
+
+        <a href="{{ route('despesas.index') }}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            Limpar Filtros
+        </a>
+    </div>
+</form>
 
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50">
@@ -67,16 +139,30 @@
                             <td class="px-4 py-2">{{ $despesa->usuario->name ?? 'N/A' }}</td>
                             <td class="px-4 py-2">{{ $despesa->created_at->format('d/m/Y H:i') }}</td>
                             <td class="px-4 py-2">{{ $despesa->updated_at->format('d/m/Y H:i') }}</td>
-                            <td class="px-4 py-2">
-                                <button 
-                                    class="bg-yellow-600 text-white font-semibold px-5 py-2 rounded-lg shadow border border-yellow-800 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-1 transition"
-                                    @click="
-                                        editModalOpen = true;
-                                        editDespesa = {{ json_encode($despesa) }};
-                                    ">
-                                    Editar
-                                </button>
-                            </td>
+                         <td class="px-4 py-2 flex gap-2">
+    <!-- Botão Editar (estilo igual ao Excluir, mas amarelo) -->
+<button 
+    class="bg-yellow-600 text-black font-semibold px-4 py-2 rounded-lg shadow border border-yellow-800 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-1 transition"
+    @click="
+        editModalOpen = true;
+        editDespesa = @js($despesa);
+    ">
+    Editar
+</button>
+
+
+
+    <!-- Botão Excluir -->
+    <form action="{{ route('despesas.destroy', $despesa->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta despesa?');">
+        @csrf
+        @method('DELETE')
+        <button type="submit"
+            class="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg shadow border border-red-800 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition">
+            Excluir
+        </button>
+    </form>
+</td>
+                            
                         </tr>
                     @endforeach
                 </tbody>
@@ -90,6 +176,7 @@
                 @keydown.escape.window="editModalOpen = false"
             >
                 <div class="bg-white rounded-lg p-6 w-full max-w-lg relative" @click.away="editModalOpen = false">
+                    
                     <h3 class="text-lg font-semibold mb-4">Editar Despesa #<span x-text="editDespesa?.id"></span></h3>
 
                     <form :action="`/despesas/${editDespesa?.id}`" method="POST" enctype="multipart/form-data">
@@ -165,15 +252,19 @@
                         </div>
 
                         <div class="flex justify-end gap-4 mt-6">
-                            <button type="button" 
-                                @click="editModalOpen = false" 
-                                class="px-6 py-3 bg-gray-900 text-white font-semibold rounded-lg shadow border border-gray-800 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-offset-1 transition">
-                                Cancelar
-                            </button>
-                            <button type="submit" 
-                                class="px-6 py-3 bg-green-700 text-white font-semibold rounded-lg shadow border border-green-800 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-1 transition">
-                                Salvar
-                            </button>
+                           <div class="flex justify-end gap-4 mt-6">
+    <button type="button" 
+        @click="editModalOpen = false" 
+        class="bg-black text-white font-semibold px-6 py-3 rounded-lg shadow border border-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-offset-1 transition">
+        Cancelar
+    </button>
+ <button type="submit" 
+        class="bg-black text-white font-semibold px-6 py-3 rounded-lg shadow border border-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-offset-1 transition">
+    Salvar
+</button>
+
+</div>
+
                         </div>
                     </form>
                 </div>
