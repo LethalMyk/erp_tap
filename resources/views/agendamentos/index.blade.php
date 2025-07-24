@@ -134,12 +134,18 @@
                     <textarea name="observacao" class="form-control" id="edit_observacao"></textarea>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-success">Salvar Alterações</button>
-            </div>
-        </form>
-      </div>
-    </div>
+<div class="modal-footer">
+    <button type="submit" class="btn btn-success">Salvar Alterações</button>
+
+    <!-- Formulário para deletar -->
+    <form id="formDelete" method="POST" action="" style="display:inline-block; margin-left: 10px;">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Tem certeza que deseja excluir este agendamento?');">
+            Excluir
+        </button>
+    </form>
+</div>
 
     {{-- Scripts --}}
     <script>

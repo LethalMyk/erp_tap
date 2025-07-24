@@ -91,7 +91,18 @@
                 <textarea name="observacao" class="form-control"></textarea>
             </div>
 
-            <button type="submit" id="submitBtn" class="btn btn-success">Agendar</button>
+            <div class="d-flex gap-2" style="margin-top: 10px;">
+                <button type="submit" id="submitBtn" class="btn btn-success">Agendar</button>
+                <button 
+                    type="button" 
+                    id="deleteBtn" 
+                    class="btn btn-danger" 
+                    style="display: none;"
+                    onclick="confirmDelete()"
+                >
+                    Excluir
+                </button>
+            </div>
         </form>
     </div>
 
@@ -155,6 +166,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('telefone').value = ag.telefone || '';
                 document.querySelector('[name="itens"]').value = ag.itens || '';
                 document.querySelector('[name="observacao"]').value = ag.observacao || '';
+
+                toggleDeleteButton();
             });
         },
 
@@ -220,6 +233,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Preencher itens e observação (se tiver)
     document.querySelector('[name="itens"]').value = items || '';
     document.querySelector('[name="observacao"]').value = obs_retirada || '';
+
+    toggleDeleteButton();
 });
 
 function limparFormulario() {
@@ -229,6 +244,44 @@ function limparFormulario() {
     document.getElementById('agendamento_id').value = '';
     document.getElementById('formTitle').innerText = 'Novo Agendamento';
     document.getElementById('submitBtn').innerText = 'Agendar';
+
+    toggleDeleteButton();
+}
+
+function toggleDeleteButton() {
+    const agendamentoId = document.getElementById('agendamento_id').value;
+    const deleteBtn = document.getElementById('deleteBtn');
+    if (agendamentoId) {
+        deleteBtn.style.display = 'inline-block';
+    } else {
+        deleteBtn.style.display = 'none';
+    }
+}
+
+function confirmDelete() {
+    if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
+
+    const agendamentoId = document.getElementById('agendamento_id').value;
+    if (!agendamentoId) {
+        alert('Nenhum agendamento selecionado para exclusão.');
+        return;
+    }
+
+    // Criar form para exclusão dinamicamente e enviar
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/agendamentos/${agendamentoId}`;
+    
+    // CSRF token — pega da meta tag
+    const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    form.innerHTML = `
+        <input type="hidden" name="_token" value="${token}">
+        <input type="hidden" name="_method" value="DELETE">
+    `;
+    
+    document.body.appendChild(form);
+    form.submit();
 }
 </script>
 
@@ -274,7 +327,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     campoItens.value = data.itens || '';
                     campoObs.value = data.observacao || '';
 
-                    // Forçar atualização dos campos (se necessário)
                     campoItens.dispatchEvent(new Event('input'));
                     campoObs.dispatchEvent(new Event('input'));
                 })
