@@ -35,7 +35,8 @@ public function store(Request $request)
 
     Item::create($request->all());
 
-    return redirect()->route('items.index')->with('success', 'Item cadastrado com sucesso!');
+    return redirect()->route('pedido.visualizar', $request->pedido_id)
+                     ->with('success', 'Item cadastrado com sucesso!');
 }
 
 

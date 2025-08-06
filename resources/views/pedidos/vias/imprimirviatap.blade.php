@@ -59,7 +59,7 @@
             display: block;
             height: auto;
             page-break-inside: avoid;
-            max-width: 30%;
+            max-width: 25%;
         }
 
         /* A partir da 4ª imagem, diminui para caber tudo */
