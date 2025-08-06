@@ -19,6 +19,10 @@
 
         <div class="overflow-x-auto bg-white shadow rounded" x-data="{ editModalOpen: false, editDespesa: null }">
 <form method="GET" action="{{ route('despesas.index') }}" class="mb-6 flex flex-wrap items-end gap-4">
+<div>
+    <label class="block text-sm font-medium">Separador</label>
+    <input type="text" name="separador" value="{{ request('separador') }}" class="border rounded px-2 py-1" placeholder="Filtrar por separador">
+</div>
 
     <div>
         <label class="block text-sm font-medium">Descrição</label>
@@ -257,7 +261,10 @@
                             <label class="block mb-1 font-medium">Observação</label>
                             <textarea name="observacao" x-model="editDespesa.observacao" class="w-full border rounded px-2 py-1"></textarea>
                         </div>
-
+<div class="mb-3">
+    <label class="block mb-1 font-medium">Separador</label>
+    <input type="text" name="separador" x-model="editDespesa.separador" class="w-full border rounded px-2 py-1" placeholder="para usar no filtro.">
+</div>
                         <div class="flex justify-end gap-4 mt-6">
                            <div class="flex justify-end gap-4 mt-6">
     <button type="button" 

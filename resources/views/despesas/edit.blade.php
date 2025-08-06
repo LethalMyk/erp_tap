@@ -92,6 +92,10 @@
                 <label for="observacao" class="block font-medium text-gray-700">Observação</label>
                 <textarea name="observacao" id="observacao" rows="3" class="mt-1 block w-full rounded border-gray-300 shadow-sm">{{ old('observacao', $despesa->observacao) }}</textarea>
             </div>
+<div class="mb-3">
+    <label class="block mb-1 font-medium">Separador</label>
+    <input type="text" name="separador" x-model="editDespesa.separador" class="w-full border rounded px-2 py-1" placeholder="Ex: Grupo A, Financeiro, etc.">
+</div>
 
             <div>
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
