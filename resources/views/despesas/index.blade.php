@@ -141,11 +141,18 @@
                             <td class="px-4 py-2">{{ $despesa->updated_at->format('d/m/Y H:i') }}</td>
                          <td class="px-4 py-2 flex gap-2">
     <!-- Botão Editar (estilo igual ao Excluir, mas amarelo) -->
+@php
+    $despesaParaJS = $despesa->toArray();
+    $despesaParaJS['data_vencimento'] = $despesa->data_vencimento ? $despesa->data_vencimento->format('Y-m-d') : null;
+    $despesaParaJS['data_pagamento'] = $despesa->data_pagamento ? $despesa->data_pagamento->format('Y-m-d') : null;
+@endphp
+
 <button 
     class="bg-yellow-600 text-black font-semibold px-4 py-2 rounded-lg shadow border border-yellow-800 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-1 transition"
+
     @click="
         editModalOpen = true;
-        editDespesa = @js($despesa);
+        editDespesa = @js($despesaParaJS);
     ">
     Editar
 </button>
