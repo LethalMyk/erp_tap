@@ -98,6 +98,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-2 text-left">ID</th>
+                        <th class="px-4 py-2 text-left">Separador</th>
                         <th class="px-4 py-2 text-left">Descrição</th>
                         <th class="px-4 py-2 text-left">Valor</th>
                         <th class="px-4 py-2 text-left">Data Vencimento</th>
@@ -118,6 +119,7 @@
                     @foreach($despesas as $despesa)
                         <tr>
                             <td class="px-4 py-2">{{ $despesa->id }}</td>
+                            <td class="px-4 py-2">{{ $despesa->separador ?? '-' }}</td>
                             <td class="px-4 py-2">{{ $despesa->descricao }}</td>
                             <td class="px-4 py-2">R$ {{ number_format($despesa->valor, 2, ',', '.') }}</td>
                             <td class="px-4 py-2">{{ $despesa->data_vencimento->format('d/m/Y') }}</td>
