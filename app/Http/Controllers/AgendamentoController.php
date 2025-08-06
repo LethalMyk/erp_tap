@@ -99,6 +99,16 @@ class AgendamentoController extends Controller
         return view('agendamentos.create', compact('data', 'horario', 'cliente', 'clientes'));
     }
 
+
+    public function destroy($id)
+{
+    $agendamento = Agendamento::findOrFail($id);
+    $agendamento->delete();
+
+    return redirect()->route('agendamentos.index')->with('success', 'Agendamento excluído com sucesso!');
+}
+
+
     public function store(Request $request)
     {
         $request->validate([

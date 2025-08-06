@@ -134,15 +134,20 @@
                     <textarea name="observacao" class="form-control" id="edit_observacao"></textarea>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-success">Salvar Alterações</button>
-            </div>
+           <div class="modal-footer d-flex justify-content-between">
+    <button type="button" id="btnExcluirAgendamento" class="btn btn-danger" style="display:none;">
+        🗑️ Excluir
+    </button>
+    <button type="submit" class="btn btn-success">Salvar Alterações</button>
+</div>
+
         </form>
       </div>
     </div>
 
     {{-- Scripts --}}
     <script>
+        
         document.getElementById('toggleGerais').addEventListener('change', function() {
             const show = this.checked;
             document.querySelectorAll('.agendamentos-gerais').forEach(el => {
@@ -293,6 +298,43 @@
         document.getElementById('modalEditarLabel').innerText = tituloModal;
 
         new bootstrap.Modal(document.getElementById('modalEditar')).show();
+    });
+});
+document.addEventListener('DOMContentLoaded', function () {
+    const btnExcluir = document.getElementById('btnExcluirAgendamento');
+    const inputId = document.getElementById('edit_id');
+    const formDelete = document.createElement('form');
+
+    formDelete.method = 'POST';
+    formDelete.style.display = 'none';
+    formDelete.innerHTML = '@csrf @method("DELETE")'; // Blade syntax para CSRF e método DELETE, renderizado no HTML
+    document.body.appendChild(formDelete);
+
+    function updateExcluirVisibility() {
+        if (inputId.value) {
+            btnExcluir.style.display = 'inline-block';
+        } else {
+            btnExcluir.style.display = 'none';
+        }
+    }
+
+    // Atualiza visibilidade do botão excluir sempre que o modal for aberto/preenchido
+    const observer = new MutationObserver(() => updateExcluirVisibility());
+    observer.observe(inputId, { attributes: true, childList: false, subtree: false });
+
+    // Também chama no carregamento da página
+    updateExcluirVisibility();
+
+    btnExcluir.addEventListener('click', function () {
+        if (!inputId.value) {
+            alert('Este agendamento ainda não foi salvo e não pode ser excluído.');
+            return;
+        }
+
+        if (confirm('Tem certeza que deseja excluir este agendamento?')) {
+            formDelete.action = `/agendamentos/${inputId.value}`;
+            formDelete.submit();
+        }
     });
 });
 

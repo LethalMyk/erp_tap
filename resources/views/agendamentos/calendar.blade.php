@@ -91,7 +91,12 @@
                 <textarea name="observacao" class="form-control"></textarea>
             </div>
 
-            <button type="submit" id="submitBtn" class="btn btn-success">Agendar</button>
+<div class="d-flex justify-content-between align-items-center">
+    <button type="button" id="btnExcluirAgendamento" class="btn btn-danger" style="display:none;">
+        🗑️ Excluir
+    </button>
+    <button type="submit" id="submitBtn" class="btn btn-success">Agendar</button>
+</div>
         </form>
     </div>
 
@@ -287,6 +292,76 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+document.addEventListener('DOMContentLoaded', function () {
+    const btnExcluir = document.getElementById('btnExcluirAgendamento');
+    const inputId = document.getElementById('agendamento_id');
+    const form = document.getElementById('formAgendamento');
+
+    // Função que mostra/esconde o botão excluir conforme id preenchido
+    function atualizarVisibilidadeExcluir() {
+        if (inputId.value && inputId.value.trim() !== '') {
+            btnExcluir.style.display = 'inline-block';
+        } else {
+            btnExcluir.style.display = 'none';
+        }
+    }
+
+    // Chama ao carregar a página (ou ao resetar formulário)
+    atualizarVisibilidadeExcluir();
+
+    // Se o formulário for resetado, esconde o botão excluir
+    form.addEventListener('reset', function () {
+        setTimeout(() => atualizarVisibilidadeExcluir(), 0);
+    });
+
+    // Quando carregar dados para editar (duplo clique no evento), chamar essa função também
+    // Como seu código já preenche os campos e altera o form.action, podemos modificar o trecho do eventDidMount para chamar atualizarVisibilidadeExcluir()
+    // Mas como o código está encapsulado dentro do DOMContentLoaded, podemos criar um observer no inputId:
+    
+    // Observe mudanças no inputId para atualizar botão excluir
+    const observer = new MutationObserver(atualizarVisibilidadeExcluir);
+    observer.observe(inputId, { attributes: true, childList: true, subtree: false });
+
+    // Ou mais simples: atualizar botão toda vez que o campo mudar
+    inputId.addEventListener('input', atualizarVisibilidadeExcluir);
+
+    // Ao clicar no botão excluir:
+    btnExcluir.addEventListener('click', function () {
+        if (!inputId.value) {
+            alert('Nenhum agendamento selecionado para excluir.');
+            return;
+        }
+
+        if (!confirm('Tem certeza que deseja excluir este agendamento?')) {
+            return;
+        }
+
+        // Criar um formulário para enviar DELETE com csrf
+        const formDelete = document.createElement('form');
+        formDelete.method = 'POST';
+        formDelete.action = `/agendamentos/${inputId.value}`;
+        formDelete.style.display = 'none';
+
+        // CSRF token
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+        const inputToken = document.createElement('input');
+        inputToken.type = 'hidden';
+        inputToken.name = '_token';
+        inputToken.value = token;
+        formDelete.appendChild(inputToken);
+
+        // Method spoofing DELETE
+        const inputMethod = document.createElement('input');
+        inputMethod.type = 'hidden';
+        inputMethod.name = '_method';
+        inputMethod.value = 'DELETE';
+        formDelete.appendChild(inputMethod);
+
+        document.body.appendChild(formDelete);
+        formDelete.submit();
+    });
+});
+
 </script>
 
 </x-app-layout>
