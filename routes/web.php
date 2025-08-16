@@ -131,6 +131,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('despesas', DespesaController::class)->except(['show']);
 });
 
+Route::post('/despesas/{id}/registrar-pagamento', [DespesaController::class, 'registrarPagamento'])->name('despesas.registrar-pagamento');
 
 Route::get('/clientes/{id}/itens', [AgendamentoController::class, 'getItensCliente']);
 require __DIR__.'/auth.php';

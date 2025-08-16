@@ -12,27 +12,65 @@ class Despesa extends Model
 
     protected $fillable = [
         'descricao',
-        'valor',
-        'data_vencimento',
-        'data_pagamento',
-        'status',
+        'valor_total',
         'categoria',
+        'separador',
         'forma_pagamento',
-        'chave_pagamento',
-        'comprovante',
         'observacao',
         'created_by',
     ];
 
     protected $casts = [
-        'data_vencimento' => 'date',
-        'data_pagamento' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
 
+    /**
+     * Usuário que criou a despesa
+     */
     public function usuario()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Parcelas vinculadas à despesa
+     */
+    public function parcelas()
+    {
+        return $this->hasMany(Parcela::class);
+    }
+
+    /**
+     * Retorna valor total pago das parcelas
+     */
+    public function valorPago()
+    {
+        return $this->parcelas()->where('status', 'PAGO')->sum('valor_parcela');
+    }
+
+    /**
+     * Retorna valor restante a pagar
+     */
+    public function valorRestante()
+    {
+        return $this->valor_total - $this->valorPago();
+    }
+
+    /**
+     * Retorna status geral da despesa com base nas parcelas
+     */
+    public function getStatusAttribute()
+    {
+        $totalParcelas = $this->parcelas()->count();
+        if ($totalParcelas == 0) {
+            return 'SEM PARCELAS';
+        }
+
+        $parcelasPagas = $this->parcelas()->where('status', 'PAGO')->count();
+
+        if ($parcelasPagas == 0) return 'PENDENTE';
+        if ($parcelasPagas < $totalParcelas) return 'PARCIAL';
+        return 'PAGO';
     }
 }
