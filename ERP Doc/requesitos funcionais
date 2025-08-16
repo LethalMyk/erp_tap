@@ -1,0 +1,723 @@
+Análise de Requisitos – ERP para Tapeçaria 
+1. Introdução
+
+O ERP para tapeçaria tem como objetivo integrar e otimizar os processos de gestão da empresa, abrangendo atendimento ao cliente, elaboração de orçamentos, controle de pedidos, acompanhamento de produção, gestão de pagamentos, serviços terceirizados, controle de estoque e gestão financeira.
+O sistema está sendo desenvolvido em Laravel (PHP) com MySQL, acessível via navegadores e dispositivos móveis.
+
+2. Escopo
+
+O sistema permitirá:
+
+Cadastro de clientes com dados completos (nome, telefone, endereço, e-mail, CPF).
+
+Criação e gestão de pedidos com prazos, tapeceiro responsável e status.
+
+Gestão de itens com tecido, metragem, quantidade, fotos e serviços adicionais (impermeabilização, higienização, etc.).
+
+Controle de pagamentos (forma, parcelas, valores, situação).
+
+Gestão de serviços terceirizados (cadastro, acompanhamento e integração no fluxo do pedido).
+
+Controle de estoque (materiais disponíveis e a pedir).
+
+Gerenciamento de imagens associadas aos pedidos.
+
+Agendamento de orçamentos, retiradas, entregas e assistências.
+
+Controle financeiro (despesas, fluxo de caixa, entradas e saídas).
+
+Acesso com diferentes níveis de usuário (admin, coordenador, tapeceiro, financeiro).
+
+3. Stakeholders
+Papel	Responsabilidade
+Administrador	Gerencia todo o sistema, usuários e permissões.
+Coordenador	Edita itens, pedidos e clientes, cadastra serviços terceirizados.
+Atendente	Cadastra clientes e pedidos.
+Tapeceiro	Visualiza e atualiza status dos pedidos sob sua responsabilidade.
+Financeiro	Gerencia pagamentos e relatórios financeiros.
+Cliente (futuro)	Acompanha pedidos online.
+4. Requisitos Funcionais (RF)
+
+RF.01 – Cadastrar, editar e excluir clientes.
+RF.02 – Cadastrar pedidos vinculados a clientes.
+RF.03 – Adicionar, editar e remover itens de um pedido.
+RF.04 – Registrar prazos, datas de retirada e entrega.
+RF.05 – Acompanhar andamento dos pedidos por status.
+RF.06 – Registrar pagamentos com valor total e saldo restante.
+RF.07 – Associar imagens ao pedido.
+RF.08 – Controlar materiais disponíveis e necessidade de compra.
+RF.09 – Permitir acesso segmentado conforme nível de usuário.
+RF.10 – Impressões de pedidos (retirada, O.S., via completa).
+RF.11 – Gerar relatórios de pedidos, pagamentos e produção.
+RF.12 – Cadastrar e acompanhar serviços terceirizados.
+RF.13 – Registrar agendamentos (orçamentos, retiradas, entregas, assistências).
+RF.14 – Gerenciar despesas e fluxo de caixa.
+
+5. Requisitos Não Funcionais (RNF)
+
+RNF.01 – O sistema deve ser responsivo (desktop e dispositivos móveis).
+RNF.02 – O banco de dados será MySQL.
+RNF.03 – O sistema será desenvolvido em Laravel (PHP) com arquitetura MVC.
+RNF.04 – O sistema deve utilizar autenticação segura (hash de senha, CSRF protection).
+RNF.05 – O sistema deve permitir backups periódicos automáticos.
+RNF.06 – O tempo de resposta para consultas deve ser ≤ 3 segundos.
+RNF.07 – O sistema deve registrar logs de alterações em pedidos e pagamentos.
+
+6. Regras de Negócio (RN)
+
+RN.01 – Todo pedido deve estar vinculado a um cliente.
+RN.02 – Todo pedido deve ter pelo menos 1 item cadastrado.
+RN.03 – O campo qntItens deve refletir o número de itens cadastrados.
+RN.04 – Formas de pagamento são pré-definidas (“Débito”, “Crédito”, “Dinheiro”, “Pix”).
+RN.05 – Apenas administradores podem excluir pedidos.
+RN.06 – Apenas coordenadores ou administradores podem cadastrar serviços terceirizados.
+RN.07 – Agendamentos não podem ter data anterior à data atual.
+
+7. Casos de Uso
+UC01 – Cadastrar Cliente
+
+Atores: Atendente, Administrador
+Fluxo Principal:
+
+Usuário acessa a tela de cadastro de cliente.
+
+Preenche campos obrigatórios (nome, telefone, CPF, endereço).
+
+Salva o cadastro e o cliente é registrado no sistema.
+
+Fluxo Alternativo:
+A1. Caso CPF já esteja cadastrado, o sistema exibe mensagem de erro.
+
+UC02 – Criar Pedido
+
+Atores: Atendente, Administrador
+Fluxo Principal:
+
+Seleciona cliente existente ou cadastra novo.
+
+Preenche informações do pedido (prazo, tapeceiro, status).
+
+Adiciona itens (material, metragem, serviços adicionais).
+
+Adiciona imagens do pedido.
+
+Registra valor total e pagamentos.
+
+Salva o pedido.
+
+Fluxos Alternativos:
+A1. Se cliente não existir, cadastra-se na hora.
+A2. Se valor total não for informado, sistema alerta antes de salvar.
+
+UC03 – Atualizar Status do Pedido
+
+Atores: Tapeceiro, Coordenador, Administrador
+Fluxo Principal:
+
+Usuário acessa a lista de pedidos.
+
+Seleciona pedido e altera status.
+
+Salva atualização.
+
+Fluxo Alternativo:
+A1. Se usuário não tiver permissão, exibe mensagem de acesso negado.
+
+UC04 – Registrar Pagamento
+
+Atores: Financeiro, Administrador
+Fluxo Principal:
+
+Seleciona pedido.
+
+Preenche dados do pagamento (forma, valor, data).
+
+Salva e atualiza saldo restante.
+
+Fluxo Alternativo:
+A1. Se valor for maior que saldo restante, sistema solicita confirmação.
+
+UC05 – Gerar Relatórios
+
+Atores: Administrador, Financeiro
+Fluxo Principal:
+
+Usuário acessa módulo de relatórios.
+
+Seleciona tipo (pedidos, pagamentos, produção).
+
+Filtra por período.
+
+Gera visualização e opção de exportar (PDF/Excel).
+
+8. Diagrama de Casos de Uso (itens principais)
+
+Atores: Administrador, Atendente, Coordenador, Tapeceiro, Financeiro.
+
+Casos de Uso:
+
+Cadastrar Cliente
+
+Criar Pedido
+
+Atualizar Status
+
+Registrar Pagamento
+
+Gerar Relatórios
+
+Cadastrar Serviço Terceirizado
+
+Controlar Estoque
+
+Agendar Retirada/Entrega
+
+9. Planejamento Futuro
+
+Integração com WhatsApp para avisos automáticos.
+
+Área do cliente para acompanhamento online.
+
+Controle de estoque avançado com alertas.
+
+Relatórios gerenciais e exportação em PDF/Excel.
+
+
+1.1 – Diagrama de Classes (UML Oficial)
+Mostra as classes do sistema, atributos e relacionamentos.
+
+
+classDiagram
+    class Cliente {
+        +id: int
+        +nome: string
+        +telefone: string
+        +endereco: string
+        +email: string
+        +cpf: string
+        +hasMany Pedido
+    }
+
+    class Pedido {
+        +id: int
+        +cliente_id: int
+        +qntItens: int
+        +data: date
+        +valor: decimal
+        +valorResta: decimal
+        +status: string
+        +obs: string
+        +prazo: date
+        +imagem:varchar(255)
+        +obs_retirada: text
+        +tapeceiro: string
+        +andamento: string
+        +data_inicio: date
+        +dificuldade: text
+        +previsto_para: date
+        +data_termino: date
+        +data_entrega: date
+        +ARPtech: tinyint
+        +data_retirada: date
+        +hasMany PedidoImagem
+        +hasMany Item
+        +hasMany Pagamento
+        +belongsTo Cliente
+    }
+
+    class PedidoImagem {
+        +id: int
+        +pedido_id: int
+        +imagem: string
+        +belongsTo Pedido
+    }
+
+    class Item {
+        +id: int
+        +pedido_id: int
+        +nomeitem: string
+        +material_disponib: string
+        +material: varchar(255)
+        +metragem_item: decimal
+        +especifi: text
+        +impermeabilizacao	enum('aguardando', 'executado')	
+        +higienizacao	enum('aguardando', 'executado')
+        +impermeabilizar	tinyint(1)
+        +impermeabilizar_observacao	varchar(255)
+        +higienizar	tinyint(1)
+        higienizar_observacao	varchar(255)
+        +belongsTo Pedido
+    }
+
+    class Pagamento {
+        +id: int
+        +pedido_id: int
+        +valor: decimal
+        +forma: string
+        +obs	text
+        +data	date
+        +data_registro	date
+        +status	enum('EM ABERTO', 'PAGAMENTO REGISTRADO')
+        +belongsTo Pedido
+    }
+
+    class Terceirizada {    
+    1    id Primária	bigint(20)		
+	2	tipoServico	enum('Impermeabilizar', 'Higienizar', 'Pintar', 'I...)
+	3	obs	text	
+	4	item_id	bigint(20)			
+	5	pedido_id	bigint(20)	
+	6	andamento	enum('em espera', 'executado', 'pronto')	
+	7	valor	decimal(10,2)
+	8	statusPg	enum('Pendente', 'Pago', 'Parcial')	
+	9	created_at	timestamp		
+	10	updated_at	timestamp
+
+    }
+
+
+    class Agendamento {
+        
+        id
+        pedido_id
+        tipo
+        data
+        horario
+        nome_cliente
+        endereco
+        telefone
+        itens
+        observacao
+        created_at
+        updated_at
+        status
+
+
+
+
+    }
+
+
+    class users
+
+    {
+        
+        id
+        name
+        email
+        email_verified_at
+        password
+        remember_token
+        created_at
+        updated_at
+        role
+
+
+
+    }
+
+    Cliente --> Pedido
+    Pedido --> PedidoImagem
+    Pedido --> Item
+    Pedido --> Pagamento
+
+
+
+
+
+
+Diagramas UML
+
+
+
+
+1. Visão de Caso de Uso
+
+Diagrama de Caso de Uso ✅ (já criamos)
+
+Mostra as funcionalidades principais e os atores.
+
+2. Visão Lógica
+2.1 Estrutura Estática
+
+Diagrama de Classes ✅ (você já tem a base, podemos só melhorar o visual e ajustar atributos e relacionamentos)
+
+Diagrama de Objetos (mostra instâncias reais no sistema, exemplo: Cliente "Maria" → Pedido #102)
+
+2.2 Estrutura Dinâmica
+
+Diagrama de Estado (ciclo de vida de um Pedido: Criado → Em Produção → Pronto → Entregue)
+
+Diagrama de Sequência (passo a passo das interações entre classes para criar um pedido)
+
+Diagrama de Colaboração (foco em como objetos trocam mensagens para concluir uma tarefa)
+
+Diagrama de Interação (uma versão mais visual de sequência/colaboração)
+
+Diagrama de Atividade (fluxo de processos: ex. criação de pedido, produção, entrega)
+
+3. Visão de Processo
+
+Podemos reaproveitar os diagramas de sequência, estado e atividade, mas destacando:
+
+Concorrência
+
+Processamento paralelo
+
+Fluxo de execução no sistema
+
+4. Visão de Implementação
+
+Diagrama de Componentes (mostra o sistema dividido em módulos: Cadastro, Pedidos, Pagamentos, Estoque, Agendamento, Relatórios, etc.)
+
+5. Visão de Implantação
+
+Diagrama de Implantação (mostra como o sistema será distribuído: servidor Laravel + MySQL, clientes web e mobile, etc.)
+
+
+
+1. Diagrama de Atividade – Criar Pedido
+
+Objetivo: Representar o fluxo de ações para registrar um novo pedido no ERP da tapeçaria.
+
+Fluxo:
+
+[Início]
+↓
+Acessar módulo de pedidos
+↓
+Decisão: Cliente já cadastrado?
+    → Sim:
+        Selecionar cliente existente
+    → Não:
+        Acessar módulo de cadastro de cliente
+        Preencher dados obrigatórios
+        Salvar cliente
+↓
+Preencher dados do pedido (prazo, tapeceiro, status)
+↓
+Adicionar itens (material, metragem, serviços adicionais)
+↓
+Decisão: Adicionar imagens?
+    → Sim: Upload de imagens
+    → Não: Pular
+↓
+Registrar valor total do pedido
+↓
+Registrar pagamentos (feitos e pendentes)
+↓
+Salvar pedido
+↓
+Sistema confirma criação e grava no banco
+↓
+[Fim]
+
+2. Diagrama de Estado – Pedido
+
+Objetivo: Mostrar os estados possíveis de um pedido ao longo de seu ciclo de vida.
+
+Estados:
+
+Retirar → Status inicial após registro no sistema.
+
+Montado → Pedido alocado, mas produção ainda não iniciada.
+
+Desmontado → Pedido desmontado
+
+Em Produção → Tapeceiro está executando os serviços.
+
+Aguardando Retirada/Entrega → Produção finalizada, aguardando cliente ou transporte.
+
+Concluido → Pedido finalizado e entregue ao cliente.
+
+Cancelado → Pedido interrompido por decisão administrativa ou do cliente.
+
+Transições:
+
+Criado → Retirar (quando todos os itens e prazos são definidos e aguardam ser retirados).
+
+Retirar → Desmontado (quando todos os items estao desmontados)
+
+Desmontado → Aguardando Produção
+
+Aguardando Produção → Em Produção (quando tapeceiro inicia o trabalho).
+
+Em Produção → Aguardando Retirada/Entrega (quando trabalho é concluído).
+
+Aguardando Retirada/Entrega → Entregue (quando o cliente recebe o produto).
+
+Qualquer estado → Cancelado (decisão administrativa ou solicitação do cliente).
+
+3. Diagrama de Objetos – Exemplo Real
+
+Objetivo: Mostrar instâncias reais das classes do ERP para um caso prático.
+
+Instâncias:
+
+Cliente: mariaSouza
+- id: 15
+- nome: Maria Souza
+- telefone: (11) 99999-8888
+- endereco: Rua das Flores, 120
+- email: maria@email.com
+- cpf: 123.456.789-00
+
+Pedido: pedido102
+- id: 102
+- cliente_id: 15
+- qntItens: 2
+- data: 13/08/2025
+- valor: 2.500,00
+- valorResta: 1.500,00
+- status: Em Produção
+- prazo: 25/08/2025
+- tapeceiro: João Lima
+
+Item: itemA
+- id: 50
+- pedido_id: 102
+- nomeitem: Sofá 3 lugares
+- material_disponib: Pedir
+- metragem_item: 12m
+- impermeabilizar: Sim
+
+Item: itemB
+- id: 51
+- pedido_id: 102
+- nomeitem: 
+- material:
+- material_disponib: Complementar
+- metragem_item: 5m
+- higienizar: Sim
+
+Pagamento: pagamento01
+- id: 30
+- pedido_id: 102
+- valor: 1.000,00
+- forma: Pix
+- status: PAGAMENTO REGISTRADO
+- data: 13/08/2025
+
+
+4. Diagrama de Sequência – Criar Pedido
+
+Objetivo: Mostrar as interações entre ator (usuário) e objetos do sistema para criar um pedido.
+
+Participantes (lifelines):
+
+Atendente (ou Administrador)
+
+InterfacePedidos
+
+ControllerPedido
+
+ModelCliente
+
+ModelPedido
+
+ModelItem
+
+ModelPagamento
+
+Fluxo de Mensagens:
+
+Atendente → InterfacePedidos: “Criar Novo Pedido”
+
+InterfacePedidos → ControllerPedido: solicitarCadastroPedido()
+
+ControllerPedido → ModelCliente: buscarCliente(id ou dados)
+
+ModelCliente → ControllerPedido: retorna cliente encontrado ou vazio
+
+ControllerPedido → ModelCliente: salvarCliente() (se não encontrado)
+
+ControllerPedido → ModelPedido: salvarPedido(dadosPedido)
+
+ControllerPedido → ModelItem: salvarItens(listaItens)
+
+ControllerPedido → ModelPagamento: registrarPagamentos(listaPagamentos)
+
+ControllerPedido → InterfacePedidos: confirmação de pedido criado
+
+InterfacePedidos → Atendente: “Pedido #XXX criado com sucesso”
+
+5. Diagrama de Colaboração – Criar Pedido
+
+Objetivo: Mostrar como objetos trocam mensagens para concluir o processo de criação do pedido, destacando papéis.
+
+Objetos:
+
+Atendente:Usuario
+
+TelaCadastroPedido:UI
+
+ControllerPedido
+
+Cliente:Model
+
+Pedido:Model
+
+Item:Model
+
+Pagamento:Model
+
+Interações (numeradas):
+
+Atendente solicita criação de pedido → TelaCadastroPedido
+
+TelaCadastroPedido solicita dados de cliente → ControllerPedido
+
+ControllerPedido busca cliente no ModelCliente
+
+Se não existir, grava novo cliente
+
+ControllerPedido grava pedido no ModelPedido
+
+ControllerPedido grava itens no ModelItem
+
+ControllerPedido grava pagamentos no ModelPagamento
+
+ControllerPedido retorna confirmação para a tela
+
+Tela exibe “Pedido criado com sucesso” para atendente
+
+6. Diagrama de Interação – Fluxo Criar Pedido
+
+Objetivo: Similar ao de sequência, mas com foco no fluxo das mensagens e não na ordem temporal exata.
+
+Elementos principais:
+
+Ator: Atendente
+
+Objetos envolvidos: UI → ControllerPedido → ModelCliente / ModelPedido / ModelItem / ModelPagamento
+
+Mensagens-chave:
+
+solicitarNovoPedido()
+
+buscarCliente()
+
+salvarCliente()
+
+salvarPedido()
+
+salvarItens()
+
+registrarPagamentos()
+
+exibirConfirmacao()
+
+Descrição resumida:
+O atendente inicia o fluxo enviando uma solicitação para a UI, que aciona o Controller. O Controller, por sua vez, interage com os Models para buscar ou criar cliente, registrar o pedido, adicionar itens e registrar pagamentos. Ao final, o Controller retorna para a UI que exibe a confirmação.
+
+7. Diagrama de Componentes – ERP Tapeçaria
+
+Objetivo: Mostrar a estrutura modular do sistema e como as partes se conectam.
+
+Componentes Principais:
+
+Frontend Web
+
+Módulo UI Pedidos
+
+Módulo UI Clientes
+
+Módulo UI Estoque
+
+Módulo UI Financeiro
+
+Módulo UI Relatórios
+
+Backend Laravel
+
+Módulo Cadastro (Clientes, Usuários)
+
+Módulo Pedidos (CRUD de pedidos e itens)
+
+Módulo Pagamentos
+
+Módulo Estoque
+
+Módulo Agendamentos
+
+Módulo Relatórios
+
+Banco de Dados MySQL
+
+Tabelas: clientes, pedidos, itens, pagamentos, agendamentos, terceirizadas, usuários
+
+APIs / Integrações
+
+API WhatsApp (planejada)
+
+API de Backup
+
+Sistema de Arquivos
+
+Armazenamento de imagens de pedidos
+
+Relacionamentos:
+
+O Frontend Web consome serviços do Backend Laravel via rotas HTTP/HTTPS.
+
+O Backend Laravel persiste dados no Banco de Dados MySQL.
+
+O Backend acessa o Sistema de Arquivos para salvar imagens.
+
+O Backend comunica-se com APIs externas para integrações futuras.
+
+8. Diagrama de Implantação – ERP Tapeçaria
+
+Objetivo: Mostrar como o sistema será distribuído fisicamente e logicamente na infraestrutura.
+
+Nós (Nodes):
+
+Servidor de Aplicação (Nuvem ou Local)
+
+Laravel (PHP)
+
+Servidor Web (Apache/Nginx)
+
+Conexão segura HTTPS
+
+Servidor de Banco de Dados
+
+MySQL
+
+Rotinas de backup automático
+
+Servidor de Arquivos
+
+Armazenamento de imagens e documentos
+
+Pode estar no mesmo servidor da aplicação ou separado
+
+Dispositivos de Acesso
+
+Computadores de mesa (Windows/Linux) – acesso via navegador
+
+Smartphones/Tablets – acesso via navegador responsivo
+
+Rede
+
+Comunicação via HTTPS
+
+Firewall e autenticação segura
+
+Fluxo de Comunicação:
+
+Dispositivos de acesso → HTTPS → Servidor de Aplicação → Banco de Dados / Servidor de Arquivos
+
+Servidor de Aplicação → APIs externas (WhatsApp, Backup)
+
+Com isso, agora você tem:
+
+Visão de Caso de Uso
+
+Visão Lógica (Estática + Dinâmica)
+
+Visão de Processo
+
+Visão de Implementação
+
+Visão de Implantação

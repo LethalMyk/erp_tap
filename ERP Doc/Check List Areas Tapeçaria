@@ -1,0 +1,162 @@
+
+✅ Checklists da Tapeçaria
+1. Orçamentos – Comercial / Atendimento
+
+ Atender o cliente via WhatsApp com cordialidade
+
+ Agendar visita ou recebimento de peças
+
+ Realizar visita/análise técnica
+
+ Tirar fotos e anotar medidas
+
+ Identificar tecidos/materiais desejados
+
+ Enviar proposta detalhada (preço, prazo, forma de pagamento)
+
+ Registrar o orçamento no sistema
+
+2. Venda – Comercial / Administrativo
+
+ Conferir todas as especificações técnicas do pedido
+
+ Validar medidas, tecidos e acabamentos
+
+ Confirmar valores e condições de pagamento
+
+ Registrar pedido no sistema/planilha
+
+ Emitir recibo/nota de entrada
+
+ Solicitar assinatura/confirmação do cliente
+
+3. Retirada – Logística / Transporte
+
+ Separar amostras de tecidos para levar ao cliente (se necessário)
+
+ Anotar informações adicionais do cliente
+
+ Confirmar endereço e horário da retirada
+
+ Organizar compromissos no calendário
+
+ Preparar veículo e equipe para retirada
+
+ Conferir com o cliente todos os itens recolhidos
+
+ Fotografar peças retiradas para registro
+
+4. Desmonta – Produção / Estoque
+
+ Limpar área de trabalho
+
+ Identificar e etiquetar cada peça retirada
+
+ Separar tecidos, espumas e acessórios
+
+ Formar pacotes para higienização
+
+ Organizar detalhes e peças pequenas em embalagens separadas
+
+ Comprar peças/materiais adicionais (se necessário)
+
+ Preparar espuma, cortes e costuras iniciais
+
+ Guardar tudo em local seguro até início da produção
+
+5. Produção – Produção / Qualidade
+
+ Conferir peças, tecidos e materiais
+
+ Organizar por pedido
+
+ Estruturar, cortar e costurar conforme projeto
+
+ Montar o conjunto final
+
+ Realizar T.I.I. (Teste, Inspeção e Identificação)
+
+ Conferir com a ficha técnica
+
+ Embalar para entrega
+
+6. Entrega – Logística / Montagem
+
+ Agendar data/hora da entrega com cliente
+
+ Conferir peças e acessórios no estoque
+
+ Carregar veículo com segurança
+
+ Montar no local conforme combinado
+
+ Fotografar montagem final
+
+ Solicitar assinatura/confirmação de recebimento
+
+7. Pós-venda – Comercial / SAC
+
+ Contatar cliente após 7 dias da entrega
+
+ Perguntar sobre satisfação e uso das peças
+
+ Registrar sugestões de melhoria
+
+ Oferecer novos serviços/manutenções
+
+8. Assistência – SAC / Produção
+
+ Verificar se está dentro do prazo de garantia
+
+ Entender solicitação ou reclamação
+
+ Validar se a exigência procede
+
+ Explicar situação ao cliente
+
+ Ajustar ou refazer o serviço (se necessário)
+
+ Conferir antes de devolver
+
+ Agradecer e pedir desculpas pelo incômodo
+
+
+
+
+
+
+
+
+
+ 📌 Quadro Kanban – Fluxo da Tapeçaria
+Orçamentos	Venda	Retirada	Desmonta	Produção	Entrega	Pós-venda	Assistência
+📅 Pedido 001 – Sofá 3 lugares	Pedido 001 – Sofá 3 lugares	Pedido 002 – Poltrona retrô	Pedido 003 – Cadeira escritório	Pedido 004 – Sofá retrátil	Pedido 002 – Poltrona retrô	Pedido 001 – Sofá 3 lugares	Pedido 005 – Poltrona luxo
+📅 Pedido 006 – Cadeira jantar	Pedido 006 – Cadeira jantar	Pedido 007 – Chaise	Pedido 008 – Banqueta	Pedido 009 – Banco madeira	Pedido 006 – Cadeira jantar	Pedido 004 – Sofá retrátil	Pedido 003 – Cadeira escritório
+📅 Pedido 010 – Cabeceira casal	Pedido 010 – Cabeceira casal	Pedido 011 – Puff baú	Pedido 012 – Cadeira jardim	Pedido 013 – Puff baú	Pedido 007 – Chaise	Pedido 009 – Banco madeira	Pedido 008 – Banqueta
+Como usar:
+
+Cada cartão representa um pedido (ex.: Pedido 001 – Sofá 3 lugares).
+
+Mover o cartão para a próxima coluna conforme o checklist for concluído.
+
+Anotar a data de entrada em cada etapa para medir prazos.
+
+Pode usar cores para identificar prioridades:
+
+🔴 Urgente
+
+🟡 Normal
+
+🟢 Prazo folgado
+
+Checklist rápido no Kanban
+
+Se quiser que o Kanban também tenha um resumo de tarefas por etapa, cada cartão pode conter:
+
+📅 Data de entrada
+
+✅ Itens concluídos da etapa (baseado no checklist que fiz para você)
+
+📸 Fotos de conferência
+
+📝 Observações do cliente

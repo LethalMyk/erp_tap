@@ -82,3 +82,139 @@ Relatórios compilam informações de todos os módulos.
 
 Esse diagrama ajuda a visualizar a estrutura do ERP, garantindo um fluxo organizado e eficiente para a gestão da tapeçaria.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+outro diagrama, gerado por ia atravez de PedidoController
+
+
+
+classDiagram
+    class PedidoController {
+        +index()
+        +create()
+        +store()
+        +edit()
+        +update()
+        +show()
+        +destroyImagem()
+        +imprimirviatap()
+        +imprimirviaretirada()
+        +imprimirviacompleta()
+        +imprimirviasimplificada()
+    }
+
+    class Pedido {
+        +id
+        +cliente_id
+        +qntItens
+        +data
+        +valor
+        +valorResta
+        +status
+        +obs
+        +prazo
+        +andamento
+        +tapeceiro
+        +data_retirada
+        +hasMany PedidoImagem
+        +belongsTo Cliente
+        +hasMany Item
+        +hasMany Pagamento
+    }
+
+    class Cliente {
+        +id
+        +nome
+        +endereco
+        +telefone
+        +hasMany Pedido
+    }
+
+    class PedidoImagem {
+        +id
+        +pedido_id
+        +imagem
+        +belongsTo Pedido
+    }
+
+    class Agendamento {
+        +id
+        +tipo
+        +data
+        +horario
+        +nome_cliente
+        +endereco
+        +telefone
+        +status
+        +items
+        +obs
+    }
+
+    class Item {
+        +id
+        +pedido_id
+        +descricao
+        +hasMany Terceirizadas
+        +belongsTo Pedido
+    }
+
+    class Terceirizadas {
+        +id
+        +nome
+        +hasMany Item
+    }
+
+    class Pagamento {
+        +id
+        +pedido_id
+        +valor
+        +data
+        +belongsTo Pedido
+    }
+
+    PedidoController --> Pedido
+    Pedido --> Cliente
+    Pedido --> PedidoImagem
+    Pedido --> Item
+    Pedido --> Pagamento
+    Item --> Terceirizadas
+
+
