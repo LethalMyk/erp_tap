@@ -178,11 +178,17 @@
                     <label class="block text-sm font-medium">Comprovante</label>
                     <input type="file" name="comprovante" id="modal_comprovante" class="mt-1 block w-full"/>
                 </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" id="cancelModal" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Cancelar</button>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Salvar Alterações</button>
-                    <button type="button" id="registrarPagamento" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Registrar Pagamento</button>
-                </div>
+<div class="flex justify-end gap-2 mt-4">
+    <button type="button" id="cancelModal" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition">
+        Cancelar
+    </button>
+    <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition">
+        Salvar Alterações
+    </button>
+    <button type="button" id="registrarPagamento" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition">
+        Registrar Pagamento
+    </button>
+</div>
             </form>
         </div>
     </div>
