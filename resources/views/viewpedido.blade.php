@@ -1,20 +1,7 @@
 <x-app-layout>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vias - Pedidos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .tab-content {
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
     <div class="container mt-4">
         <h1>Pedidos/Vias</h1>
+
         <!-- Abas -->
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
@@ -42,7 +29,7 @@
         </div>
     </div>
 
+    @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-    </x-app-layout>
+    @endpush
+</x-app-layout>

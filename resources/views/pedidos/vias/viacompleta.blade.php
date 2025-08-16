@@ -47,8 +47,50 @@
             <button type="button" class="btn btn-sm btn-success mt-2 ms-2" data-bs-toggle="modal" data-bs-target="#adicionarTerceirizadaModal{{ $item->id }}">
     + Adicionar Terceirizada
 </button>
+    <button type="button" class="btn btn-sm btn-success mt-2 ms-2" data-bs-toggle="modal" data-bs-target="#novoItemModal">
+        + Novo Item
+    </button>
+
+
 @endif
 
+<!-- Modal Novo Item -->
+<div class="modal fade" id="novoItemModal" tabindex="-1" aria-labelledby="novoItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ route('items.store') }}">
+            @csrf
+            <input type="hidden" name="pedido_id" value="{{ $pedido->id }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="novoItemModalLabel">Adicionar Novo Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nomeItem" class="form-label">Nome do Item</label>
+                        <input type="text" id="nomeItem" name="nomeItem" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="material" class="form-label">Material</label>
+                        <input type="text" id="material" name="material" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="metragem" class="form-label">Metragem (m)</label>
+                        <input type="number" step="0.01" id="metragem" name="metragem" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="especifi" class="form-label">Especificações</label>
+                        <textarea id="especifi" name="especifi" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Adicionar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- Modal para adicionar terceirizada -->
 <div class="modal fade" id="adicionarTerceirizadaModal{{ $item->id }}" tabindex="-1" aria-labelledby="adicionarTerceirizadaModalLabel{{ $item->id }}" aria-hidden="true">
