@@ -13,6 +13,8 @@ class Parcela extends Model
         'status',
         'data_vencimento',
         'data_pagamento',
+        'numero',
+        'forma_pagamento',
         'descricao', // adiciona aqui
         // outras colunas
     ];

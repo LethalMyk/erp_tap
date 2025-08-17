@@ -18,21 +18,21 @@
         <form action="{{ route('despesas.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
 
-            {{-- Data do Registro --}}
+            {{-- Data --}}
             <div>
                 <label for="data" class="block font-medium text-gray-700">Data</label>
                 <input type="date" name="data" id="data" value="{{ old('data', date('Y-m-d')) }}" required
                     class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
             </div>
 
-            {{-- Descrição da Nota/Fatura --}}
+            {{-- Descrição --}}
             <div>
                 <label for="descricao" class="block font-medium text-gray-700">Descrição da Nota/Fatura</label>
                 <input type="text" name="descricao" id="descricao" value="{{ old('descricao') }}" required
                     class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
             </div>
 
-            {{-- Valor Total da Nota --}}
+            {{-- Valor Total --}}
             <div>
                 <label for="valor" class="block font-medium text-gray-700">Valor Total</label>
                 <input type="number" step="0.01" name="valor" id="valor" value="{{ old('valor') }}" required
@@ -49,12 +49,43 @@
                 </select>
             </div>
 
-            {{-- Forma de Pagamento --}}
+            {{-- Checkbox para expandir produtos --}}
+            <div class="flex items-center gap-2 mt-4">
+                <input type="checkbox" id="expandirProdutos" class="form-checkbox h-5 w-5 text-blue-600">
+                <label for="expandirProdutos" class="text-gray-700 font-medium">Mostrar/ocultar produtos adicionados</label>
+            </div>
+
+            {{-- Produtos Comprados --}}
+            <div id="produtos_section" class="space-y-4 mt-2">
+                <button type="button" id="add-produto"
+                    class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700">
+                    + Novo Produto
+                </button>
+                <div id="produtos-container" class="space-y-4 mt-2"></div>
+            </div>
+
+            {{-- Container expandido --}}
+            <div id="produtos-expandido" class="mt-2 space-y-4 hidden">
+                <div id="produtos-container-expandido" class="space-y-4"></div>
+            </div>
+
+            {{-- Forma de Pagamento da Despesa --}}
             <div>
-                <label for="forma_pagamento" class="block font-medium text-gray-700">Forma Pagamento</label>
-                <select name="forma_pagamento" id="forma_pagamento" required class="mt-1 block w-full rounded border-gray-300 shadow-sm">
-                    @foreach(['PIX', 'DINHEIRO', 'DÉBITO', 'CRÉDITO', 'TRANSFERÊNCIA', 'BOLETO', 'A PRAZO', 'CHEQUE', 'OUTROS'] as $fp)
+                <label for="forma_pagamento" class="block font-medium text-gray-700">Forma de Pagamento da Despesa</label>
+                <select name="forma_pagamento" id="forma_pagamento" required
+                    class="mt-1 block w-full rounded border-gray-300 shadow-sm">
+                    @foreach(['À VISTA', 'A PRAZO'] as $fp)
                         <option value="{{ $fp }}" @selected(old('forma_pagamento') == $fp)>{{ $fp }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Forma de Pagamento à Vista --}}
+            <div id="pagamento_avista" class="hidden mt-4">
+                <label for="forma_pagamento_avista" class="block font-medium text-gray-700">Forma de Pagamento à Vista</label>
+                <select name="forma_pagamento_avista" id="forma_pagamento_avista" class="mt-1 block w-full rounded border-gray-300 shadow-sm">
+                    @foreach(['PIX', 'DINHEIRO', 'DÉBITO', 'CRÉDITO', 'OUTROS'] as $fp)
+                        <option value="{{ $fp }}">{{ $fp }}</option>
                     @endforeach
                 </select>
             </div>
@@ -65,22 +96,21 @@
                     class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
                     + Adicionar Parcela/Boleto
                 </button>
-
-                <div id="parcelas-container" class="space-y-4 mt-2">
-                    {{-- Parcelas carregadas automaticamente --}}
-                </div>
+                <div id="parcelas-container" class="space-y-4 mt-2"></div>
             </div>
 
             {{-- Comprovante --}}
             <div>
                 <label for="comprovante" class="block font-medium text-gray-700">Comprovante (jpg, png, pdf)</label>
-                <input type="file" name="comprovante" id="comprovante" accept=".jpg,.jpeg,.png,.pdf" class="mt-1 block w-full" />
+                <input type="file" name="comprovante" id="comprovante" accept=".jpg,.jpeg,.png,.pdf"
+                    class="mt-1 block w-full" />
             </div>
 
             {{-- Observação --}}
             <div>
                 <label for="observacao" class="block font-medium text-gray-700">Observação</label>
-                <textarea name="observacao" id="observacao" rows="3" class="mt-1 block w-full rounded border-gray-300 shadow-sm">{{ old('observacao') }}</textarea>
+                <textarea name="observacao" id="observacao" rows="3"
+                    class="mt-1 block w-full rounded border-gray-300 shadow-sm">{{ old('observacao') }}</textarea>
             </div>
 
             {{-- Botões --}}
@@ -98,20 +128,28 @@
 document.addEventListener("DOMContentLoaded", function () {
     const selectForma = document.getElementById("forma_pagamento");
     const pendenteFields = document.getElementById("pagamento_pendente");
+    const avistaFields = document.getElementById("pagamento_avista");
     const addParcelaBtn = document.getElementById("add-parcela");
     const parcelasContainer = document.getElementById("parcelas-container");
     const descricaoNota = document.getElementById("descricao");
+    const produtosContainer = document.getElementById("produtos-container");
+    const addProdutoBtn = document.getElementById("add-produto");
+    const produtosContainerExpandido = document.getElementById("produtos-container-expandido");
+    const expandirProdutosCheckbox = document.getElementById("expandirProdutos");
+    const produtosList = @json($produtos);
+
+    const formasPagamentoParcela = ['PIX', 'DINHEIRO', 'DÉBITO', 'CRÉDITO', 'TRANSFERÊNCIA', 'BOLETO', 'CHEQUE', 'OUTROS'];
 
     function toggleFields() {
         const forma = selectForma.value;
-        if (["BOLETO", "A PRAZO", "CHEQUE", "OUTROS"].includes(forma)) {
+        if (forma === "A PRAZO") {
             pendenteFields.classList.remove("hidden");
-            if (parcelasContainer.children.length === 0) {
-                addParcela(); // cria a primeira parcela
-            }
+            avistaFields.classList.add("hidden");
+            if (parcelasContainer.children.length === 0) addParcela();
         } else {
             pendenteFields.classList.add("hidden");
             parcelasContainer.innerHTML = "";
+            avistaFields.classList.remove("hidden");
         }
     }
 
@@ -119,9 +157,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const index = parcelasContainer.children.length + 1;
         const numero = index.toString().padStart(2, '0');
         const descricaoParcela = `${descricaoNota.value} - ${numero}`;
-
         const parcela = document.createElement("div");
         parcela.classList.add("border", "p-3", "rounded", "bg-gray-50", "relative");
+
+        let formaOptions = formasPagamentoParcela.map(f => {
+            const selected = f === 'PIX' ? 'selected' : '';
+            return `<option value="${f}" ${selected}>${f}</option>`;
+        }).join('');
 
         parcela.innerHTML = `
             <button type="button" class="remove-parcela absolute top-2 right-2 text-red-600 hover:text-red-800 font-bold">X</button>
@@ -141,49 +183,125 @@ document.addEventListener("DOMContentLoaded", function () {
                 <label class="block text-sm font-medium">Chave Pagamento</label>
                 <input type="text" name="chave_pagamento[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/>
             </div>
+            <div>
+                <label class="block text-sm font-medium">Forma de Pagamento</label>
+                <select name="parcelas_forma_pagamento[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm">
+                    ${formaOptions}
+                </select>
+            </div>
         `;
-
         parcelasContainer.appendChild(parcela);
     }
 
-    // Atualiza descrição das parcelas existentes se a nota mudar
-    descricaoNota.addEventListener("input", function () {
+    descricaoNota.addEventListener("input", () => {
         Array.from(parcelasContainer.children).forEach((parcelaDiv, idx) => {
             const numero = (idx + 1).toString().padStart(2, '0');
             const input = parcelaDiv.querySelector('input[name="parcelas_descricao[]"]');
-            // Só atualiza se o usuário não alterou manualmente
-            if (!input.dataset.userEdited) {
-                input.value = `${descricaoNota.value} - ${numero}`;
-            }
+            if (!input.dataset.userEdited) input.value = `${descricaoNota.value} - ${numero}`;
         });
     });
 
-    // Marca o input como editado se o usuário alterar manualmente
-    parcelasContainer.addEventListener("input", function(e) {
-        if (e.target.name === "parcelas_descricao[]") {
-            e.target.dataset.userEdited = true;
-        }
+    parcelasContainer.addEventListener("input", e => {
+        if (e.target.name === "parcelas_descricao[]") e.target.dataset.userEdited = true;
     });
 
-    // Remover parcela ao clicar no botão X
-    parcelasContainer.addEventListener("click", function(e) {
-        if (e.target.classList.contains("remove-parcela")) {
-            const parcelaDiv = e.target.closest("div.border");
-            parcelaDiv.remove();
-            // Atualiza as descrições restantes
-            Array.from(parcelasContainer.children).forEach((parcelaDiv, idx) => {
-                const numero = (idx + 1).toString().padStart(2, '0');
-                const input = parcelaDiv.querySelector('input[name="parcelas_descricao[]"]');
-                if (!input.dataset.userEdited) {
-                    input.value = `${descricaoNota.value} - ${numero}`;
+    parcelasContainer.addEventListener("click", e => {
+        if (e.target.classList.contains("remove-parcela")) e.target.closest("div.border").remove();
+    });
+
+    addParcelaBtn.addEventListener("click", addParcela);
+    selectForma.addEventListener("change", toggleFields);
+    toggleFields();
+
+    // --- Produtos ---
+    function addProduto() {
+        const produtoDiv = document.createElement("div");
+        produtoDiv.classList.add("border", "p-3", "rounded", "bg-gray-50", "relative");
+
+        let options = '<option value="">Selecione o Produto</option>';
+        produtosList.forEach(p => {
+            options += `<option value="${p.id}" data-unidade="${p.unidade_medida}" data-categoria="${p.categoria}" data-nome="${p.nome}">${p.nome}</option>`;
+        });
+
+        produtoDiv.innerHTML = `
+            <button type="button" class="remove-produto absolute top-2 right-2 text-red-600 hover:text-red-800 font-bold">X</button>
+            <div class="flex items-center gap-2">
+                <label class="block text-sm font-medium">Produto</label>
+                <select name="produtos_id[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm">${options}</select>
+                <button type="button" class="toggle-novo-produto bg-gray-300 px-2 rounded text-sm">Novo</button>
+            </div>
+            <div class="flex items-center gap-2 mt-2">
+                <label class="block text-sm font-medium">Categoria</label>
+                <input type="text" name="produtos_categoria[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" readonly/>
+            </div>
+            <div class="flex items-center gap-2 mt-2">
+                <label class="block text-sm font-medium">Quantidade</label>
+                <input type="number" step="0.01" name="produtos_quantidade[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" required/>
+            </div>
+            <div class="flex items-center gap-2 mt-2">
+                <label class="block text-sm font-medium">Unidade de Medida</label>
+                <input type="text" name="produtos_unidade_medida[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" readonly/>
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Valor Unitário</label>
+                <input type="number" step="0.01" name="produtos_valor_unitario[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" required />
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Valor Total</label>
+                <input type="number" step="0.01" name="produtos_valor_total[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" required />
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Observação</label>
+                <textarea name="produtos_obs[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm"></textarea>
+            </div>
+        `;
+
+        const selectProduto = produtoDiv.querySelector('select[name="produtos_id[]"]');
+        const categoriaInput = produtoDiv.querySelector('input[name="produtos_categoria[]"]');
+        const unidadeInput = produtoDiv.querySelector('input[name="produtos_unidade_medida[]"]');
+        const toggleBtn = produtoDiv.querySelector('.toggle-novo-produto');
+
+        selectProduto.addEventListener('change', function() {
+            const opt = this.options[this.selectedIndex];
+            categoriaInput.value = opt.dataset.categoria || '';
+            unidadeInput.value = opt.dataset.unidade || '';
+            unidadeInput.readOnly = true;
+        });
+
+        toggleBtn.addEventListener('click', function() {
+            if (selectProduto.style.display !== "none") {
+                const inputNovo = document.createElement('input');
+                inputNovo.type = 'text';
+                inputNovo.name = 'produtos_novo[]';
+                inputNovo.className = selectProduto.className;
+                inputNovo.placeholder = 'Digite o nome do novo produto';
+                selectProduto.replaceWith(inputNovo);
+                categoriaInput.readOnly = false;
+                unidadeInput.readOnly = false;
+                toggleBtn.textContent = "Seleção";
+            }
+        });
+
+        produtosContainer.appendChild(produtoDiv);
+        produtosContainerExpandido.appendChild(produtoDiv.cloneNode(true));
+    }
+
+    produtosContainer.addEventListener("click", e => {
+        if (e.target.classList.contains("remove-produto")) {
+            e.target.closest("div.border").remove();
+            // Remove também do expandido
+            Array.from(produtosContainerExpandido.children).forEach((child, idx) => {
+                if (child.isEqualNode(e.target.closest("div.border"))) {
+                    produtosContainerExpandido.children[idx].remove();
                 }
             });
         }
     });
 
-    addParcelaBtn.addEventListener("click", addParcela);
-    selectForma.addEventListener("change", toggleFields);
+    addProdutoBtn.addEventListener("click", addProduto);
 
-    toggleFields();
+    expandirProdutosCheckbox.addEventListener('change', () => {
+        produtosContainerExpandido.parentElement.classList.toggle('hidden', !expandirProdutosCheckbox.checked);
+    });
 });
 </script>
