@@ -5,10 +5,10 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            font-size: 10px; /* menor fonte geral */
+            font-size: 10px; /* fonte geral */
             color: #000;
             background: #fff;
-            margin: 6mm; /* margem menor */
+            margin: 6mm; /* margem da página */
         }
 
         @page {
@@ -21,7 +21,19 @@
             margin: 0 auto;
         }
 
-        h1, h2, h3 {
+        /* Alinhar conteúdo da célula direita */
+        td.right {
+            text-align: right;
+        }
+
+        /* Pedido # maior */
+        h2 {
+            font-size: 18px;
+            margin: 5px 0;
+            text-align: center;
+        }
+
+        h1, h3 {
             font-size: 12px;
             margin: 3px 0;
             text-align: center;
@@ -45,6 +57,12 @@
             vertical-align: top;
         }
 
+        /* Campos principais maiores */
+        .destaque {
+            font-size: 13px;
+            font-weight: bold;
+        }
+
         .imagens-container {
             display: flex;
             flex-wrap: wrap;
@@ -54,7 +72,7 @@
             page-break-inside: avoid;
         }
 
-        /* Tamanho padrão para imagens até a 3ª */
+        /* Tamanho padrão até 3 imagens */
         .imagens-container img {
             display: block;
             height: auto;
@@ -62,12 +80,12 @@
             max-width: 25%;
         }
 
-        /* A partir da 4ª imagem, diminui para caber tudo */
+        /* A partir da 4ª imagem, diminui */
         .imagens-container img:nth-child(n+4) {
             max-width: 12%;
         }
 
-        /* Tamanho de fonte por quantidade de itens */
+        /* Fonte adaptável por quantidade de itens */
         .itens-1 p,
         .itens-2 p,
         .itens-3 p,
@@ -94,6 +112,15 @@
         hr {
             margin: 3px 0;
         }
+
+        /* Estilo especial para o prazo de entrega */
+        .prazo-entrega {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            color: #000;
+        }
     </style>
 </head>
 <body onload="window.print()">
@@ -104,13 +131,13 @@
         <table>
             <tr>
                 <td>
-                    <p><strong>Nome:</strong> {{ $pedido->cliente->nome }}</p>
-                    <p><strong>Endereço:</strong> {{ $pedido->cliente->endereco }}</p>
-                    <p><strong>Itens Retirados dia:</strong> {{ $pedido->dataRetirada }}</p>
+                    <p class="destaque"><strong>Nome:</strong> {{ $pedido->cliente->nome }}</p>
+                    <p class="destaque"><strong>Endereço:</strong> {{ $pedido->cliente->endereco }}</p>
+                    <p class="destaque"><strong>Telefone:</strong> {{ $pedido->cliente->telefone }}</p>
                 </td>
-                <td>
-                    <p><strong>Orçamento dia:</strong> {{ $pedido->data }}</p>
-                    <p><strong>Telefone:</strong> {{ $pedido->cliente->telefone }}</p>
+                <td class="right">
+                    <p class="destaque"><strong>Orçamento dia:</strong> {{ $pedido->data }}</p>
+                    <p class="destaque"><strong>Itens Retirados dia:</strong> {{ $pedido->dataRetirada }}</p>
                 </td>
             </tr>
         </table>
@@ -139,7 +166,7 @@
         @endif
 
         <div class="section">
-            <h1><strong>Prazo de Entrega:</strong> {{ $pedido->prazo }}</h1>
+            <p class="prazo-entrega"><strong>Prazo de Entrega:</strong> {{ $pedido->prazo }}</p>
         </div>
     </div>
 </body>

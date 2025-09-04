@@ -19,6 +19,7 @@
                 <input type="checkbox" id="toggle-all-parcelas" class="h-4 w-4">
                 Exibir todas as parcelas
             </label>
+            
         </div>
 
         <div class="overflow-x-auto bg-white shadow rounded">
@@ -150,7 +151,7 @@
         </div>
     </div>
 
-    {{-- Modal --}}
+    {{-- Modal de edição --}}
     <div id="editParcelaModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg p-6 w-96 relative">
             <button id="closeModal" class="absolute top-2 right-2 text-gray-600 font-bold hover:text-gray-800">X</button>
@@ -178,10 +179,16 @@
                     <label class="block text-sm font-medium">Comprovante</label>
                     <input type="file" name="comprovante" id="modal_comprovante" class="mt-1 block w-full"/>
                 </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" id="cancelModal" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Cancelar</button>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Salvar Alterações</button>
-                    <button type="button" id="registrarPagamento" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Registrar Pagamento</button>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" id="cancelModal" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition">
+                        Salvar Alterações
+                    </button>
+                    <button type="button" id="registrarPagamento" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition">
+                        Registrar Pagamento
+                    </button>
                 </div>
             </form>
         </div>
@@ -213,7 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
         editModal.classList.remove("hidden");
     }
 
-    // Botões Editar
     document.querySelectorAll('button[data-despesa]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -221,7 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Double click abre modal apenas para parcelas
     document.querySelectorAll('tr[data-parcela-id]').forEach(tr => {
         tr.addEventListener('dblclick', () => {
             const btnEditar = tr.querySelector('button[data-parcela]');
@@ -232,39 +237,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Fechar modal
     closeModalBtn.addEventListener("click", () => editModal.classList.add("hidden"));
     cancelModalBtn.addEventListener("click", () => editModal.classList.add("hidden"));
-    document.addEventListener('keydown', (e) => {
-        if(e.key === "Escape") editModal.classList.add("hidden");
-    });
+    document.addEventListener('keydown', (e) => { if(e.key === "Escape") editModal.classList.add("hidden"); });
 
-    // Registrar pagamento incluindo descrição e comprovante
     registrarPagamentoBtn.addEventListener("click", () => {
         if(confirm("Deseja registrar o pagamento desta parcela como PAGO?")) {
             const parcelaId = editForm.action.split('/').pop();
             const formData = new FormData();
-
             formData.append('data_pagamento', document.getElementById("modal_pagamento").value);
             formData.append('descricao', document.getElementById("modal_descricao").value);
-
             const comprovanteFile = document.getElementById("modal_comprovante").files[0];
-            if(comprovanteFile){
-                formData.append('comprovante', comprovanteFile);
-            }
-fetch(`/despesas/${parcelaId}/registrar-pagamento`, {
-    method: 'POST',
-    headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-    },
-    body: formData
-})
+            if(comprovanteFile) formData.append('comprovante', comprovanteFile);
+
+            fetch(`/despesas/${parcelaId}/registrar-pagamento`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+                body: formData
+            })
             .then(response => response.ok ? location.reload() : alert('Erro ao registrar pagamento'))
             .catch(() => alert('Erro ao registrar pagamento'));
         }
     });
 
-    // Expandir/ocultar parcelas
     document.querySelectorAll('.despesa-row').forEach(row => {
         row.addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') return;
@@ -273,7 +268,6 @@ fetch(`/despesas/${parcelaId}/registrar-pagamento`, {
         });
     });
 
-    // Checkbox exibir todas parcelas
     document.getElementById('toggle-all-parcelas').addEventListener('change', function(){
         document.querySelectorAll('[class*="parcela-"]').forEach(r => {
             this.checked ? r.classList.remove('hidden') : r.classList.add('hidden');
