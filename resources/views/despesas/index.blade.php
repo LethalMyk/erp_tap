@@ -4,96 +4,24 @@
     </x-slot>
 
     <div class="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
-
         @if(session('success'))
             <div class="mb-4 p-4 bg-green-100 text-green-800 rounded">
                 {{ session('success') }}
             </div>
         @endif
 
-         <a href="{{ route('despesas.create') }}" 
-   class="bg-blue-700 text-white font-semibold px-5 py-3 rounded-lg mb-4 inline-block shadow border border-blue-900 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition">
-    Nova Despesa
-</a>
+        <div class="flex items-center gap-4 mb-4">
+            <a href="{{ route('despesas.create') }}" 
+               class="bg-blue-700 text-white font-semibold px-5 py-3 rounded-lg shadow border border-blue-900 hover:bg-blue-800 transition">
+                Nova Despesa
+            </a>
+            <label class="flex items-center gap-2 text-sm font-medium">
+                <input type="checkbox" id="toggle-all-parcelas" class="h-4 w-4">
+                Exibir todas as parcelas
+            </label>
+        </div>
 
-
-        <div class="overflow-x-auto bg-white shadow rounded" x-data="{ editModalOpen: false, editDespesa: null }">
-<form method="GET" action="{{ route('despesas.index') }}" class="mb-6 flex flex-wrap items-end gap-4">
-<div>
-    <label class="block text-sm font-medium">Separador</label>
-    <input type="text" name="separador" value="{{ request('separador') }}" class="border rounded px-2 py-1" placeholder="Filtrar por separador">
-</div>
-
-    <div>
-        <label class="block text-sm font-medium">Descrição</label>
-        <input type="text" name="descricao" value="{{ request('descricao') }}" class="border rounded px-2 py-1">
-    </div>
-
-    <div>
-        <label class="block text-sm font-medium">Status</label>
-        <select name="status" class="border rounded px-2 py-1">
-            <option value="">Todos</option>
-            <option value="PENDENTE" @selected(request('status') == 'PENDENTE')>PENDENTE</option>
-            <option value="PAGO" @selected(request('status') == 'PAGO')>PAGO</option>
-            <option value="ATRASADO" @selected(request('status') == 'ATRASADO')>ATRASADO</option>
-        </select>
-    </div>
-
-    <div>
-        <label class="block text-sm font-medium">Categoria</label>
-        <select name="categoria" class="border rounded px-2 py-1">
-            <option value="">Todas</option>
-            <option value="FORNECEDOR" @selected(request('categoria') == 'FORNECEDOR')>FORNECEDOR</option>
-            <option value="AGUA" @selected(request('categoria') == 'AGUA')>AGUA</option>
-            <option value="LUZ" @selected(request('categoria') == 'LUZ')>LUZ</option>
-            <option value="MATERIAL" @selected(request('categoria') == 'MATERIAL')>MATERIAL</option>
-            <option value="PARTICULAR" @selected(request('categoria') == 'PARTICULAR')>PARTICULAR</option>
-            <option value="OUTROS" @selected(request('categoria') == 'OUTROS')>OUTROS</option>
-        </select>
-    </div>
-
-    <div>
-        <label class="block text-sm font-medium">Forma Pagamento</label>
-        <select name="forma_pagamento" class="border rounded px-2 py-1">
-            <option value="">Todas</option>
-            <option value="PIX" @selected(request('forma_pagamento') == 'PIX')>PIX</option>
-            <option value="DINHEIRO" @selected(request('forma_pagamento') == 'DINHEIRO')>DINHEIRO</option>
-            <option value="BOLETO" @selected(request('forma_pagamento') == 'BOLETO')>BOLETO</option>
-            <option value="CARTAO" @selected(request('forma_pagamento') == 'CARTAO')>CARTAO</option>
-            <option value="TRANSFERENCIA" @selected(request('forma_pagamento') == 'TRANSFERENCIA')>TRANSFERENCIA</option>
-            <option value="OUTROS" @selected(request('forma_pagamento') == 'OUTROS')>OUTROS</option>
-        </select>
-    </div>
-
-    <div>
-        <label class="block text-sm font-medium">Ordenar por</label>
-        <select name="sort" class="border rounded px-2 py-1">
-            <option value="">Padrão</option>
-            <option value="valor" @selected(request('sort') == 'valor')>Valor</option>
-            <option value="data_vencimento" @selected(request('sort') == 'data_vencimento')>Data Vencimento</option>
-            <option value="created_at" @selected(request('sort') == 'created_at')>Criado em</option>
-        </select>
-    </div>
-
-    <div>
-        <label class="block text-sm font-medium">Direção</label>
-        <select name="direction" class="border rounded px-2 py-1">
-            <option value="asc" @selected(request('direction') == 'asc')>Crescente</option>
-            <option value="desc" @selected(request('direction') == 'desc')>Decrescente</option>
-        </select>
-    </div>
-
-    <div class="flex gap-2">
-        <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded">
-            Filtrar
-        </button>
-
-        <a href="{{ route('despesas.index') }}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-            Limpar Filtros
-        </a>
-    </div>
-</form>
-
+        <div class="overflow-x-auto bg-white shadow rounded">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50">
                     <tr>
@@ -117,19 +45,13 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @foreach($despesas as $despesa)
-                        <tr>
+                        <tr class="bg-gray-100 font-semibold cursor-pointer despesa-row" data-despesa-id="{{ $despesa->id }}">
                             <td class="px-4 py-2">{{ $despesa->id }}</td>
                             <td class="px-4 py-2">{{ $despesa->separador ?? '-' }}</td>
                             <td class="px-4 py-2">{{ $despesa->descricao }}</td>
-                            <td class="px-4 py-2">R$ {{ number_format($despesa->valor, 2, ',', '.') }}</td>
-<td class="px-4 py-2">{{ $despesa->data_vencimento?->format('d/m/Y') ?? '-' }}</td>
-                            <td class="px-4 py-2">
-                                @if($despesa->data_pagamento)
-                                    {{ $despesa->data_pagamento->format('d/m/Y') }}
-                                @else
-                                    -
-                                @endif
-                            </td>
+                            <td class="px-4 py-2">R$ {{ number_format($despesa->valor_total, 2, ',', '.') }}</td>
+                            <td class="px-4 py-2">{{ $despesa->data_vencimento ? \Carbon\Carbon::parse($despesa->data_vencimento)->format('d/m/Y') : '-' }}</td>
+                            <td class="px-4 py-2">{{ $despesa->data_pagamento ? \Carbon\Carbon::parse($despesa->data_pagamento)->format('d/m/Y') : '-' }}</td>
                             <td class="px-4 py-2">{{ $despesa->status }}</td>
                             <td class="px-4 py-2">{{ $despesa->categoria }}</td>
                             <td class="px-4 py-2">{{ $despesa->forma_pagamento }}</td>
@@ -143,153 +65,220 @@
                             </td>
                             <td class="px-4 py-2">{{ $despesa->observacao ?? '-' }}</td>
                             <td class="px-4 py-2">{{ $despesa->usuario->name ?? 'N/A' }}</td>
-                            <td class="px-4 py-2">{{ $despesa->created_at->format('d/m/Y H:i') }}</td>
-                            <td class="px-4 py-2">{{ $despesa->updated_at->format('d/m/Y H:i') }}</td>
-                         <td class="px-4 py-2 flex gap-2">
-    <!-- Botão Editar (estilo igual ao Excluir, mas amarelo) -->
-@php
-    $despesaParaJS = $despesa->toArray();
-    $despesaParaJS['data_vencimento'] = $despesa->data_vencimento ? $despesa->data_vencimento->format('Y-m-d') : null;
-    $despesaParaJS['data_pagamento'] = $despesa->data_pagamento ? $despesa->data_pagamento->format('Y-m-d') : null;
-@endphp
+                            <td class="px-4 py-2">{{ $despesa->created_at ? \Carbon\Carbon::parse($despesa->created_at)->format('d/m/Y H:i') : '-' }}</td>
+                            <td class="px-4 py-2">{{ $despesa->updated_at ? \Carbon\Carbon::parse($despesa->updated_at)->format('d/m/Y H:i') : '-' }}</td>
+                            <td class="px-4 py-2 flex gap-2">
 
-<button 
-    class="bg-yellow-600 text-black font-semibold px-4 py-2 rounded-lg shadow border border-yellow-800 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-1 transition"
+                                @php
+                                    $despesaParaJS = $despesa->toArray();
+                                    $despesaParaJS['data_vencimento'] = $despesa->data_vencimento ? \Carbon\Carbon::parse($despesa->data_vencimento)->format('Y-m-d') : null;
+                                    $despesaParaJS['data_pagamento'] = $despesa->data_pagamento ? \Carbon\Carbon::parse($despesa->data_pagamento)->format('Y-m-d') : null;
+                                    $despesaParaJS['action'] = route('despesas.update', $despesa->id);
+                                @endphp
 
-    @click="
-        editModalOpen = true;
-        editDespesa = @js($despesaParaJS);
-    ">
-    Editar
-</button>
+                                <button 
+                                    class="bg-yellow-600 text-black font-semibold px-4 py-2 rounded-lg shadow border border-yellow-800 hover:bg-yellow-700 transition"
+                                    data-despesa='@json($despesaParaJS)'>
+                                    Editar
+                                </button>
 
-
-
-    <!-- Botão Excluir -->
-    <form action="{{ route('despesas.destroy', $despesa->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta despesa?');">
-        @csrf
-        @method('DELETE')
-        <button type="submit"
-            class="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg shadow border border-red-800 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition">
-            Excluir
-        </button>
-    </form>
-</td>
-                            
+                                <form action="{{ route('despesas.destroy', $despesa->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta despesa?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg shadow border border-red-800 hover:bg-red-700 transition">
+                                        Excluir
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
+
+                        {{-- Parcelas --}}
+                        @foreach($despesa->parcelas as $parcela)
+                            <tr class="bg-white hidden parcela-{{ $despesa->id }}" data-parcela-id="{{ $parcela->id }}">
+                                <td class="px-4 py-2">↳ {{ $parcela->id }}</td>
+                                <td class="px-4 py-2">{{ $parcela->separador ?? '-' }}</td>
+                                <td class="px-4 py-2 pl-6">↳ {{ $parcela->descricao }}</td>
+                                <td class="px-4 py-2">R$ {{ number_format($parcela->valor_parcela, 2, ',', '.') }}</td>
+                                <td class="px-4 py-2">{{ $parcela->data_vencimento ? \Carbon\Carbon::parse($parcela->data_vencimento)->format('d/m/Y') : '-' }}</td>
+                                <td class="px-4 py-2 parcela-pagamento">{{ $parcela->data_pagamento ? \Carbon\Carbon::parse($parcela->data_pagamento)->format('d/m/Y') : '-' }}</td>
+                                <td class="px-4 py-2 parcela-status">{{ $parcela->status }}</td>
+                                <td class="px-4 py-2">{{ $parcela->categoria }}</td>
+                                <td class="px-4 py-2">{{ $parcela->forma_pagamento }}</td>
+                                <td class="px-4 py-2">{{ $parcela->chave_pagamento ?? '-' }}</td>
+                                <td class="px-4 py-2">
+                                    @if($parcela->comprovante)
+                                        <a href="{{ asset('storage/'.$parcela->comprovante) }}" target="_blank" class="text-blue-600 underline">Ver</a>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="px-4 py-2">{{ $parcela->observacao ?? '-' }}</td>
+                                <td class="px-4 py-2">{{ $parcela->usuario->name ?? 'N/A' }}</td>
+                                <td class="px-4 py-2">{{ $parcela->created_at ? \Carbon\Carbon::parse($parcela->created_at)->format('d/m/Y H:i') : '-' }}</td>
+                                <td class="px-4 py-2">{{ $parcela->updated_at ? \Carbon\Carbon::parse($parcela->updated_at)->format('d/m/Y H:i') : '-' }}</td>
+                                <td class="px-4 py-2 flex gap-2">
+                                    @php
+                                        $parcelaParaJS = $parcela->toArray();
+                                        $parcelaParaJS['data_vencimento'] = $parcela->data_vencimento ? \Carbon\Carbon::parse($parcela->data_vencimento)->format('Y-m-d') : null;
+                                        $parcelaParaJS['data_pagamento'] = $parcela->data_pagamento ? \Carbon\Carbon::parse($parcela->data_pagamento)->format('Y-m-d') : null;
+                                        $parcelaParaJS['action'] = route('despesas.update', $parcela->id);
+                                    @endphp
+
+                                    <button 
+                                        class="bg-yellow-600 text-black font-semibold px-4 py-2 rounded-lg shadow border border-yellow-800 hover:bg-yellow-700 transition"
+                                        data-parcela='@json($parcelaParaJS)'>
+                                        Editar
+                                    </button>
+
+                                    <form action="{{ route('despesas.destroy', $parcela->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta parcela?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg shadow border border-red-800 hover:bg-red-700 transition">
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
                     @endforeach
                 </tbody>
             </table>
 
-            <!-- Modal de edição -->
-            <div
-                x-show="editModalOpen"
-                style="display: none"
-                class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-                @keydown.escape.window="editModalOpen = false"
-            >
-                <div class="bg-white rounded-lg p-6 w-full max-w-lg relative" @click.away="editModalOpen = false">
-                    
-                    <h3 class="text-lg font-semibold mb-4">Editar Despesa #<span x-text="editDespesa?.id"></span></h3>
-
-                    <form :action="`/despesas/${editDespesa?.id}`" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        @method('PUT')
-
-                        <div class="mb-3">
-                            <label class="block mb-1 font-medium">Descrição</label>
-                            <input type="text" name="descricao" x-model="editDespesa.descricao" class="w-full border rounded px-2 py-1" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block mb-1 font-medium">Valor</label>
-                            <input type="number" step="0.01" name="valor" x-model="editDespesa.valor" class="w-full border rounded px-2 py-1" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block mb-1 font-medium">Data Vencimento</label>
-                            <input type="date" name="data_vencimento" x-model="editDespesa.data_vencimento" class="w-full border rounded px-2 py-1" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block mb-1 font-medium">Data Pagamento</label>
-                            <input type="date" name="data_pagamento" x-model="editDespesa.data_pagamento" class="w-full border rounded px-2 py-1">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block mb-1 font-medium">Status</label>
-                            <select name="status" x-model="editDespesa.status" class="w-full border rounded px-2 py-1" required>
-                                <option value="PENDENTE">PENDENTE</option>
-                                <option value="PAGO">PAGO</option>
-                                <option value="ATRASADO">ATRASADO</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block mb-1 font-medium">Categoria</label>
-                            <select name="categoria" x-model="editDespesa.categoria" class="w-full border rounded px-2 py-1" required>
-                                <option value="FORNECEDOR">FORNECEDOR</option>
-                                <option value="AGUA">AGUA</option>
-                                <option value="LUZ">LUZ</option>
-                                <option value="MATERIAL">MATERIAL</option>
-                                <option value="PARTICULAR">PARTICULAR</option>
-                                <option value="OUTROS">OUTROS</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block mb-1 font-medium">Forma Pagamento</label>
-                            <select name="forma_pagamento" x-model="editDespesa.forma_pagamento" class="w-full border rounded px-2 py-1" required>
-                                <option value="PIX">PIX</option>
-                                <option value="DINHEIRO">DINHEIRO</option>
-                                <option value="BOLETO">BOLETO</option>
-                                <option value="CARTAO">CARTAO</option>
-                                <option value="TRANSFERENCIA">TRANSFERENCIA</option>
-                                <option value="OUTROS">OUTROS</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block mb-1 font-medium">Chave Pagamento</label>
-                            <input type="text" name="chave_pagamento" x-model="editDespesa.chave_pagamento" class="w-full border rounded px-2 py-1">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block mb-1 font-medium">Comprovante (substituir)</label>
-                            <input type="file" name="comprovante" accept=".jpg,.jpeg,.png,.pdf" class="w-full">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block mb-1 font-medium">Observação</label>
-                            <textarea name="observacao" x-model="editDespesa.observacao" class="w-full border rounded px-2 py-1"></textarea>
-                        </div>
-<div class="mb-3">
-    <label class="block mb-1 font-medium">Separador</label>
-    <input type="text" name="separador" x-model="editDespesa.separador" class="w-full border rounded px-2 py-1" placeholder="para usar no filtro.">
-</div>
-                        <div class="flex justify-end gap-4 mt-6">
-                           <div class="flex justify-end gap-4 mt-6">
-    <button type="button" 
-        @click="editModalOpen = false" 
-        class="bg-black text-white font-semibold px-6 py-3 rounded-lg shadow border border-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-offset-1 transition">
-        Cancelar
-    </button>
- <button type="submit" 
-        class="bg-black text-white font-semibold px-6 py-3 rounded-lg shadow border border-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-offset-1 transition">
-    Salvar
-</button>
-
-</div>
-
-                        </div>
-                    </form>
-                </div>
+            <div class="mt-4">
+                {{ $despesas->links() }}
             </div>
-
-        </div>
-
-        <div class="mt-4">
-            {{ $despesas->links() }}
         </div>
     </div>
+
+    {{-- Modal --}}
+    <div id="editParcelaModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-96 relative">
+            <button id="closeModal" class="absolute top-2 right-2 text-gray-600 font-bold hover:text-gray-800">X</button>
+            <h3 class="text-lg font-semibold mb-4">Editar Parcela / Registrar Pagamento</h3>
+            <form id="editParcelaForm" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+                <div class="mb-2">
+                    <label class="block text-sm font-medium">Descrição</label>
+                    <input type="text" name="descricao" id="modal_descricao" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/>
+                </div>
+                <div class="mb-2">
+                    <label class="block text-sm font-medium">Valor</label>
+                    <input type="number" step="0.01" name="valor" id="modal_valor" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/>
+                </div>
+                <div class="mb-2">
+                    <label class="block text-sm font-medium">Data Vencimento</label>
+                    <input type="date" name="data_vencimento" id="modal_vencimento" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/>
+                </div>
+                <div class="mb-2">
+                    <label class="block text-sm font-medium">Data Pagamento</label>
+                    <input type="date" name="data_pagamento" id="modal_pagamento" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium">Comprovante</label>
+                    <input type="file" name="comprovante" id="modal_comprovante" class="mt-1 block w-full"/>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" id="cancelModal" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Cancelar</button>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Salvar Alterações</button>
+                    <button type="button" id="registrarPagamento" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Registrar Pagamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const editModal = document.getElementById("editParcelaModal");
+    const closeModalBtn = document.getElementById("closeModal");
+    const cancelModalBtn = document.getElementById("cancelModal");
+    const editForm = document.getElementById("editParcelaForm");
+    const registrarPagamentoBtn = document.getElementById("registrarPagamento");
+
+    function formatDate(date) {
+        const d = new Date(date);
+        const month = ('0' + (d.getMonth() + 1)).slice(-2);
+        const day = ('0' + d.getDate()).slice(-2);
+        return `${d.getFullYear()}-${month}-${day}`;
+    }
+
+    function abrirModal(dados){
+        const hoje = formatDate(new Date());
+        document.getElementById("modal_descricao").value = dados.descricao || '';
+        document.getElementById("modal_valor").value = dados.valor_total || dados.valor_parcela || 0;
+        document.getElementById("modal_vencimento").value = dados.data_vencimento || hoje;
+        document.getElementById("modal_pagamento").value = dados.data_pagamento || hoje;
+        document.getElementById("modal_comprovante").value = '';
+        editForm.action = dados.action || '';
+        editModal.classList.remove("hidden");
+    }
+
+    // Botões Editar
+    document.querySelectorAll('button[data-despesa]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            abrirModal(JSON.parse(btn.dataset.despesa));
+        });
+    });
+
+    // Double click abre modal apenas para parcelas
+    document.querySelectorAll('tr[data-parcela-id]').forEach(tr => {
+        tr.addEventListener('dblclick', () => {
+            const btnEditar = tr.querySelector('button[data-parcela]');
+            if(btnEditar) {
+                const parcelaDados = JSON.parse(btnEditar.dataset.parcela);
+                abrirModal(parcelaDados);
+            }
+        });
+    });
+
+    // Fechar modal
+    closeModalBtn.addEventListener("click", () => editModal.classList.add("hidden"));
+    cancelModalBtn.addEventListener("click", () => editModal.classList.add("hidden"));
+    document.addEventListener('keydown', (e) => {
+        if(e.key === "Escape") editModal.classList.add("hidden");
+    });
+
+    // Registrar pagamento incluindo descrição e comprovante
+    registrarPagamentoBtn.addEventListener("click", () => {
+        if(confirm("Deseja registrar o pagamento desta parcela como PAGO?")) {
+            const parcelaId = editForm.action.split('/').pop();
+            const formData = new FormData();
+
+            formData.append('data_pagamento', document.getElementById("modal_pagamento").value);
+            formData.append('descricao', document.getElementById("modal_descricao").value);
+
+            const comprovanteFile = document.getElementById("modal_comprovante").files[0];
+            if(comprovanteFile){
+                formData.append('comprovante', comprovanteFile);
+            }
+fetch(`/despesas/${parcelaId}/registrar-pagamento`, {
+    method: 'POST',
+    headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+    },
+    body: formData
+})
+            .then(response => response.ok ? location.reload() : alert('Erro ao registrar pagamento'))
+            .catch(() => alert('Erro ao registrar pagamento'));
+        }
+    });
+
+    // Expandir/ocultar parcelas
+    document.querySelectorAll('.despesa-row').forEach(row => {
+        row.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') return;
+            const despesaId = row.getAttribute('data-despesa-id');
+            document.querySelectorAll('.parcela-' + despesaId).forEach(r => r.classList.toggle('hidden'));
+        });
+    });
+
+    // Checkbox exibir todas parcelas
+    document.getElementById('toggle-all-parcelas').addEventListener('change', function(){
+        document.querySelectorAll('[class*="parcela-"]').forEach(r => {
+            this.checked ? r.classList.remove('hidden') : r.classList.add('hidden');
+        });
+    });
+});
+</script>
 </x-app-layout>
