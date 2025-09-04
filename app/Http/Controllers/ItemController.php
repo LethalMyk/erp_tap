@@ -1,87 +1,85 @@
 <?php
 
-// Controller - app/Http/Controllers/ItemController.php
 namespace App\Http\Controllers;
 
-use App\Models\Item;
 use App\Models\Pedido;
-use App\Models\Terceirizada;
-
+use App\Models\Item;
+use App\Services\ItemService;
 use Illuminate\Http\Request;
 
+class ItemController extends Controller
+{
+    protected $itemService;
 
-class ItemController extends Controller {
-    public function index() {
-        $items = Item::all();
+    public function __construct(ItemService $itemService)
+    {
+        $this->itemService = $itemService;
+    }
+
+    public function index()
+    {
+        $items = $this->itemService->listarTodos();
         return view('items.index', compact('items'));
     }
 
-public function create()
-{
-    $pedidos = Pedido::all(); // Buscar todos os pedidos existentes
-    return view('items.create', compact('pedidos'));
-}
+    public function create()
+    {
+        $pedidos = Pedido::all();
+        return view('items.create', compact('pedidos'));
+    }
 
+    public function store(Request $request)
+    {
+        $dados = $request->validate([
+            'nomeItem' => 'required|string',
+            'material' => 'required|string',
+            'metragem' => 'required|numeric',
+            'especifi' => 'nullable|string',
+            'pedido_id' => 'required|exists:pedidos,id',
+            'terceirizadas' => 'nullable|array',
+        ]);
 
-public function store(Request $request)
-{
-    $request->validate([
-        'nomeItem' => 'required|string',
-        'material' => 'required|string',
-        'metragem' => 'required|numeric',
-        'especifi' => 'nullable|string',
-        'pedido_id' => 'required|exists:pedidos,id', // Garante que pedido_id está sendo enviado
-    ]);
+        $item = $this->itemService->criar($dados);
 
-    Item::create($request->all());
+        return redirect()->route('pedido.visualizar', $dados['pedido_id'])
+                         ->with('success', 'Item cadastrado com sucesso!');
+    }
 
-    return redirect()->route('pedido.visualizar', $request->pedido_id)
-                     ->with('success', 'Item cadastrado com sucesso!');
-}
+    public function show($id)
+    {
+        $item = $this->itemService->buscarPorId($id);
 
+        if (!$item) {
+            return redirect()->route('items.index')->with('error', 'Item não encontrado.');
+        }
 
-
-    public function show(Item $item) {
         return view('items.show', compact('item'));
     }
 
-  public function edit(Item $item) {
-    $item->load('terceirizadas'); // eager load para vir as terceirizadas relacionadas
-    return view('items.edit', compact('item'));
-}
-
-
-    public function update(Request $request, Item $item)
-{
-    $request->validate([
-        'nomeItem' => 'required',
-        'material' => 'required',
-        'metragem' => 'required|numeric',
-    ]);
-
-    $item->update($request->only(['nomeItem', 'material', 'metragem', 'especifi']));
-
-    if ($request->has('terceirizadas')) {
-        foreach ($request->terceirizadas as $tercData) {
-            if (!empty($tercData['id'])) {
-                // Atualiza terceirizada existente
-                $terc = \App\Models\Terceirizada::find($tercData['id']);
-                if ($terc && $terc->item_id == $item->id) {
-                    $terc->update([
-                        'tipoServico' => $tercData['tipoServico'] ?? '',
-                        'obs' => $tercData['obs'] ?? '',
-                    ]);
-                }
-            }
-        }
+    public function edit(Item $item)
+    {
+        $item->load('terceirizadas');
+        return view('items.edit', compact('item'));
     }
 
-    return redirect()->back()->with('success', 'Item e serviços atualizados com sucesso!');
-}
+    public function update(Request $request, Item $item)
+    {
+        $dados = $request->validate([
+            'nomeItem' => 'required|string',
+            'material' => 'required|string',
+            'metragem' => 'required|numeric',
+            'especifi' => 'nullable|string',
+            'terceirizadas' => 'nullable|array',
+        ]);
 
+        $this->itemService->atualizar($item, $dados);
 
-    public function destroy(Item $item) {
-        $item->delete();
+        return redirect()->back()->with('success', 'Item e serviços atualizados com sucesso!');
+    }
+
+    public function destroy(Item $item)
+    {
+        $this->itemService->deletar($item);
         return redirect()->route('items.index')->with('success', 'Item excluído com sucesso!');
     }
 }

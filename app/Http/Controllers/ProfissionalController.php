@@ -4,15 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\Profissional;
 use Illuminate\Http\Request;
+use App\Services\ProfissionalService;
 
 class ProfissionalController extends Controller
 {
-  public function index()
-{
-    $profissional = Profissional::all();
-    return view('profissional.index', compact('profissional'));
-}
+    protected $service;
 
+    public function __construct(ProfissionalService $service)
+    {
+        $this->service = $service;
+    }
+
+    public function index()
+    {
+        $profissionais = $this->service->listar();
+        return view('profissional.index', compact('profissionais'));
+    }
 
     public function create()
     {
@@ -21,12 +28,12 @@ class ProfissionalController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $dados = $request->validate([
             'nome' => 'required|string|max:255',
             'cargo' => 'required|string|max:255',
         ]);
 
-        Profissional::create($request->all());
+        $this->service->criar($dados);
 
         return redirect()->route('profissional.index')->with('success', 'Profissional cadastrado com sucesso.');
     }
@@ -43,20 +50,19 @@ class ProfissionalController extends Controller
 
     public function update(Request $request, Profissional $profissional)
     {
-        $request->validate([
+        $dados = $request->validate([
             'nome' => 'required|string|max:255',
             'cargo' => 'required|string|max:255',
         ]);
 
-        $profissional->update($request->all());
+        $this->service->atualizar($profissional, $dados);
 
         return redirect()->route('profissional.index')->with('success', 'Profissional atualizado com sucesso.');
     }
 
     public function destroy(Profissional $profissional)
     {
-        $profissional->delete();
-
+        $this->service->remover($profissional);
         return redirect()->route('profissional.index')->with('success', 'Profissional excluído com sucesso.');
     }
 }

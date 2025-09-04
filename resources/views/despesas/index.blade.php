@@ -122,7 +122,7 @@
                             <td class="px-4 py-2">{{ $despesa->separador ?? '-' }}</td>
                             <td class="px-4 py-2">{{ $despesa->descricao }}</td>
                             <td class="px-4 py-2">R$ {{ number_format($despesa->valor, 2, ',', '.') }}</td>
-                            <td class="px-4 py-2">{{ $despesa->data_vencimento->format('d/m/Y') }}</td>
+<td class="px-4 py-2">{{ $despesa->data_vencimento?->format('d/m/Y') ?? '-' }}</td>
                             <td class="px-4 py-2">
                                 @if($despesa->data_pagamento)
                                     {{ $despesa->data_pagamento->format('d/m/Y') }}

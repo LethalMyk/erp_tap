@@ -2,68 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cliente;  // Alterado para Cliente
+use App\Models\Cliente;
+use App\Services\ClienteService;
 use Illuminate\Http\Request;
 
 class ClienteController extends Controller
 {
-    // Exibe a lista de clientes
+    protected $clienteService;
+
+    public function __construct(ClienteService $clienteService)
+    {
+        $this->clienteService = $clienteService;
+    }
+
     public function index()
     {
-        $clientes = Cliente::all();  // Usando Cliente
+        $clientes = $this->clienteService->listarTodos();
         return view('clientes.index', compact('clientes'));
     }
 
-    // Exibe o formulário para criar um novo cliente
- public function store(Request $request)
-{
-    $request->validate([
-        'nome' => 'required|string|max:255',
-        'telefone' => 'nullable|string|max:15',
-        'endereco' => 'nullable|string|max:255',
-        'email' => 'nullable|string|email|max:255',
-        'cpf' => 'nullable|string|max:14',
-    ]);
-
-    // Criando o cliente
-    $cliente = Cliente::create([
-        'nome' => $request->nome,
-        'telefone' => $request->telefone,
-        'endereco' => $request->endereco,
-        'email' => $request->email,
-        'cpf' => $request->cpf,
-    ]);
-
-    // Redirecionando para a página de edição do cliente recém-criado
-   return redirect()->route('clientes.edit', ['cliente' => $cliente->id])
-                 ->with('success', 'Cliente criado com sucesso!');
-
-}
-
-
-    // Exibe os detalhes de um cliente específico
-  public function show($id)
-{
-    $cliente = Cliente::find($id);
-    if ($cliente) {
-        return view('clientes.show', compact('cliente'));
-    } else {
-        return redirect('/clientes')->with('error', 'Cliente não encontrado.');
-    }
-}
-
-
-    // Exibe o formulário para editar um cliente específico
-  public function edit(Cliente $cliente)
-{
-    return view('clientes.edit', compact('cliente'));
-}
-
-
-    // Atualiza o cliente no banco de dados
-    public function update(Request $request, $id)
+    public function create()
     {
-        $request->validate([
+        return view('clientes.create');
+    }
+
+    public function store(Request $request)
+    {
+        $dados = $request->validate([
             'nome' => 'required|string|max:255',
             'telefone' => 'nullable|string|max:15',
             'endereco' => 'nullable|string|max:255',
@@ -71,28 +36,47 @@ class ClienteController extends Controller
             'cpf' => 'nullable|string|max:14',
         ]);
 
-        $cliente = Cliente::findOrFail($id);  // Usando Cliente
-        $cliente->update([
-            'nome' => $request->nome,
-            'telefone' => $request->telefone,
-            'endereco' => $request->endereco,
-            'email' => $request->email,
-            'cpf' => $request->cpf,
+        $cliente = $this->clienteService->criar($dados);
+
+        return redirect()->route('clientes.edit', $cliente->id)
+                         ->with('success', 'Cliente criado com sucesso!');
+    }
+
+    public function show($id)
+    {
+        $cliente = $this->clienteService->buscarPorId($id);
+
+        if (!$cliente) {
+            return redirect()->route('clientes.index')->with('error', 'Cliente não encontrado.');
+        }
+
+        return view('clientes.show', compact('cliente'));
+    }
+
+    public function edit(Cliente $cliente)
+    {
+        return view('clientes.edit', compact('cliente'));
+    }
+
+    public function update(Request $request, Cliente $cliente)
+    {
+        $dados = $request->validate([
+            'nome' => 'required|string|max:255',
+            'telefone' => 'nullable|string|max:15',
+            'endereco' => 'nullable|string|max:255',
+            'email' => 'nullable|string|email|max:255',
+            'cpf' => 'nullable|string|max:14',
         ]);
+
+        $this->clienteService->atualizar($cliente, $dados);
 
         return redirect()->route('clientes.index')->with('success', 'Cliente atualizado com sucesso!');
     }
 
-    // Exclui um cliente do banco de dados
-    public function destroy($id)
+    public function destroy(Cliente $cliente)
     {
-        $cliente = Cliente::findOrFail($id);  // Usando Cliente
-        $cliente->delete();
+        $this->clienteService->deletar($cliente);
 
         return redirect()->route('clientes.index')->with('success', 'Cliente excluído com sucesso!');
     }
-    public function create()
-{
-    return view('clientes.create'); // Certifique-se de que o arquivo create.blade.php existe na pasta resources/views/clientes
-}
 }

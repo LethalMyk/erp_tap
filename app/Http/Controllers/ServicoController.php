@@ -2,18 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Servico;
 use App\Models\Profissional;
 use App\Models\Pedido;
+use App\Models\Servico;
 use Illuminate\Http\Request;
+use App\Services\ServicoService;
 
 class ServicoController extends Controller
 {
+    protected $service;
+
+    public function __construct(ServicoService $service)
+    {
+        $this->service = $service;
+    }
+
     public function index()
     {
-        $servicos = Servico::with('profissional', 'pedido')->get();
+        $servicos = $this->service->listar();
         return view('servico.index', compact('servicos'));
-        
     }
 
     public function create()
@@ -25,7 +32,7 @@ class ServicoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $dados = $request->validate([
             'profissional_id' => 'required|exists:profissional,id',
             'pedido_id' => 'required|exists:pedidos,id',
             'data_inicio' => 'required|date',
@@ -34,14 +41,9 @@ class ServicoController extends Controller
             'obs' => 'nullable|string',
         ]);
 
-        Servico::create($request->all());
+        $this->service->criar($dados);
 
         return redirect()->route('servico.index')->with('success', 'Serviço cadastrado com sucesso.');
-    }
-
-    public function show(Servico $servico)
-    {
-        return view('servico.show', compact('servico'));
     }
 
     public function edit(Servico $servico)
@@ -53,25 +55,28 @@ class ServicoController extends Controller
 
     public function update(Request $request, Servico $servico)
     {
-       $request->validate([
-    'profissional_id' => 'required|exists:profissional,id', // <- CORRETO
-    'pedido_id' => 'required|exists:pedidos,id',
-    'data_inicio' => 'required|date',
-    'dificuldade' => 'required|string',
-    'data_previsao' => 'nullable|date',
-    'obs' => 'nullable|string',
-]);
+        $dados = $request->validate([
+            'profissional_id' => 'required|exists:profissional,id',
+            'pedido_id' => 'required|exists:pedidos,id',
+            'data_inicio' => 'required|date',
+            'dificuldade' => 'required|string',
+            'data_previsao' => 'nullable|date',
+            'obs' => 'nullable|string',
+        ]);
 
-
-        $servico->update($request->all());
+        $this->service->atualizar($servico, $dados);
 
         return redirect()->route('servico.index')->with('success', 'Serviço atualizado com sucesso.');
     }
 
     public function destroy(Servico $servico)
     {
-        $servico->delete();
-
+        $this->service->remover($servico);
         return redirect()->route('servico.index')->with('success', 'Serviço excluído com sucesso.');
+    }
+
+    public function show(Servico $servico)
+    {
+        return view('servico.show', compact('servico'));
     }
 }

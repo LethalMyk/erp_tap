@@ -2,85 +2,45 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Agendamento;
-use App\Models\Cliente;
-use App\Models\Item;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use App\Services\AgendamentoService;
+use App\Models\Cliente;
+use App\Models\Agendamento;
 
 class AgendamentoController extends Controller
 {
+    protected $service;
+
+    public function __construct(AgendamentoService $service)
+    {
+        $this->service = $service;
+    }
+
     public function index()
     {
-        $hoje = Carbon::today();
-
-        $buscarAgendamentosExcetoOrcamento = fn($start, $end = null) =>
-            $end
-                ? Agendamento::whereBetween('data', [$start, $end])
-                    ->where('tipo', '!=', 'orcamento')
-                    ->orderBy('data')
-                    ->orderBy('horario')
-                    ->get()
-                : Agendamento::whereDate('data', $start)
-                    ->where('tipo', '!=', 'orcamento')
-                    ->orderBy('horario')
-                    ->get();
-
-        $buscarOrcamentos = fn($start, $end = null) =>
-            $end
-                ? Agendamento::whereBetween('data', [$start, $end])
-                    ->where('tipo', 'orcamento')
-                    ->orderBy('data')
-                    ->orderBy('horario')
-                    ->get()
-                : Agendamento::whereDate('data', $start)
-                    ->where('tipo', 'orcamento')
-                    ->orderBy('horario')
-                    ->get();
+        $hoje = now()->startOfDay();
 
         $agendamentosPorDia = [];
         $orcamentosPorDia = [];
         for ($i = 0; $i <= 14; $i++) {
             $data = $hoje->copy()->addDays($i)->toDateString();
-            $agendamentosPorDia[$i] = $buscarAgendamentosExcetoOrcamento($data);
-            $orcamentosPorDia[$i] = $buscarOrcamentos($data);
+            $agendamentosPorDia[$i] = Agendamento::whereDate('data', $data)->where('tipo', '!=', 'orcamento')->get();
+            $orcamentosPorDia[$i] = Agendamento::whereDate('data', $data)->where('tipo', 'orcamento')->get();
         }
 
-        $dataLimite = $hoje->copy()->addDays(15)->toDateString();
-        $agendamentosFuturos = Agendamento::where('data', '>', $dataLimite)
-            ->where('tipo', '!=', 'orcamento')
-            ->orderBy('data')
-            ->orderBy('horario')
-            ->get();
+        $agendamentosFuturos = Agendamento::where('data', '>', $hoje->copy()->addDays(15))->where('tipo', '!=', 'orcamento')->get();
+        $orcamentosFuturos = Agendamento::where('data', '>', $hoje->copy()->addDays(15))->where('tipo', 'orcamento')->get();
+        $agendamentosPassados = Agendamento::where('data', '<', $hoje)->where('tipo', '!=', 'orcamento')->orderByDesc('data')->limit(10)->get();
+        $orcamentosPassados = Agendamento::where('data', '<', $hoje)->where('tipo', 'orcamento')->orderByDesc('data')->limit(10)->get();
 
-        $orcamentosFuturos = Agendamento::where('data', '>', $dataLimite)
-            ->where('tipo', 'orcamento')
-            ->orderBy('data')
-            ->orderBy('horario')
-            ->get();
-
-        $agendamentosPassados = Agendamento::where('data', '<', $hoje)
-            ->where('tipo', '!=', 'orcamento')
-            ->orderByDesc('data')
-            ->orderBy('horario')
-            ->limit(10)
-            ->get();
-
-        $orcamentosPassados = Agendamento::where('data', '<', $hoje)
-            ->where('tipo', 'orcamento')
-            ->orderByDesc('data')
-            ->orderBy('horario')
-            ->limit(10)
-            ->get();
-
-        return view('agendamentos.index', [
-            'agendamentosPorDia' => $agendamentosPorDia,
-            'orcamentosPorDia' => $orcamentosPorDia,
-            'agendamentosFuturos' => $agendamentosFuturos,
-            'orcamentosFuturos' => $orcamentosFuturos,
-            'agendamentosPassados' => $agendamentosPassados,
-            'orcamentosPassados' => $orcamentosPassados,
-        ]);
+        return view('agendamentos.index', compact(
+            'agendamentosPorDia',
+            'orcamentosPorDia',
+            'agendamentosFuturos',
+            'orcamentosFuturos',
+            'agendamentosPassados',
+            'orcamentosPassados'
+        ));
     }
 
     public function create(Request $request)
@@ -88,30 +48,15 @@ class AgendamentoController extends Controller
         $data = $request->input('data');
         $horario = $request->input('horario');
         $clienteId = $request->input('cliente_id');
-
-        $cliente = null;
-        if ($clienteId) {
-            $cliente = Cliente::find($clienteId);
-        }
-
+        $cliente = $clienteId ? Cliente::find($clienteId) : null;
         $clientes = Cliente::all();
 
         return view('agendamentos.create', compact('data', 'horario', 'cliente', 'clientes'));
     }
 
-
-    public function destroy($id)
-{
-    $agendamento = Agendamento::findOrFail($id);
-    $agendamento->delete();
-
-    return redirect()->route('agendamentos.index')->with('success', 'Agendamento excluído com sucesso!');
-}
-
-
     public function store(Request $request)
     {
-        $request->validate([
+        $dados = $request->validate([
             'tipo' => 'required|in:entrega,retirada,assistencia,orcamento',
             'data' => 'required|date',
             'horario' => 'required',
@@ -123,23 +68,22 @@ class AgendamentoController extends Controller
             'observacao' => 'nullable|string',
         ]);
 
-        $dados = $request->all();
-
-        if ($request->filled('cliente_id')) {
-            $cliente = Cliente::find($request->cliente_id);
-            $dados['nome_cliente'] = $cliente->nome;
-            $dados['endereco'] = $cliente->endereco;
-            $dados['telefone'] = $cliente->telefone;
-        }
-
-        Agendamento::create($dados);
+        $this->service->criar($dados);
 
         return redirect()->back()->with('success', 'Agendamento criado com sucesso!');
     }
 
+    public function edit($id)
+    {
+        $agendamento = $this->service->buscarPorId($id);
+        return view('agendamentos.edit', compact('agendamento'));
+    }
+
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $agendamento = $this->service->buscarPorId($id);
+
+        $dados = $request->validate([
             'tipo' => 'required|in:entrega,retirada,assistencia,orcamento',
             'data' => 'required|date',
             'horario' => 'required',
@@ -151,119 +95,40 @@ class AgendamentoController extends Controller
             'observacao' => 'nullable|string',
         ]);
 
-        $agendamento = Agendamento::findOrFail($id);
-        $dados = $request->all();
+        $this->service->atualizar($agendamento, $dados);
 
-        if ($request->filled('cliente_id')) {
-            $cliente = Cliente::find($request->cliente_id);
-            $dados['nome_cliente'] = $cliente->nome;
-            $dados['endereco'] = $cliente->endereco;
-            $dados['telefone'] = $cliente->telefone;
-        }
-
-        $agendamento->update($dados);
-
-        if ($request->input('redirect_to') === 'calendario') {
-            return redirect()->route('agendamentos.calendario')->with('success', 'Agendamento atualizado!');
-        }
-
-        return redirect()->route('agendamentos.index')->with('success', 'Agendamento atualizado!');
+        $redirect = $request->input('redirect_to') === 'calendario' ? 'agendamentos.calendario' : 'agendamentos.index';
+        return redirect()->route($redirect)->with('success', 'Agendamento atualizado!');
     }
 
-    public function edit($id)
+    public function destroy($id)
     {
-        $agendamento = Agendamento::findOrFail($id);
-        return view('agendamentos.edit', compact('agendamento'));
+        $agendamento = $this->service->buscarPorId($id);
+        $this->service->deletar($agendamento);
+        return redirect()->route('agendamentos.index')->with('success', 'Agendamento excluído com sucesso!');
     }
 
     public function calendario(Request $request)
     {
-        $query = Agendamento::query();
-
-        if ($request->filled('tipo')) {
-            $query->where('tipo', $request->tipo);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $agendamentos = $query->get();
-
-        $eventos = $agendamentos->map(function ($ag) {
-            $coresPorTipo = [
-                'entrega' => '#007bff',
-                'retirada' => '#ffc107',
-                'orcamento' => '#6f42c1',
-                'assistencia' => '#e25822',
-            ];
-
-            return [
-                'id' => $ag->id,
-                'title' => $ag->nome_cliente,
-                'start' => $ag->data . 'T' . $ag->horario,
-                'color' => $coresPorTipo[$ag->tipo] ?? '#007bff',
-                'status' => $ag->status ?? 'pendente',
-                'tipo' => $ag->tipo,
-                'endereco' => $ag->endereco,
-                'telefone' => $ag->telefone ?? 'Não informado',
-                'itens' => $ag->itens ?? '',
-                'observacao' => $ag->observacao ?? '',
-            ];
-        });
-
-        $cliente = null;
+        $eventos = $this->service->eventos($request->tipo, $request->status);
+        $cliente = $request->filled('cliente_id') ? Cliente::find($request->cliente_id) : null;
+        $clientes = Cliente::all();
         $dataPreenchida = $request->input('data');
         $horarioPreenchido = $request->input('horario');
 
-$items = '';
-$obs_retirada = '';
-
-if ($request->filled('cliente_id')) {
-    $cliente = Cliente::find($request->cliente_id);
-
-    if ($cliente) {
-        $itens = Item::with('pedido')->whereHas('pedido', function ($query) use ($cliente) {
-            $query->where('cliente_id', $cliente->id);
-        })->get();
-
-        $items = $itens->pluck('nomeItem')->filter()->implode(' - ');
-        $obs_retirada = $itens->pluck('pedido.obs_retirada')->filter()->unique()->implode(' | ');
-    }
-}
-
-        if ($request->filled('cliente_id')) {
-            $cliente = Cliente::find($request->cliente_id);
+        $items = '';
+        $obs_retirada = '';
+        if ($cliente) {
+            $itensData = $this->service->getItensCliente($cliente->id);
+            $items = $itensData['itens'];
+            $obs_retirada = $itensData['observacao'];
         }
 
-        $clientes = Cliente::all();
-
-        return view('agendamentos.calendar', [
-            'eventos' => $eventos,
-            'cliente' => $cliente,
-            'dataPreenchida' => $dataPreenchida,
-            'horarioPreenchido' => $horarioPreenchido,
-            'clientes' => $clientes,
-            'items' => $items,
-            'obs_retirada' => $obs_retirada,
-        ]);
+        return view('agendamentos.calendar', compact('eventos', 'cliente', 'clientes', 'dataPreenchida', 'horarioPreenchido', 'items', 'obs_retirada'));
     }
 
     public function getItensCliente($id)
     {
-        $itens = Item::with('pedido')->whereHas('pedido', function ($query) use ($id) {
-            $query->where('cliente_id', $id);
-        })->get();
-
-        // Pegar nomes dos itens, filtrando vazios
-        $nomes = $itens->pluck('nomeItem')->filter()->values();
-
-        // Pegar observações únicas dos pedidos relacionados
-        $observacoes = $itens->pluck('pedido.obs_retirada')->filter()->unique()->values();
-
-        return response()->json([
-            'itens' => $nomes->implode(' - '),
-            'observacao' => $observacoes->implode(' | '), // concatena observações, se houver mais de uma
-        ]);
+        return response()->json($this->service->getItensCliente($id));
     }
 }
