@@ -17,7 +17,6 @@ class Pedido extends Model
         'data_retirada',
         'prazo',
         'valor',       // ✅ valor total do pedido
-        'valorResta',  // opcional: valor restante a pagar
         'status',
         'obs',
         'imagem',      // caso queira gravar imagem principal
@@ -57,11 +56,26 @@ class Pedido extends Model
 
     /** MÉTODOS AUXILIARES **/
 
-    // Pode adicionar método para calcular valor total a partir dos itens
+    // Calcular valor total a partir dos itens (se usar preço unitário nos itens)
     public function calcularValorTotal(): float
     {
         return $this->items->sum(function($item) {
             return ($item->quantidade ?? 1) * ($item->preco_unitario ?? 0);
         });
+    }
+
+    /** ACCESSORS - valores derivados **/
+
+    // ✅ Total já pago no pedido
+    public function getValorPagoAttribute(): float
+    {
+        return $this->pagamentos->sum('valor');
+    }
+
+    // ✅ Valor restante (total - pagos)
+    public function getValorRestaAttribute(): float
+    {
+        $total = $this->valor ?? 0;
+        return max(0, $total - $this->valor_pago);
     }
 }
