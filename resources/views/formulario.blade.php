@@ -15,8 +15,11 @@
             <input type="text" name="cliente[nome]" placeholder="Nome do Cliente" required class="block w-full mb-2">
             <input type="text" name="cliente[telefone]" placeholder="Telefone" required class="block w-full mb-2">
             <input type="text" name="cliente[endereco]" placeholder="Endereço" required class="block w-full mb-2">
-            <input type="text" name="cliente[cpf]" placeholder="CPF" required class="block w-full mb-2">
-            <input type="email" name="cliente[email]" placeholder="E-mail" required class="block w-full mb-4">
+<input type="text" name="cliente[cpf]" placeholder="CPF" 
+       class="block w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200">
+
+<input type="email" name="cliente[email]" placeholder="E-mail" 
+       class="block w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 md:col-span-2">
 
             <h3 class="text-lg font-semibold mb-2">Datas e Prazos</h3>
             <div class="mb-4">
