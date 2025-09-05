@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use App\Models\Parcela;
+use App\Models\ProdutoComprado;
 
 class Despesa extends Model
 {
@@ -42,6 +44,14 @@ class Despesa extends Model
     }
 
     /**
+     * Produtos comprados vinculados à despesa
+     */
+    public function produtosComprados()
+    {
+        return $this->hasMany(ProdutoComprado::class, 'despesa_id');
+    }
+
+    /**
      * Retorna valor total pago das parcelas
      */
     public function valorPago()
@@ -73,4 +83,5 @@ class Despesa extends Model
         if ($parcelasPagas < $totalParcelas) return 'PARCIAL';
         return 'PAGO';
     }
+    
 }

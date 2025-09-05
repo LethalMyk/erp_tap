@@ -15,8 +15,15 @@
     margin: 0 !important;
 }
 
+/* Pedido # maior */
+.via-tap h2 {
+    font-size: 18px;
+    margin: 5px 0;
+    text-align: center;
+}
+
+/* Títulos menores do resto */
 .via-tap h1, 
-.via-tap h2, 
 .via-tap h3 {
     font-size: 12px;
     margin: 3px 0;
@@ -24,6 +31,7 @@
     text-align: center;
 }
 
+/* Texto da tabela */
 .via-tap table {
     width: 100%;
     border-collapse: collapse;
@@ -38,6 +46,18 @@
     vertical-align: top;
 }
 
+/* Alinhar conteúdo da célula direita */
+.via-tap td.right {
+    text-align: right;
+}
+
+/* Campos principais maiores */
+.via-tap .destaque {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* Seções */
 .via-tap .section {
     border-top: 1px solid #ccc;
     margin-top: 5px;
@@ -45,6 +65,7 @@
     page-break-inside: avoid;
 }
 
+/* Container de imagens */
 .via-tap .imagens-container {
     display: flex;
     flex-wrap: wrap;
@@ -90,6 +111,7 @@
     margin-bottom: 1px;
 }
 
+/* Linha separadora */
 .via-tap hr {
     margin: 3px 0;
 }
@@ -119,7 +141,16 @@
     max-width: 14%;
 }
 
-/* Botão imprimir alinhado e sem margens extras */
+/* Estilo especial para o prazo de entrega */
+.via-tap .prazo-entrega {
+    font-size: 20px;
+    font-weight: bold;
+    color: #000;
+    text-align: center;
+    margin: 10px 0;
+}
+
+/* Botão imprimir */
 .via-tap .btn-primary {
     margin: 5px 0 0 0 !important;
     font-size: 10px;
@@ -133,13 +164,13 @@
     <table>
         <tr>
             <td>
-                <p><strong>Nome:</strong> {{ $pedido->cliente->nome }}</p>
-                <p><strong>Endereço:</strong> {{ $pedido->cliente->endereco }}</p>
-                <p><strong>Itens Retirados dia:</strong> {{ $pedido->dataRetirada }}</p>
+                <p class="destaque"><strong>Nome:</strong> {{ $pedido->cliente->nome }}</p>
+                <p class="destaque"><strong>Endereço:</strong> {{ $pedido->cliente->endereco }}</p>
+                <p class="destaque"><strong>Telefone:</strong> {{ $pedido->cliente->telefone }}</p>
             </td>
-            <td>
-                <p><strong>Orçamento dia:</strong> {{ $pedido->data }}</p>
-                <p><strong>Telefone:</strong> {{ $pedido->cliente->telefone }}</p>
+            <td class="right">
+                <p class="destaque"><strong>Orçamento dia:</strong> {{ $pedido->data }}</p>
+                <p class="destaque"><strong>Itens Retirados dia:</strong> {{ $pedido->dataRetirada }}</p>
             </td>
         </tr>
     </table>
@@ -169,7 +200,7 @@
     @endif
 
     <div class="section">
-        <h1><strong>Prazo de Entrega:</strong> {{ $pedido->prazo }}</h1>
+        <p class="prazo-entrega"><strong>Prazo de Entrega:</strong> {{ $pedido->prazo }}</p>
     </div>
 
     <a href="{{ route('pedidos.imprimirviatap', $pedido->id) }}" target="_blank" class="btn btn-primary">
