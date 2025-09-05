@@ -16,45 +16,64 @@ class AgendamentoService
         $this->repository = $repository;
     }
 
+    // Lista todos os agendamentos
     public function listarTodos()
     {
         return $this->repository->all();
     }
 
+    // Busca um agendamento pelo ID
     public function buscarPorId($id)
     {
         return $this->repository->find($id);
     }
 
+    // Cria um agendamento
     public function criar(array $dados)
     {
+        // Se houver cliente_id, preenche os dados do cliente
         if (!empty($dados['cliente_id'])) {
             $cliente = Cliente::find($dados['cliente_id']);
-            $dados['nome_cliente'] = $cliente->nome;
-            $dados['endereco'] = $cliente->endereco;
-            $dados['telefone'] = $cliente->telefone;
+            if ($cliente) {
+                $dados['nome_cliente'] = $cliente->nome;
+                $dados['endereco'] = $cliente->endereco;
+                $dados['telefone'] = $cliente->telefone;
+            }
         }
+
+        // Preenche campos padrão se não vierem no array
+        $dados['tipo'] = $dados['tipo'] ?? 'retirada';
+        $dados['data'] = $dados['data'] ?? now()->toDateString();
+        $dados['horario'] = $dados['horario'] ?? '09:00';
+        $dados['itens'] = $dados['itens'] ?? '';
+        $dados['observacao'] = $dados['observacao'] ?? '';
+        $dados['status'] = $dados['status'] ?? 'pendente';
 
         return $this->repository->create($dados);
     }
 
+    // Atualiza um agendamento
     public function atualizar(Agendamento $agendamento, array $dados)
     {
         if (!empty($dados['cliente_id'])) {
             $cliente = Cliente::find($dados['cliente_id']);
-            $dados['nome_cliente'] = $cliente->nome;
-            $dados['endereco'] = $cliente->endereco;
-            $dados['telefone'] = $cliente->telefone;
+            if ($cliente) {
+                $dados['nome_cliente'] = $cliente->nome;
+                $dados['endereco'] = $cliente->endereco;
+                $dados['telefone'] = $cliente->telefone;
+            }
         }
 
         return $this->repository->update($agendamento, $dados);
     }
 
+    // Deleta um agendamento
     public function deletar(Agendamento $agendamento)
     {
         return $this->repository->delete($agendamento);
     }
 
+    // Retorna eventos para o calendário
     public function eventos($tipo = null, $status = null)
     {
         $query = $this->repository->query();
@@ -84,6 +103,7 @@ class AgendamentoService
         });
     }
 
+    // Retorna itens e observações do cliente
     public function getItensCliente($clienteId)
     {
         $itens = Item::with('pedido')->whereHas('pedido', function ($query) use ($clienteId) {

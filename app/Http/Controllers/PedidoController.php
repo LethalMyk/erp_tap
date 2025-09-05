@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\PedidoService;
 use App\Services\ClienteService;
+use App\Services\AgendamentoService;
 use App\Models\Cliente;
 use App\Models\PedidoImagem;
 use App\Models\Profissional;
@@ -13,11 +14,16 @@ class PedidoController extends Controller
 {
     protected $pedidoService;
     protected $clienteService;
+    protected $agendamentoService;
 
-    public function __construct(PedidoService $pedidoService, ClienteService $clienteService)
-    {
+    public function __construct(
+        PedidoService $pedidoService,
+        ClienteService $clienteService,
+        AgendamentoService $agendamentoService
+    ) {
         $this->pedidoService = $pedidoService;
         $this->clienteService = $clienteService;
+        $this->agendamentoService = $agendamentoService;
     }
 
     public function index(Request $request)
@@ -61,27 +67,39 @@ class PedidoController extends Controller
         // Cria pedido completo
         $pedido = $this->pedidoService->criarPedidoCompleto($pedidoCompletoData);
 
+        // Cria agendamento automático no calendário
+        $this->agendamentoService->criar([
+            'tipo' => 'retirada', // ajuste para 'entrega' se necessário
+            'data' => $pedidoData['data_retirada'] ?? now()->toDateString(),
+            'horario' => $pedidoData['horario'] ?? '09:00',
+            'cliente_id' => $cliente->id,
+            'nome_cliente' => $cliente->nome,
+            'telefone' => $cliente->telefone,
+            'itens' => implode(', ', array_map(fn($item) => $item['nome_item'] ?? '', $data['items'] ?? [])),
+            'observacao' => $pedidoData['obs'] ?? '',
+        ]);
+
         return redirect()->route('pedidos.index')
-            ->with('success', 'Pedido criado com sucesso!');
+            ->with('success', 'Pedido criado com sucesso e agendamento gerado!');
     }
 
     public function imprimirViaTap($id)
-{
-    $pedido = $this->pedidoService->getPedidoCompleto($id);
-    return $this->pedidoService->gerarImpressaoViaTap($pedido);
-}
+    {
+        $pedido = $this->pedidoService->getPedidoCompleto($id);
+        return $this->pedidoService->gerarImpressaoViaTap($pedido);
+    }
 
-public function imprimirViaRetirada($id)
-{
-    $pedido = $this->pedidoService->getPedidoCompleto($id);
-    return $this->pedidoService->gerarImpressaoViaRetirada($pedido);
-}
+    public function imprimirViaRetirada($id)
+    {
+        $pedido = $this->pedidoService->getPedidoCompleto($id);
+        return $this->pedidoService->gerarImpressaoViaRetirada($pedido);
+    }
 
-public function imprimirViaCompleta($id)
-{
-    $pedido = $this->pedidoService->getPedidoCompleto($id);
-    return $this->pedidoService->gerarImpressaoViaCompleta($pedido);
-}
+    public function imprimirViaCompleta($id)
+    {
+        $pedido = $this->pedidoService->getPedidoCompleto($id);
+        return $this->pedidoService->gerarImpressaoViaCompleta($pedido);
+    }
 
     public function show($id)
     {
@@ -89,8 +107,10 @@ public function imprimirViaCompleta($id)
         return view('pedidos.show', compact('pedido'));
     }
 
-    public function adicionarImagem(Request $request, Pedido $pedido)
+    public function adicionarImagem(Request $request, $pedidoId)
     {
+        $pedido = $this->pedidoService->getPedidoCompleto($pedidoId);
+
         $request->validate([
             'imagens' => 'required',
             'imagens.*' => 'image|max:5120',
