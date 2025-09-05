@@ -2,29 +2,22 @@
 
 namespace App\Repositories;
 
-use Illuminate\Support\Facades\DB;
+use App\Models\Estoque;
 
 class EstoqueRepository
 {
-    /**
-     * Retorna todos os produtos disponíveis no estoque
-     *
-     * @return \Illuminate\Support\Collection
-     */
     public function allDisponiveis()
     {
-        return DB::table('estoque')
-            ->join('produtos', 'produtos.id', '=', 'estoque.produto_id')
-            ->select(
-                'produtos.id',
-                'produtos.nome',
-                'produtos.categoria',
-                'produtos.unidade_medida',   // Adiciona a unidade de medida
-                'estoque.quantidade_disponivel',
-                'estoque.valor_unitario'     // Adiciona valor unitário
-            )
-            ->where('estoque.quantidade_disponivel', '>', 0)
-            ->orderBy('produtos.nome', 'asc')
+        return Estoque::with('produto')
+            ->where('quantidade_disponivel', '>', 0)
+            ->orderBy('id', 'asc')
             ->get();
+    }
+
+    public function updateQuantidade($estoqueId, $quantidade)
+    {
+        return \DB::table('estoque')
+            ->where('id', $estoqueId) // aqui usamos o ID da tabela estoque
+            ->update(['quantidade_disponivel' => $quantidade]);
     }
 }

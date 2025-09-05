@@ -138,7 +138,8 @@ Route::post('/despesas/{id}/registrar-pagamento', [DespesaController::class, 're
 Route::get('/clientes/{id}/itens', [AgendamentoController::class, 'getItensCliente']);
 
 
-Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
 
+Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
+Route::put('/estoque/{id}/quantidade', [EstoqueController::class, 'updateQuantidade'])->name('estoque.updateQuantidade');
 
 require __DIR__.'/auth.php';

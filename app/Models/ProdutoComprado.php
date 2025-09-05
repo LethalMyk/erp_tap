@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Despesa;
 use App\Models\Produto;
+use App\Models\Estoque;
 
 class ProdutoComprado extends Model
 {
@@ -32,7 +33,7 @@ class ProdutoComprado extends Model
     ];
 
     /**
-     * Relaciona com a despesa
+     * Relaciona ProdutoComprado com a despesa
      */
     public function despesa()
     {
@@ -40,10 +41,26 @@ class ProdutoComprado extends Model
     }
 
     /**
-     * Relaciona com o produto
+     * Relaciona ProdutoComprado com o produto
      */
     public function produto()
     {
         return $this->belongsTo(Produto::class, 'produto_id');
+    }
+
+    /**
+     * Retorna o estoque atual do produto comprado
+     */
+    public function estoque()
+    {
+        return $this->hasOne(Estoque::class, 'produto_id', 'produto_id');
+    }
+
+    /**
+     * Calcula o valor total do produto (quantidade * valor_unitario)
+     */
+    public function calcularValorTotal()
+    {
+        return round($this->quantidade * $this->valor_unitario, 2);
     }
 }

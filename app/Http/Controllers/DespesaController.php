@@ -29,7 +29,9 @@ class DespesaController extends Controller
             $query->where('forma_pagamento', $request->forma_pagamento);
         }
 
-        $despesas = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->all());
+        $despesas = $query->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->appends($request->all());
 
         return view('despesas.index', compact('despesas'));
     }
@@ -55,7 +57,7 @@ class DespesaController extends Controller
             'chave_pagamento' => 'nullable|array',
             'comprovante' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'observacao' => 'nullable|string',
-
+            
             // Produtos
             'produtos_id' => 'nullable|array',
             'produtos_quantidade' => 'nullable|array',
@@ -67,11 +69,13 @@ class DespesaController extends Controller
             'produtos_categoria' => 'nullable|array',
         ]);
 
-        $comprovantePath = $request->hasFile('comprovante') 
+        $comprovantePath = $request->hasFile('comprovante')
             ? $request->file('comprovante')->store('comprovantes', 'public')
             : null;
 
-        DB::transaction(function() use ($validated, $request, $comprovantePath) {
+        DB::transaction(function () use ($validated, $request, $comprovantePath) {
+
+            // Cria a despesa
             $despesa = Despesa::create([
                 'descricao' => $validated['descricao'],
                 'valor_total' => $validated['valor'],
@@ -81,7 +85,7 @@ class DespesaController extends Controller
                 'created_by' => Auth::id(),
             ]);
 
-            // Parcelas
+            // Cria parcelas
             if ($validated['forma_pagamento'] === 'À VISTA') {
                 Parcela::create([
                     'despesa_id' => $despesa->id,
@@ -116,11 +120,14 @@ class DespesaController extends Controller
 
             // Produtos comprados e estoque
             $produtosCount = max(count($request->produtos_id ?? []), count($request->produtos_novo ?? []));
+
             for ($i = 0; $i < $produtosCount; $i++) {
+
                 $nomeProduto = $request->produtos_novo[$i] ?? null;
                 $categoria = $request->produtos_categoria[$i] ?? 'GERAL';
                 $unidade = $request->produtos_unidade_medida[$i] ?? 'UN';
 
+                // Cria ou busca produto
                 if ($nomeProduto) {
                     $produto = Produto::firstOrCreate(
                         ['nome' => $nomeProduto],
@@ -132,6 +139,7 @@ class DespesaController extends Controller
                     if (!$produto) continue;
                 }
 
+                // Cria entrada em produtos_comprados
                 ProdutoComprado::create([
                     'despesa_id' => $despesa->id,
                     'produto_id' => $produto->id,
@@ -140,16 +148,16 @@ class DespesaController extends Controller
                     'valor_unitario' => $request->produtos_valor_unitario[$i] ?? 0,
                     'valor_total' => $request->produtos_valor_total[$i] ?? 0,
                     'obs' => $request->produtos_obs[$i] ?? null,
-                    'categoria' => $categoria,
-                    'nome' => $nomeProduto ?? $produto->nome,
                 ]);
 
+                // Atualiza estoque
                 $estoque = Estoque::firstOrCreate(
                     ['produto_id' => $produto->id],
                     ['quantidade_disponivel' => 0, 'nivel_medio' => 0, 'quantidade_minima' => 0]
                 );
                 $estoque->increment('quantidade_disponivel', $request->produtos_quantidade[$i] ?? 0);
 
+                // Registro de movimento de estoque
                 MovimentoEstoque::create([
                     'tipo' => 'ENTRADA',
                     'estoque_id' => $estoque->id,
@@ -218,7 +226,7 @@ class DespesaController extends Controller
 
     public function destroy(Despesa $despesa)
     {
-        DB::transaction(function() use ($despesa) {
+        DB::transaction(function () use ($despesa) {
             foreach ($despesa->parcelas as $parcela) {
                 if ($parcela->comprovante) {
                     Storage::disk('public')->delete($parcela->comprovante);
