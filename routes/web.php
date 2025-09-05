@@ -19,6 +19,8 @@ use App\Http\Controllers\PesquisarController;
 use App\Http\Controllers\AgendamentoController;
 use App\Http\Middleware\CheckRole;
 use App\Http\Controllers\DespesaController;
+use App\Http\Controllers\EstoqueController;
+
 
 
 Route::get('/', function () {
@@ -134,4 +136,9 @@ Route::middleware(['auth'])->group(function () {
 Route::post('/despesas/{id}/registrar-pagamento', [DespesaController::class, 'registrarPagamento'])->name('despesas.registrar-pagamento');
 
 Route::get('/clientes/{id}/itens', [AgendamentoController::class, 'getItensCliente']);
+
+
+Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
+
+
 require __DIR__.'/auth.php';

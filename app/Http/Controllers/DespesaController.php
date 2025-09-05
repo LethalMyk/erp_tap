@@ -47,16 +47,16 @@ class DespesaController extends Controller
             'descricao' => 'required|string|max:255',
             'valor' => 'required|numeric',
             'categoria' => 'required|in:FORNECEDOR,AGUA,LUZ,MATERIAL,PARTICULAR,OUTROS',
-            'forma_pagamento' => 'required|in:À VISTA,A PRAZO', // forma da despesa
+            'forma_pagamento' => 'required|in:À VISTA,A PRAZO',
             'parcelas_descricao' => 'nullable|array',
             'parcelas_valor' => 'nullable|array',
-            'parcelas_forma_pagamento' => 'nullable|array', // forma de cada parcela
+            'parcelas_forma_pagamento' => 'nullable|array',
             'data_vencimento' => 'nullable|array',
             'chave_pagamento' => 'nullable|array',
             'comprovante' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'observacao' => 'nullable|string',
 
-            // Produtos comprados
+            // Produtos
             'produtos_id' => 'nullable|array',
             'produtos_quantidade' => 'nullable|array',
             'produtos_unidade_medida' => 'nullable|array',
@@ -67,36 +67,33 @@ class DespesaController extends Controller
             'produtos_categoria' => 'nullable|array',
         ]);
 
-        $comprovantePath = null;
-        if ($request->hasFile('comprovante')) {
-            $comprovantePath = $request->file('comprovante')->store('comprovantes', 'public');
-        }
+        $comprovantePath = $request->hasFile('comprovante') 
+            ? $request->file('comprovante')->store('comprovantes', 'public')
+            : null;
 
         DB::transaction(function() use ($validated, $request, $comprovantePath) {
-            $nota = Despesa::create([
+            $despesa = Despesa::create([
                 'descricao' => $validated['descricao'],
                 'valor_total' => $validated['valor'],
                 'categoria' => $validated['categoria'],
-                'forma_pagamento' => $validated['forma_pagamento'], // à vista / a prazo
+                'forma_pagamento' => $validated['forma_pagamento'],
                 'observacao' => $validated['observacao'] ?? null,
                 'created_by' => Auth::id(),
             ]);
 
             // Parcelas
             if ($validated['forma_pagamento'] === 'À VISTA') {
-                // Parcela única
                 Parcela::create([
-                    'despesa_id' => $nota->id,
+                    'despesa_id' => $despesa->id,
                     'numero_parcela' => 1,
                     'valor_parcela' => $validated['valor'],
                     'data_vencimento' => $validated['data'],
                     'status' => 'PAGO',
-                    'chave_pagamento' => $request->parcelas_chave_pagamento[0] ?? null,
-                    'forma_pagamento' => $request->parcelas_forma_pagamento[0] ?? 'PIX', // default PIX
+                    'chave_pagamento' => $request->chave_pagamento[0] ?? null,
+                    'forma_pagamento' => $request->parcelas_forma_pagamento[0] ?? 'PIX',
                     'comprovante' => $comprovantePath,
                 ]);
             } else {
-                // A PRAZO: múltiplas parcelas
                 $parcelasDesc = $request->parcelas_descricao ?? [$validated['descricao']];
                 $parcelasValor = $request->parcelas_valor ?? [$validated['valor']];
                 $parcelasForma = $request->parcelas_forma_pagamento ?? [];
@@ -105,7 +102,7 @@ class DespesaController extends Controller
 
                 foreach ($parcelasDesc as $index => $desc) {
                     Parcela::create([
-                        'despesa_id' => $nota->id,
+                        'despesa_id' => $despesa->id,
                         'numero_parcela' => $index + 1,
                         'valor_parcela' => $parcelasValor[$index] ?? $validated['valor'],
                         'data_vencimento' => $datas[$index] ?? null,
@@ -117,30 +114,26 @@ class DespesaController extends Controller
                 }
             }
 
-            // Produtos comprados + estoque
+            // Produtos comprados e estoque
             $produtosCount = max(count($request->produtos_id ?? []), count($request->produtos_novo ?? []));
             for ($i = 0; $i < $produtosCount; $i++) {
                 $nomeProduto = $request->produtos_novo[$i] ?? null;
                 $categoria = $request->produtos_categoria[$i] ?? 'GERAL';
                 $unidade = $request->produtos_unidade_medida[$i] ?? 'UN';
 
-                if (!$nomeProduto) {
+                if ($nomeProduto) {
+                    $produto = Produto::firstOrCreate(
+                        ['nome' => $nomeProduto],
+                        ['unidade_medida' => $unidade, 'categoria' => $categoria, 'descricao' => $request->produtos_obs[$i] ?? null]
+                    );
+                } else {
                     $produtoId = $request->produtos_id[$i] ?? null;
                     $produto = Produto::find($produtoId);
                     if (!$produto) continue;
-                } else {
-                    $produto = Produto::firstOrCreate(
-                        ['nome' => $nomeProduto],
-                        [
-                            'unidade_medida' => $unidade,
-                            'categoria' => $categoria,
-                            'descricao' => $request->produtos_obs[$i] ?? null
-                        ]
-                    );
                 }
 
                 ProdutoComprado::create([
-                    'despesa_id' => $nota->id,
+                    'despesa_id' => $despesa->id,
                     'produto_id' => $produto->id,
                     'quantidade' => $request->produtos_quantidade[$i] ?? 0,
                     'unidade_medida' => $unidade,
@@ -161,7 +154,7 @@ class DespesaController extends Controller
                     'tipo' => 'ENTRADA',
                     'estoque_id' => $estoque->id,
                     'quantidade' => $request->produtos_quantidade[$i] ?? 0,
-                    'vinculo' => 'Despesa ID '.$nota->id,
+                    'vinculo' => 'Despesa ID '.$despesa->id,
                     'usuario_id' => Auth::id(),
                     'data_movimento' => now(),
                     'obs' => $request->produtos_obs[$i] ?? null,
@@ -196,7 +189,7 @@ class DespesaController extends Controller
                     Storage::disk('public')->delete($parcela->comprovante);
                 }
                 $parcela->update([
-                    'comprovante' => $request->file('comprovante')->store('comprovantes','public')
+                    'comprovante' => $request->file('comprovante')->store('comprovantes', 'public')
                 ]);
             }
         }
