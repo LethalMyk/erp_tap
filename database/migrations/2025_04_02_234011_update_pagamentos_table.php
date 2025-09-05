@@ -12,7 +12,7 @@ return new class extends Migration
    public function up()
 {
     Schema::table('pagamentos', function (Blueprint $table) {
-        $table->enum('forma', ['PIX', 'DEBITO', 'DINHEIRO', 'CREDITO À VISTA', 'CREDITO PARCELADO', 'BOLETO', 'CHEQUE', 'OUTROS'])->change();
+        $table->enum('forma', ['PIX', 'DEBITO', 'DINHEIRO', 'CREDITO À VISTA', 'CREDITO PARCELADO', 'BOLETO', 'CHEQUE', 'OUTROS', 'A PRAZO', 'NA ENTREGA'])->change();
     });
 }
 

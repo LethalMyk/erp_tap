@@ -16,31 +16,47 @@ class PagamentoController extends Controller
         $this->service = $service;
     }
 
-  public function index(Request $request)
-{
-    $pedidos = Pedido::with(['cliente', 'pagamentos'])->get();
+    /**
+     * Lista todos os pedidos com pagamentos e valores calculados
+     */
+    public function index(Request $request)
+    {
+        $pedidos = Pedido::with(['cliente', 'pagamentos'])->get();
 
-    $pedidos = $pedidos->map(function ($pedido) {
-        $totalPago = $pedido->pagamentos->where('status', 'PAGAMENTO REGISTRADO')->sum('valor');
-        $valorResta = max(0, $pedido->valor - $totalPago);
-        return [
-            'pedido' => $pedido,
-            'pagamentos' => $pedido->pagamentos,
-            'total_pago' => $totalPago,
-            'valor_resta' => $valorResta,
-        ];
-    });
+        $pedidos = $pedidos->map(function ($pedido) {
+            // Somar apenas pagamentos registrados
+            $totalPago = $pedido->pagamentos
+                ->where('status', 'PAGAMENTO REGISTRADO')
+                ->sum('valor');
 
-    return view('pagamento.index', compact('pedidos'));
-}
+            $valorResta = max(0, $pedido->valor - $totalPago);
 
+            return [
+                'pedido' => $pedido,
+                'pagamentos' => $pedido->pagamentos,
+                'total_pago' => $totalPago,
+                'valor_resta' => $valorResta,
+            ];
+        });
 
+        return view('pagamento.index', compact('pedidos'));
+    }
+
+    /**
+     * Formulário de criação de pagamento
+     */
     public function create($cliente_id = null)
     {
-        $pedidos = $cliente_id ? Pedido::where('cliente_id', $cliente_id)->get() : Pedido::all();
+        $pedidos = $cliente_id 
+            ? Pedido::where('cliente_id', $cliente_id)->get() 
+            : Pedido::all();
+
         return view('pagamento.create', compact('pedidos', 'cliente_id'));
     }
 
+    /**
+     * Armazena um novo pagamento
+     */
     public function store(Request $request)
     {
         $dados = $request->validate([
@@ -53,22 +69,36 @@ class PagamentoController extends Controller
 
         $this->service->criar($dados);
 
-        return redirect()->route('pagamento.index')->with('success', 'Pagamento registrado com sucesso.');
+        return redirect()->route('pagamento.index')
+                         ->with('success', 'Pagamento registrado com sucesso.');
     }
 
+    /**
+     * Registra manualmente um pagamento que estava em aberto
+     */
     public function registrar(Request $request, $id)
     {
         $pagamento = Pagamento::findOrFail($id);
+
+        // Só altera status de EM ABERTO para PAGAMENTO REGISTRADO
         $this->service->registrar($pagamento, $request->input('obs'));
-        return redirect()->back()->with('success', 'Pagamento registrado com sucesso!');
+
+        return redirect()->back()
+                         ->with('success', 'Pagamento registrado com sucesso!');
     }
 
+    /**
+     * Formulário de edição de pagamento
+     */
     public function edit(Pagamento $pagamento)
     {
         $pedidos = Pedido::all();
         return view('pagamento.edit', compact('pagamento', 'pedidos'));
     }
 
+    /**
+     * Atualiza um pagamento
+     */
     public function update(Request $request, Pagamento $pagamento)
     {
         $dados = $request->validate([
@@ -79,12 +109,18 @@ class PagamentoController extends Controller
 
         $this->service->atualizar($pagamento, $dados);
 
-        return redirect()->route('pagamento.index')->with('success', 'Pagamento atualizado com sucesso!');
+        return redirect()->route('pagamento.index')
+                         ->with('success', 'Pagamento atualizado com sucesso!');
     }
 
+    /**
+     * Exclui um pagamento
+     */
     public function destroy(Pagamento $pagamento)
     {
         $this->service->deletar($pagamento);
-        return redirect()->route('pagamento.index')->with('success', 'Pagamento excluído com sucesso!');
+
+        return redirect()->route('pagamento.index')
+                         ->with('success', 'Pagamento excluído com sucesso!');
     }
 }

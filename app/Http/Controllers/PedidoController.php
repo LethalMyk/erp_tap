@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\PedidoService;
 use App\Services\ClienteService;
 use App\Services\AgendamentoService;
+use App\Services\PagamentoService;
 use App\Models\Cliente;
 use App\Models\PedidoImagem;
 use App\Models\Profissional;
@@ -15,15 +16,18 @@ class PedidoController extends Controller
     protected $pedidoService;
     protected $clienteService;
     protected $agendamentoService;
+    protected $pagamentoService;
 
     public function __construct(
         PedidoService $pedidoService,
         ClienteService $clienteService,
-        AgendamentoService $agendamentoService
+        AgendamentoService $agendamentoService,
+        PagamentoService $pagamentoService
     ) {
         $this->pedidoService = $pedidoService;
         $this->clienteService = $clienteService;
         $this->agendamentoService = $agendamentoService;
+        $this->pagamentoService = $pagamentoService;
     }
 
     public function index(Request $request)
@@ -48,28 +52,37 @@ class PedidoController extends Controller
         $clienteData = $data['cliente'] ?? [];
         $cliente = $this->clienteService->criarOuAtualizarCliente($clienteData);
 
-        // Prepara dados do pedido completo
+        // Prepara dados do pedido
         $pedidoData = $data['pedido'] ?? [];
         $pedidoData['cliente_id'] = $cliente->id;
         $pedidoData['qntItens'] = count($data['items'] ?? []);
-        $pedidoData['valor'] = $data['valor'] ?? 0; // ✅ pega direto do formulário
+        $pedidoData['valor'] = $data['valor'] ?? 0;
 
-        // Prepara array completo para criar pedido com itens, terceirizadas, pagamentos e imagens
+        // Cria o pedido completo (sem pagamentos ainda)
         $pedidoCompletoData = [
             'cliente_id' => $cliente->id,
             'cliente' => $clienteData,
             'pedido' => $pedidoData,
             'items' => $data['items'] ?? [],
-            'pagamentos' => $data['pagamentos'] ?? [],
             'imagens' => $request->file('imagens') ?? [],
         ];
 
-        // Cria pedido completo
         $pedido = $this->pedidoService->criarPedidoCompleto($pedidoCompletoData);
+
+        // Cria pagamentos associados corretamente
+        foreach ($data['pagamentos'] ?? [] as $pagamentoData) {
+            $this->pagamentoService->criar([
+                'pedido_id' => $pedido->id,
+                'valor' => $pagamentoData['valor'] ?? 0,
+                'forma' => $pagamentoData['forma'] ?? 'OUTROS',
+                'obs' => $pagamentoData['obs'] ?? null,
+                'data' => $pagamentoData['data'] ?? now(),
+            ]);
+        }
 
         // Cria agendamento automático no calendário
         $this->agendamentoService->criar([
-            'tipo' => 'retirada', // ajuste para 'entrega' se necessário
+            'tipo' => 'retirada',
             'data' => $pedidoData['data_retirada'] ?? now()->toDateString(),
             'horario' => $pedidoData['horario'] ?? '09:00',
             'cliente_id' => $cliente->id,
@@ -80,7 +93,7 @@ class PedidoController extends Controller
         ]);
 
         return redirect()->route('pedidos.index')
-            ->with('success', 'Pedido criado com sucesso e agendamento gerado!');
+            ->with('success', 'Pedido criado com sucesso, agendamento gerado e pagamentos configurados!');
     }
 
     public function imprimirViaTap($id)
