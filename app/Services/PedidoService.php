@@ -146,6 +146,21 @@ class PedidoService
         $imagem->delete();
     }
 
+    public function gerarImpressaoViaTap($pedido)
+{
+    return view('pedidos.vias.imprimirviatap', compact('pedido'));
+}
+
+public function gerarImpressaoViaRetirada($pedido)
+{
+    return view('pedidos.vias.imprimirviaretirada', compact('pedido'));
+}
+
+public function gerarImpressaoViaCompleta($pedido)
+{
+    return view('pedidos.vias.imprimirviacompleta', compact('pedido'));
+}
+
     public function getPedidoCompleto(int $id)
     {
         return Pedido::with(['cliente', 'items.terceirizadas', 'pagamentos', 'imagens'])->findOrFail($id);

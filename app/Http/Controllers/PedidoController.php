@@ -65,6 +65,24 @@ class PedidoController extends Controller
             ->with('success', 'Pedido criado com sucesso!');
     }
 
+    public function imprimirViaTap($id)
+{
+    $pedido = $this->pedidoService->getPedidoCompleto($id);
+    return $this->pedidoService->gerarImpressaoViaTap($pedido);
+}
+
+public function imprimirViaRetirada($id)
+{
+    $pedido = $this->pedidoService->getPedidoCompleto($id);
+    return $this->pedidoService->gerarImpressaoViaRetirada($pedido);
+}
+
+public function imprimirViaCompleta($id)
+{
+    $pedido = $this->pedidoService->getPedidoCompleto($id);
+    return $this->pedidoService->gerarImpressaoViaCompleta($pedido);
+}
+
     public function show($id)
     {
         $pedido = $this->pedidoService->getPedidoCompleto($id);
