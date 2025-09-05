@@ -52,7 +52,7 @@ class PedidoController extends Controller
         $pedidoData = $data['pedido'] ?? [];
         $pedidoData['cliente_id'] = $cliente->id;
         $pedidoData['qntItens'] = count($data['items'] ?? []);
-        $pedidoData['valor'] = $pedidoData['valor'] ?? 0;
+        $pedidoData['valor'] = $data['valor'] ?? 0; // ✅ pega direto do formulário
 
         // Prepara array completo para criar pedido com itens, terceirizadas, pagamentos e imagens
         $pedidoCompletoData = [
@@ -75,7 +75,7 @@ class PedidoController extends Controller
             'cliente_id' => $cliente->id,
             'nome_cliente' => $cliente->nome,
             'telefone' => $cliente->telefone,
-            'itens' => implode(', ', array_map(fn($item) => $item['nome_item'] ?? '', $data['items'] ?? [])),
+            'itens' => implode(', ', array_map(fn($item) => $item['nomeItem'] ?? '', $data['items'] ?? [])),
             'observacao' => $pedidoData['obs'] ?? '',
         ]);
 

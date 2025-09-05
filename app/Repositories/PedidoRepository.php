@@ -18,7 +18,7 @@ class PedidoRepository
      */
     public function getFiltered(array $filters = [])
     {
-        $query = $this->model->with(['cliente', 'imagens']);
+        $query = $this->model->with(['cliente', 'items', 'pagamentos', 'imagens']);
 
         if (!empty($filters['id'])) {
             $query->where('id', $filters['id']);
@@ -72,7 +72,7 @@ class PedidoRepository
         } else {
             $sortField = $filters['sort_field'] ?? 'id';
             $sortDirection = $filters['sort_direction'] ?? 'desc';
-            $allowedFields = ['id', 'data', 'andamento', 'tapeceiro', 'prazo'];
+            $allowedFields = ['id', 'data', 'andamento', 'tapeceiro', 'prazo', 'valor'];
 
             if (in_array($sortField, $allowedFields)) {
                 $query->orderBy($sortField, $sortDirection);
@@ -97,6 +97,37 @@ class PedidoRepository
      */
     public function findWithRelations(int $id)
     {
-        return $this->model->with(['cliente', 'items.terceirizadas', 'pagamentos', 'imagens'])->findOrFail($id);
+        return $this->model->with([
+            'cliente',
+            'items.terceirizadas',
+            'pagamentos',
+            'imagens'
+        ])->findOrFail($id);
+    }
+
+    /**
+     * Cria ou atualiza um pedido (para integração com Service)
+     */
+    public function save(array $data, ?Pedido $pedido = null)
+    {
+        if ($pedido) {
+            $pedido->update($data);
+            return $pedido;
+        }
+
+        return $this->model->create($data);
+    }
+
+    /**
+     * Atualiza apenas o valor do pedido
+     */
+    public function updateValor(Pedido $pedido, float $valor)
+    {
+        $pedido->update([
+            'valor'      => $valor,
+            'valorResta' => $valor
+        ]);
+
+        return $pedido;
     }
 }
