@@ -1,5 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
+        <datalist id="servicos-terceirizados">
+    <option value="Impermeabilização">
+    <option value="Higienização">
+    <option value="Invernização">
+    <option value="Pintura">
+    <option value="Outros">
+</datalist>
+
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Formulário de Pedido</h2>
     </x-slot>
 
@@ -8,7 +16,7 @@
             <div class="mb-4 p-4 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
         @endif
 
-        <form action="{{ route('pedidos.store') }}" method="POST" enctype="multipart/form-data">
+<form action="{{ route('pedidos.store') }}" method="POST" enctype="multipart/form-data" onsubmit="return validarFormulario()">
             @csrf
 
             <!-- Data do Pedido -->
@@ -17,28 +25,54 @@
                 <input type="date" name="data" class="w-min border border-gray-300 rounded px-2 py-1">
             </div>
 
-            <!-- Cliente -->
-            <div class="mb-6 p-4 bg-white rounded-lg shadow">
-                <h3 class="text-lg font-semibold mb-2 border-b pb-2">Cliente</h3>
-                <div class="flex flex-wrap gap-2">
-                    <input type="text" name="cliente[nome]" placeholder="Nome do Cliente" required class="flex-1 min-w-[200px] border border-gray-300 rounded px-2 py-1">
-                    <input type="text" name="cliente[telefone]" id="telefone" placeholder="(13) 99999-9999" required maxlength="15" class="w-40 border border-gray-300 rounded px-2 py-1">
-                    <input type="text" name="cliente[cpf]" placeholder="CPF" class="w-40 border border-gray-300 rounded px-2 py-1">
-                    <input type="email" name="cliente[email]" placeholder="E-mail" class="flex-1 min-w-[200px] border border-gray-300 rounded px-2 py-1">
-                </div>
-                <div class="flex flex-wrap gap-2 mb-2">
-                    <input type="text" name="logradouro" placeholder="Logradouro (Rua, Av...)" class="flex-1 min-w-[150px] border border-gray-300 rounded px-2 py-1">
-                    <input type="text" name="numero" placeholder="Número" class="w-32 border border-gray-300 rounded px-2 py-1">
-                    <input type="text" name="complemento" placeholder="Complemento (Apto, Bloco)" class="w-40 border border-gray-300 rounded px-2 py-1">
-                </div>
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <input type="text" name="bairro" placeholder="Bairro" class="flex-1 min-w-[150px] border border-gray-300 rounded px-2 py-1">
-                    <input type="text" name="cidade" placeholder="Cidade" class="flex-1 min-w-[150px] border border-gray-300 rounded px-2 py-1">
-                    <input type="text" name="estado" placeholder="Estado (UF)" maxlength="2" class="w-20 border border-gray-300 rounded px-2 py-1">
-                    <input type="text" name="cep" placeholder="CEP" class="w-28 border border-gray-300 rounded px-2 py-1">
-                </div>
-            </div>
+<!-- Cliente -->
+<div class="mb-6 p-4 bg-white rounded-lg shadow">
+    <h3 class="text-lg font-semibold mb-2 border-b pb-2">Cliente</h3>
 
+    <!-- Caixa para selecionar cliente existente -->
+    <div class="flex items-center mb-4 gap-2">
+        <input type="checkbox" id="cliente_existente_checkbox" class="h-4 w-4">
+        <label for="cliente_existente_checkbox" class="text-sm">Cliente Existente</label>
+
+        <select id="cliente_existente_select" class="flex-1 border border-gray-300 rounded px-2 py-1" style="display:none">
+            <option value="">Selecione o cliente</option>
+            @foreach($clientes as $c)
+                <option value="{{ $c->id }}"
+                    data-nome="{{ $c->nome }}"
+                    data-telefone="{{ $c->telefone }}"
+                    data-cpf="{{ $c->cpf }}"
+                    data-email="{{ $c->email }}"
+                    data-logradouro="{{ $c->logradouro }}"
+                    data-numero="{{ $c->numero }}"
+                    data-complemento="{{ $c->complemento }}"
+                    data-bairro="{{ $c->bairro }}"
+                    data-cidade="{{ $c->cidade }}"
+                    data-estado="{{ $c->estado }}"
+                    data-cep="{{ $c->cep }}">
+                    {{ $c->nome }} - {{ $c->telefone }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+        <input type="text" name="cliente[nome]" id="cliente_nome" placeholder="Nome do Cliente" required class="flex-1 min-w-[200px] border border-gray-300 rounded px-2 py-1">
+        <input type="text" name="cliente[telefone]" id="telefone" placeholder="(13) 99999-9999" required maxlength="15" class="w-40 border border-gray-300 rounded px-2 py-1">
+        <input type="text" name="cliente[cpf]" id="cliente_cpf" placeholder="CPF" class="w-40 border border-gray-300 rounded px-2 py-1">
+        <input type="email" name="cliente[email]" id="cliente_email" placeholder="E-mail" class="flex-1 min-w-[200px] border border-gray-300 rounded px-2 py-1">
+    </div>
+    <div class="flex flex-wrap gap-2 mb-2">
+        <input type="text" name="logradouro" id="cliente_logradouro" placeholder="Logradouro (Rua, Av...)" class="flex-1 min-w-[150px] border border-gray-300 rounded px-2 py-1">
+        <input type="text" name="numero" id="cliente_numero" placeholder="Número" class="w-32 border border-gray-300 rounded px-2 py-1">
+        <input type="text" name="complemento" id="cliente_complemento" placeholder="Complemento (Apto, Bloco)" class="w-40 border border-gray-300 rounded px-2 py-1">
+    </div>
+    <div class="flex flex-wrap gap-2 mb-4">
+        <input type="text" name="bairro" id="cliente_bairro" placeholder="Bairro" class="flex-1 min-w-[150px] border border-gray-300 rounded px-2 py-1">
+        <input type="text" name="cidade" id="cliente_cidade" placeholder="Cidade" class="flex-1 min-w-[150px] border border-gray-300 rounded px-2 py-1">
+        <input type="text" name="estado" id="cliente_estado" placeholder="Estado (UF)" maxlength="2" class="w-20 border border-gray-300 rounded px-2 py-1">
+        <input type="text" name="cep" id="cliente_cep" placeholder="CEP" class="w-28 border border-gray-300 rounded px-2 py-1">
+    </div>
+</div>
             <!-- Itens -->
             <div class="mb-6 p-6 bg-white rounded-lg shadow">
                 <h3 class="text-lg font-semibold mb-4 border-b pb-2">Itens</h3>
@@ -47,7 +81,7 @@
                         <div class="flex gap-2 mb-2 flex-wrap">
                             <input type="text" name="items[0][nomeItem]" placeholder="Nome do Item" class="flex-1 min-w-[150px]">
                             <input type="text" name="items[0][material]" placeholder="Material" class="w-40">
-                            <input type="number" name="items[0][metragem]" placeholder="Metragem" step="0.01" class="w-24">
+                            <input type="number" name="items[0][metragem]" placeholder="Metragem" step="0.01" value="0" class="w-24">
                             <select name="items[0][material_disponib]" required class="w-32">
                                 <option value="Pedir" selected>Pedir</option>
                                 <option value="Complementar">Complementar</option>
@@ -57,9 +91,13 @@
                         <textarea name="items[0][especifi]" placeholder="Especificação / Observações do Item" rows="3"
                                   class="block w-full mb-2 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"></textarea>
                         <button type="button" onclick="removerItem(this)" class="mb-2 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">Remover Item</button>
+                        <br>
                         <h4 class="font-semibold mb-1">Serviços Terceirizados</h4>
                         <div class="terceirizadas-container mb-2" id="terceirizadas-0"></div>
                         <button type="button" onclick="addTerceirizada(0)" class="mb-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded">+ Adicionar Terceirizadas</button>
+                  <br>
+                  <br>
+                        <hr>
                     </div>
                 </div>
                 <button type="button" onclick="addItem()" class="mb-4 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded">+ Adicionar Item</button>
@@ -85,7 +123,7 @@
             <div class="flex gap-4 mb-4">
                 <div class="flex-1">
                     <label>Data de Retirada</label>
-                    <input type="date" name="data_retirada" id="data_retirada" class="w-min">
+<input type="date" name="pedido[data_retirada]" id="data_retirada" class="w-min">
                 </div>
                 <div class="flex-1">
                     <label>Prazo</label>
@@ -95,16 +133,16 @@
             </div>
 
             <!-- Valor Total -->
-            <h3 class="text-lg font-semibold mb-2">Valor Total</h3>
-            <input type="number" step="0.01" name="valor" placeholder="Valor Total" required class="block w-full mb-4 border border-gray-300 rounded px-2 py-1">
+<h3 class="text-lg font-semibold mb-2">Valor Total</h3>
+<input type="text" id="valor_total" name="valor" placeholder="R$ 0,00" required class="block w-full mb-4 border border-gray-300 rounded px-2 py-1">
 
             <!-- Pagamentos -->
             <div class="mb-6 p-6 bg-white rounded-lg shadow">
                 <h3 class="text-lg font-semibold mb-4 border-b pb-2">Pagamentos</h3>
                 <div id="pagamentos" class="mb-4">
                     <div class="pagamento mb-2">
-                        <input type="number" step="0.01" name="pagamentos[0][valor]" placeholder="Valor" required class="mb-1 block w-full border border-gray-300 rounded px-2 py-1">
-                        <select name="pagamentos[0][forma]" required onchange="toggleDataPagamento(this)" class="mb-1 block w-full border border-gray-300 rounded px-2 py-1">
+  <input type="text" name="pagamentos[0][valor]" placeholder="R$ 0,00" required class="mb-1 block w-full border border-gray-300 rounded px-2 py-1 valor-mask">
+                             <select name="pagamentos[0][forma]" required onchange="toggleDataPagamento(this)" class="mb-1 block w-full border border-gray-300 rounded px-2 py-1">
                             <option value="">Selecione</option>
                             <option value="PIX">PIX</option>
                             <option value="DEBITO">DEBITO</option>
@@ -120,6 +158,7 @@
                         <input type="text" name="pagamentos[0][obs]" placeholder="Observação" class="mb-1 block w-full border border-gray-300 rounded px-2 py-1">
                         <input type="date" name="pagamentos[0][data]" style="display:none; margin-top:5px;" class="mb-2 block w-full border border-gray-300 rounded px-2 py-1">
                         <button type="button" onclick="removerPagamento(this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">Remover</button>
+                        <br><br><hr>
                     </div>
                 </div>
                 <button type="button" onclick="addPagamento()" class="mb-4 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded">+ Adicionar Pagamento</button>
@@ -155,7 +194,7 @@
                 <div class="flex gap-2 mb-2 flex-wrap">
                     <input type="text" name="items[${itemIndex}][nomeItem]" placeholder="Nome do Item" class="flex-1 min-w-[150px]">
                     <input type="text" name="items[${itemIndex}][material]" placeholder="Material" class="w-40">
-                    <input type="number" name="items[${itemIndex}][metragem]" placeholder="Metragem" step="0.01" class="w-24">
+                    <input type="number" name="items[${itemIndex}][metragem]" placeholder="Metragem" step="0.01" value="0" class="w-24">
                     <select name="items[${itemIndex}][material_disponib]" required class="w-32">
                         <option value="Pedir" selected>Pedir</option>
                         <option value="Complementar">Complementar</option>
@@ -167,24 +206,33 @@
                 <h4 class="font-semibold mb-1">Serviços Terceirizados</h4>
                 <div class="terceirizadas-container mb-2" id="terceirizadas-${itemIndex}"></div>
                 <button type="button" onclick="addTerceirizada(${itemIndex})" class="mb-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded">+ Adicionar Terceirizadas</button>
-            `;
+                 <br>
+                  <br>
+                        <hr>`;
             wrapper.appendChild(newItem);
             terceirizadaIndex[itemIndex] = 0;
             itemIndex++;
         }
 
-        function addTerceirizada(itemIdx) {
-            const container = document.getElementById(`terceirizadas-${itemIdx}`);
-            const newTerceirizada = document.createElement('div');
-            newTerceirizada.classList.add('terceirizada','mb-1');
-            newTerceirizada.innerHTML = `
-                <input type="text" name="items[${itemIdx}][terceirizadas][${terceirizadaIndex[itemIdx]}][tipo]" placeholder="Tipo de Serviço" required class="mb-1 block w-full border border-gray-300 rounded px-2 py-1">
-                <input type="text" name="items[${itemIdx}][terceirizadas][${terceirizadaIndex[itemIdx]}][obs]" placeholder="Observação" class="mb-1 block w-full border border-gray-300 rounded px-2 py-1">
-                <button type="button" onclick="removerTerceirizada(this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded mb-2">Remover</button>
-            `;
-            container.appendChild(newTerceirizada);
-            terceirizadaIndex[itemIdx]++;
-        }
+     function addTerceirizada(itemIdx) {
+    const container = document.getElementById(`terceirizadas-${itemIdx}`);
+    const newTerceirizada = document.createElement('div');
+    newTerceirizada.classList.add('terceirizada','mb-1');
+    newTerceirizada.innerHTML = `
+        <input type="text" name="items[${itemIdx}][terceirizadas][${terceirizadaIndex[itemIdx]}][tipo]" 
+               placeholder="Tipo de Serviço" 
+               list="servicos-terceirizados" 
+               required 
+               class="mb-1 block w-full border border-gray-300 rounded px-2 py-1">
+        <input type="text" name="items[${itemIdx}][terceirizadas][${terceirizadaIndex[itemIdx]}][obs]" 
+               placeholder="Observação" 
+               class="mb-1 block w-full border border-gray-300 rounded px-2 py-1">
+        <button type="button" onclick="removerTerceirizada(this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded mb-2">Remover</button>
+    `;
+    container.appendChild(newTerceirizada);
+    terceirizadaIndex[itemIdx]++;
+}
+
 
         function addPagamento() {
             const wrapper = document.getElementById('pagamentos');
@@ -207,7 +255,7 @@
                 </select>
                 <input type="text" name="pagamentos[${pagamentoIndex}][obs]" placeholder="Observação" class="mb-1 block w-full border border-gray-300 rounded px-2 py-1">
                 <input type="date" name="pagamentos[${pagamentoIndex}][data]" style="display:none; margin-top:5px;" class="mb-2 block w-full border border-gray-300 rounded px-2 py-1">
-                <button type="button" onclick="removerPagamento(this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">Remover</button>
+                <button type="button" onclick="removerPagamento(this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">Remover</button><br><br><hr>
             `;
             wrapper.appendChild(newPagamento);
             pagamentoIndex++;
@@ -216,7 +264,7 @@
         function toggleDataPagamento(select) {
             const pagamentoDiv = select.closest('.pagamento');
             const inputData = pagamentoDiv.querySelector('input[type="date"]');
-            const mostrar = ['OUTROS','A PRAZO'].includes(select.value);
+            const mostrar = ['OUTROS','A PRAZO', 'BOLETO', 'CHEQUE'].includes(select.value);
             inputData.style.display = mostrar ? 'block' : 'none';
             inputData.required = mostrar;
             if(!mostrar) inputData.value='';
@@ -261,5 +309,140 @@
                 }
             });
         });
+        // Função para formatar moeda brasileira
+function formatarMoeda(input) {
+    let value = input.value.replace(/\D/g, '');
+    value = (value / 100).toFixed(2) + '';
+    value = value.replace('.', ',');
+    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    input.value = 'R$ ' + value;
+}
+
+// Aplicar máscara no campo do valor total
+const valorTotal = document.getElementById('valor_total');
+valorTotal.addEventListener('input', function() {
+    formatarMoeda(this);
+});
+
+// Aplicar máscara nos pagamentos dinamicamente
+document.addEventListener("input", function(e) {
+    if(e.target.classList.contains('valor-mask')){
+        formatarMoeda(e.target);
+    }
+});
+
     </script>
+
+    <script>
+document.addEventListener("DOMContentLoaded", function() {
+    const checkbox = document.getElementById('cliente_existente_checkbox');
+    const select = document.getElementById('cliente_existente_select');
+
+    checkbox.addEventListener('change', function() {
+        if(this.checked) {
+            select.style.display = 'block';
+        } else {
+            select.style.display = 'none';
+            select.value = '';
+            // Limpar campos
+            ['nome','telefone','cpf','email','logradouro','numero','complemento','bairro','cidade','estado','cep'].forEach(id => {
+                document.getElementById('cliente_'+id).value = '';
+            });
+        }
+    });
+
+    select.addEventListener('change', function() {
+        const option = select.selectedOptions[0];
+        if(option && option.value) {
+            ['nome','telefone','cpf','email','logradouro','numero','complemento','bairro','cidade','estado','cep'].forEach(field => {
+                document.getElementById('cliente_'+field).value = option.dataset[field] || '';
+            });
+        } else {
+            ['nome','telefone','cpf','email','logradouro','numero','complemento','bairro','cidade','estado','cep'].forEach(field => {
+                document.getElementById('cliente_'+field).value = '';
+            });
+        }
+    });
+});
+
+document.getElementById('cliente_existente_checkbox').addEventListener('change', function() {
+    const select = document.getElementById('cliente_existente_select');
+    select.style.display = this.checked ? 'block' : 'none';
+});
+
+document.getElementById('cliente_existente_select').addEventListener('change', function() {
+    const option = this.selectedOptions[0];
+    if (!option || !option.value) return;
+
+    document.querySelector('input[name="cliente[nome]"]').value = option.dataset.nome || '';
+    document.querySelector('input[name="cliente[telefone]"]').value = option.dataset.telefone || '';
+    document.querySelector('input[name="cliente[cpf]"]').value = option.dataset.cpf || '';
+    document.querySelector('input[name="cliente[email]"]').value = option.dataset.email || '';
+    document.querySelector('input[name="logradouro"]').value = option.dataset.logradouro || '';
+    document.querySelector('input[name="numero"]').value = option.dataset.numero || '';
+    document.querySelector('input[name="complemento"]').value = option.dataset.complemento || '';
+    document.querySelector('input[name="bairro"]').value = option.dataset.bairro || '';
+    document.querySelector('input[name="cidade"]').value = option.dataset.cidade || '';
+    document.querySelector('input[name="estado"]').value = option.dataset.estado || '';
+    document.querySelector('input[name="cep"]').value = option.dataset.cep || '';
+});
+function validarFormulario() {
+    let erros = [];
+
+    // Data do pedido
+    const dataPedido = document.querySelector('input[name="data"]');
+    if (!dataPedido.value) erros.push("Data do pedido não pode estar vazia.");
+
+    // Cliente
+    const nomeCliente = document.getElementById('cliente_nome');
+    const telefoneCliente = document.getElementById('telefone');
+    if (!nomeCliente.value) erros.push("Nome do cliente é obrigatório.");
+    if (!telefoneCliente.value) erros.push("Telefone do cliente é obrigatório.");
+
+    // Itens
+    const itens = document.querySelectorAll('.item');
+    if (itens.length === 0) erros.push("Adicione pelo menos um item.");
+
+    itens.forEach((item, idx) => {
+        const nomeItem = item.querySelector(`input[name^="items"][name$="[nomeItem]"]`);
+        const metragem = item.querySelector(`input[name^="items"][name$="[metragem]"]`);
+        const materialDisp = item.querySelector(`select[name^="items"][name$="[material_disponib]"]`);
+
+        if (!nomeItem.value) erros.push(`Item ${idx+1}: Nome é obrigatório.`);
+        if (!materialDisp.value) erros.push(`Item ${idx+1}: Selecione a disponibilidade do material.`);
+        
+        // Terceirizadas
+        const terceirizadas = item.querySelectorAll('.terceirizada input[name$="[tipo]"]');
+        terceirizadas.forEach((t, tIdx) => {
+            if (!t.value) erros.push(`Item ${idx+1}, Terceirizada ${tIdx+1}: Tipo de serviço é obrigatório.`);
+        });
+    });
+
+    // Pagamentos
+    const pagamentos = document.querySelectorAll('.pagamento');
+    pagamentos.forEach((p, pIdx) => {
+        const valor = p.querySelector('input[name$="[valor]"]');
+        const forma = p.querySelector('select[name$="[forma]"]');
+        const data = p.querySelector('input[type="date"]');
+
+        if (!valor.value || parseFloat(valor.value.replace(/[R$,.]/g,'')) <= 0) erros.push(`Pagamento ${pIdx+1}: Valor inválido.`);
+        if (!forma.value) erros.push(`Pagamento ${pIdx+1}: Selecione a forma.`);
+        if (data && data.style.display !== 'none' && !data.value) erros.push(`Pagamento ${pIdx+1}: Informe a data.`);
+    });
+
+
+    // Valor total
+    const valorTotal = document.getElementById('valor_total');
+    if (!valorTotal.value || parseFloat(valorTotal.value.replace(/[R$,.]/g,'')) <= 0) erros.push("Valor total inválido.");
+
+    // Exibir erros
+    if (erros.length > 0) {
+        alert("Corrija os seguintes erros:\n\n" + erros.join("\n"));
+        return false; // impede o submit
+    }
+
+    return true; // envia o formulário
+}
+
+</script>
 </x-app-layout>

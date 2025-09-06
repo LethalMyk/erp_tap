@@ -15,6 +15,21 @@ class PagamentoService
         $this->repository = $repository;
     }
 
+    /**
+     * Converte valor monetário brasileiro para float
+     * Ex: "R$ 1.234,56" => 1234.56
+     */
+    private function formatarValor($valor)
+    {
+        if (is_string($valor)) {
+            $valor = str_replace(['R$', ' '], '', $valor); // remove R$ e espaços
+            $valor = str_replace('.', '', $valor);         // remove separador de milhar
+            $valor = str_replace(',', '.', $valor);        // substitui vírgula por ponto
+            $valor = floatval($valor);
+        }
+        return $valor ?? 0;
+    }
+
     public function listarTodos()
     {
         return $this->repository->all();
@@ -29,17 +44,17 @@ class PagamentoService
     {
         $pedido = Pedido::findOrFail($dados['pedido_id']);
 
+        $dados['valor'] = $this->formatarValor($dados['valor'] ?? 0);
+
         $forma = strtoupper(trim($dados['forma']));
         $formasEmAberto = ['BOLETO', 'CHEQUE', 'OUTROS', 'NA ENTREGA', 'A PRAZO'];
 
-        // Define status do pagamento
         $status = in_array($forma, $formasEmAberto) ? 'EM ABERTO' : 'PAGAMENTO REGISTRADO';
         $dados['status'] = $status;
         $dados['data'] = $dados['data'] ?? now();
 
         $pagamento = $this->repository->create($dados);
 
-        // Atualiza pedido apenas se o pagamento estiver registrado
         if ($status === 'PAGAMENTO REGISTRADO') {
             $this->atualizarStatusPedido($pedido);
         }
@@ -51,6 +66,10 @@ class PagamentoService
     {
         $pedido = $pagamento->pedido;
 
+        if (isset($dados['valor'])) {
+            $dados['valor'] = $this->formatarValor($dados['valor']);
+        }
+
         if (isset($dados['forma'])) {
             $forma = strtoupper(trim($dados['forma']));
             $formasEmAberto = ['BOLETO', 'CHEQUE', 'OUTROS', 'NA ENTREGA', 'A PRAZO'];
@@ -59,14 +78,8 @@ class PagamentoService
 
         $this->repository->update($pagamento, $dados);
 
-        // Atualiza pedido com base no status atualizado do pagamento
-        $pagamento->refresh(); // garante que temos o status atualizado
-        if ($pagamento->status === 'PAGAMENTO REGISTRADO') {
-            $this->atualizarStatusPedido($pedido);
-        } else {
-            // Se o pagamento passou a estar em aberto, também recalcula valorResta
-            $this->atualizarStatusPedido($pedido);
-        }
+        $pagamento->refresh();
+        $this->atualizarStatusPedido($pedido);
 
         return $pagamento;
     }
@@ -75,14 +88,11 @@ class PagamentoService
     {
         $pedido = $pagamento->pedido;
         $this->repository->delete($pagamento);
-
-        // Atualiza valor restante após exclusão
         $this->atualizarStatusPedido($pedido);
     }
 
     public function registrar(Pagamento $pagamento, $obs = null)
     {
-        // Só registra pagamentos que estavam em aberto
         if ($pagamento->status === 'EM ABERTO') {
             $pagamento->status = 'PAGAMENTO REGISTRADO';
             $pagamento->data_registro = now();
@@ -97,7 +107,6 @@ class PagamentoService
 
     private function atualizarStatusPedido(Pedido $pedido)
     {
-        // Soma apenas pagamentos registrados
         $totalPago = $this->repository->sumPagamentosRegistrados($pedido->id);
         $novoValorResta = max(0, $pedido->valor - $totalPago);
         $novoStatus = ($novoValorResta == 0) ? 'PAGO' : 'RESTA';

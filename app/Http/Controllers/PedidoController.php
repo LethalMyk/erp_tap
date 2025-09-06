@@ -57,6 +57,7 @@ class PedidoController extends Controller
         $pedidoData['cliente_id'] = $cliente->id;
         $pedidoData['qntItens'] = count($data['items'] ?? []);
         $pedidoData['valor'] = $data['valor'] ?? 0;
+        $pedidoData['data_retirada'] = $data['data_retirada'] ?? null;
 
         // Cria o pedido completo (sem pagamentos ainda)
         $pedidoCompletoData = [

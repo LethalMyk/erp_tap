@@ -28,7 +28,9 @@ class FormularioController extends Controller
     public function index()
     {
         $profissionais = Profissional::orderBy('nome')->get();
-        return view('formulario', compact('profissionais'));
+        $clientes = $this->clienteService->listarTodos(); // pega todos os clientes
+
+        return view('formulario', compact('profissionais', 'clientes'));
     }
 
     /**
@@ -37,6 +39,27 @@ class FormularioController extends Controller
     public function store(Request $request)
     {
         $data = $request->all();
+
+        // Função para limpar valores monetários
+        $limparValor = function($valor) {
+            $numero = str_replace(['R$', ' ', '.'], '', $valor); // remove R$, espaços e pontos
+            $numero = str_replace(',', '.', $numero); // substitui vírgula por ponto
+            return floatval($numero);
+        };
+
+        // Limpar valor total do pedido
+        if (!empty($data['valor'])) {
+            $data['valor'] = $limparValor($data['valor']);
+        }
+
+        // Limpar valores dos pagamentos
+        if (!empty($data['pagamentos'])) {
+            foreach ($data['pagamentos'] as $key => $pag) {
+                if (!empty($pag['valor'])) {
+                    $data['pagamentos'][$key]['valor'] = $limparValor($pag['valor']);
+                }
+            }
+        }
 
         $pedido = $this->pedidoService->criarPedidoCompleto($data);
 
