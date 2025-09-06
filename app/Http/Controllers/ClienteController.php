@@ -29,11 +29,17 @@ class ClienteController extends Controller
     public function store(Request $request)
     {
         $dados = $request->validate([
-            'nome' => 'required|string|max:255',
-            'telefone' => 'nullable|string|max:15',
-            'endereco' => 'nullable|string|max:255',
-            'email' => 'nullable|string|email|max:255',
-            'cpf' => 'nullable|string|max:14',
+           'nome'        => 'required|string|max:255',
+    'telefone'    => 'nullable|string|max:15',
+    'email'       => 'nullable|string|email|max:255',
+    'cpf'         => 'nullable|string|max:14',
+    'logradouro'  => 'nullable|string|max:255',
+    'numero'      => 'nullable|string|max:10',
+    'complemento' => 'nullable|string|max:255',
+    'bairro'      => 'nullable|string|max:255',
+    'cidade'      => 'nullable|string|max:255',
+    'estado'      => 'nullable|string|max:2',
+    'cep'         => 'nullable|string|max:9',
         ]);
 
         $cliente = $this->clienteService->criar($dados);
@@ -61,11 +67,17 @@ class ClienteController extends Controller
     public function update(Request $request, Cliente $cliente)
     {
         $dados = $request->validate([
-            'nome' => 'required|string|max:255',
-            'telefone' => 'nullable|string|max:15',
-            'endereco' => 'nullable|string|max:255',
-            'email' => 'nullable|string|email|max:255',
-            'cpf' => 'nullable|string|max:14',
+               'nome'        => 'required|string|max:255',
+    'telefone'    => 'nullable|string|max:15',
+    'email'       => 'nullable|string|email|max:255',
+    'cpf'         => 'nullable|string|max:14',
+    'logradouro'  => 'nullable|string|max:255',
+    'numero'      => 'nullable|string|max:10',
+    'complemento' => 'nullable|string|max:255',
+    'bairro'      => 'nullable|string|max:255',
+    'cidade'      => 'nullable|string|max:255',
+    'estado'      => 'nullable|string|max:2',
+    'cep'         => 'nullable|string|max:9',
         ]);
 
         $this->clienteService->atualizar($cliente, $dados);

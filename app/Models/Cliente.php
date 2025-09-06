@@ -13,6 +13,16 @@ class Cliente extends Model
     protected $primaryKey = 'id';  // Chave primária
 
     protected $fillable = [
-        'nome', 'telefone', 'endereco', 'email', 'cpf'
+          'nome',
+    'telefone',
+    'email',
+    'cpf',
+    'logradouro',
+    'numero',
+    'complemento',
+    'bairro',
+    'cidade',
+    'estado',
+    'cep',
     ];
 }

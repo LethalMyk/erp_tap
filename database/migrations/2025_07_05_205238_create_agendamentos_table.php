@@ -17,7 +17,7 @@ return new class extends Migration
     $table->date('data');
     $table->time('horario');
     $table->string('nome_cliente');
-    $table->text('endereco');
+    $table->text('endereco')->nullable();
     $table->text('itens')->nullable(); // pode ser um json ou string simples
     $table->text('observacao')->nullable();
     $table->timestamps();
