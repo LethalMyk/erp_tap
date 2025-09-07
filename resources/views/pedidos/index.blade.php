@@ -123,7 +123,16 @@
                         <tr>
                             <td>{{ $pedido->id }}</td>
                             <td>{{ $pedido->cliente ? $pedido->cliente->nome : 'Cliente não encontrado' }}</td>
-                            <td>{{ $pedido->cliente ? $pedido->cliente->endereco : 'Endereço não encontrado' }}</td>
+                            <td>
+    {{ $pedido->cliente 
+        ? $pedido->cliente->logradouro . ', ' . $pedido->cliente->numero . 
+          ($pedido->cliente->complemento ? ' - ' . $pedido->cliente->complemento : '') . 
+          ' - ' . $pedido->cliente->bairro . 
+          ' - ' . $pedido->cliente->cidade
+        : 'Endereço não encontrado' 
+    }}
+</td>
+
                             <td>{{ $pedido->cliente ? $pedido->cliente->telefone : 'Telefone não encontrado' }}</td>
                             <td>{{ $pedido->formatarData($pedido->data) ?? '-' }}</td>
                             <td>{{ $pedido->qntItens }}</td>
@@ -142,12 +151,22 @@
                                     <span class="text-gray-400 italic">Sem imagens</span>
                                 @endif
                             </td>
-                            <td>{{ $pedido->formatarData($pedido->data_retirada) ?? 'Não registrada' }}</td>
-                            <td>{{ $pedido->andamento }}</td>
+<td>
+    @if($pedido->data_retirada)
+        {{ $pedido->formatarData($pedido->data_retirada) }}
+    @else
+        <span class="text-gray-400 italic">Não registrada</span>
+    @endif
+</td>                            <td>{{ $pedido->andamento }}</td>
                             <td>{{ $pedido->profissional ? $pedido->profissional->nome : 'Distribuir' }}</td>
                             <td>{{ $pedido->formatarData($pedido->prazo) ?? '-' }}</td>
-                            <td>{{ $pedido->formatarData($pedido->data_previsao) ?? 'Sem previsão' }}</td>
-                            <td>{{ $pedido->status }}</td>
+<td>
+    @if($pedido->data_previsao)
+        {{ $pedido->formatarData($pedido->data_previsao) }}
+    @else
+        <span class="text-gray-400 italic">Sem previsão</span>
+    @endif
+</td>                            <td>{{ $pedido->status }}</td>
                             <td>{{ $pedido->obs ?? '-' }}</td> 
                             <td>
                                 <a href="{{ route('pedido.visualizar', $pedido->id) }}" class="btn-view">Ver</a>

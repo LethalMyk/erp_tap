@@ -77,7 +77,7 @@ class PedidoService
 
             // --- AGENDAMENTO ---
             if (!empty($pedido->data_retirada)) {
-                $this->criarAgendamento($pedido);
+                $this->criarAgendamento($pedido, $cliente);
             }
 
             // --- ITENS E TERCEIRIZADAS ---
@@ -136,7 +136,8 @@ class PedidoService
         }
 
         if ($pedido->data_retirada) {
-            $this->criarAgendamento($pedido);
+            $clienteService = app(ClienteService::class);
+            $this->criarAgendamento($pedido, $pedido->cliente);
         }
 
         return $pedido;
@@ -145,9 +146,9 @@ class PedidoService
     /**
      * Cria ou atualiza agendamento automático do pedido
      */
-    protected function criarAgendamento(Pedido $pedido)
+    protected function criarAgendamento(Pedido $pedido, Cliente $cliente)
     {
-        $cliente = $pedido->cliente;
+        $clienteService = app(ClienteService::class);
 
         $agendamento = Agendamento::firstOrNew([
             'tipo'      => 'retirada',
@@ -159,7 +160,7 @@ class PedidoService
             'data'         => $pedido->data_retirada,
             'horario'      => '08:00',
             'nome_cliente' => $cliente->nome ?? '',
-            'endereco'     => $cliente->endereco ?? '',
+            'endereco'     => $clienteService->getEnderecoCompleto($cliente),
             'telefone'     => $cliente->telefone ?? '',
             'status'       => 'pendente',
             'obs'          => 'Agendamento automático gerado pelo pedido.',
