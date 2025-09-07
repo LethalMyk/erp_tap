@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\ProducaoController;
@@ -11,135 +11,114 @@ use App\Http\Controllers\OutrosController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\TerceirizadaController;
 use App\Http\Controllers\ProfissionalController;
-use App\Models\Terceirizada; // Certifique-se de importar o Model
 use App\Http\Controllers\ServicoController;
 use App\Http\Controllers\PagamentoController;
 use App\Http\Controllers\FormularioController;
 use App\Http\Controllers\PesquisarController;
 use App\Http\Controllers\AgendamentoController;
-use App\Http\Middleware\CheckRole;
 use App\Http\Controllers\DespesaController;
 use App\Http\Controllers\EstoqueController;
+use App\Http\Controllers\ListaCompraController;
+use App\Http\Middleware\CheckRole;
+use App\Models\Terceirizada;
 
-
-
-Route::get('/', function () {
-    return view('welcome');
-});
 // Página inicial
-Route::get('/home', function () {
-    return view('home');
-});
+Route::get('/', function () { return view('welcome'); });
+Route::get('/home', function () { return view('home'); });
+Route::get('/dashboard', function () { return view('dashboard'); })
+    ->middleware(['auth'])->name('dashboard');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth'])->name('dashboard');
-
+// Perfil
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Rotas de Clientes
+// Clientes
 Route::resource('clientes', ClienteController::class);
 Route::put('/pedido/{pedido}', [PedidoController::class, 'update'])->name('pedido.update');
 
-// Rotas de Pedidos
+// Pedidos
+Route::resource('pedidos', PedidoController::class);
 Route::get('/pedidos/create', [PedidoController::class, 'create'])->name('pedidos.create');
 Route::post('/pedidos', [PedidoController::class, 'store'])->name('pedidos.store');
-Route::resource('pedidos', PedidoController::class);
 Route::delete('/pedidos/{pedido}/imagens/{imagem}', [PedidoController::class, 'destroyImagem'])->name('pedidos.imagens.destroy');
 Route::get('/get-items/{pedido_id}', [TerceirizadaController::class, 'getItems']);
 Route::get('/get-items/{pedido}', function(Pedido $pedido) {
     return response()->json($pedido->items);
 });
 
-// Rotas de Items
-
+// Items
 Route::resource('items', ItemController::class);
 
-// Rotas de Terceirizadas
-
+// Terceirizadas
 Route::resource('terceirizadas', TerceirizadaController::class);
 Route::get('/terceirizadas', function () {
     $terceirizadas = Terceirizada::with(['item', 'pedido.cliente'])->get();
     return view('terceirizadas.index', compact('terceirizadas'));
 })->name('terceirizadas.index');
 
-// Rotas de Profissionais
-
+// Profissionais
 Route::resource('profissional', ProfissionalController::class);
 
-
-// Rotas de Servicos
-
+// Serviços
 Route::resource('servico', ServicoController::class);
 
-
-
+// Formulário
 Route::get('/formulario', [FormularioController::class, 'index'])->name('formulario.index');
 Route::post('/formulario', [FormularioController::class, 'store'])->name('formulario.store');
-
-
-
 Route::get('/pedido/{id}/visualizar', [FormularioController::class, 'visualizar'])->name('pedido.visualizar');
+
+// Impressões de pedidos
 Route::get('/pedidos/{id}/imprimirviatap', [PedidoController::class, 'imprimirViaTap'])->name('pedidos.imprimirviatap');
 Route::get('/pedidos/{id}/imprimirviaretirada', [PedidoController::class, 'imprimirViaRetirada'])->name('pedidos.imprimirviaretirada');
 Route::get('/pedidos/{id}/imprimirviacompleta', [PedidoController::class, 'imprimirViaCompleta'])->name('pedidos.imprimirviacompleta');
 
-Route::post('/itens/store', [ItemController::class, 'store'])->name('items.store');
-
-
-
-
+// Agendamentos
 Route::resource('agendamentos', AgendamentoController::class);
-Route::get('/calendario', [App\Http\Controllers\AgendamentoController::class, 'calendario'])->name('agendamentos.calendario');
-Route::post('/pagamento/{id}/registrar', [\App\Http\Controllers\PagamentoController::class, 'registrar'])->name('pagamento.registrar');
-Route::get('/pagamento/create/{cliente_id?}', [PagamentoController::class, 'create'])->name('pagamento.create');
-Route::get('/pedido/{id}/visualizar', [FormularioController::class, 'visualizar'])->name('pedido.visualizar');
+Route::get('/calendario', [AgendamentoController::class, 'calendario'])->name('agendamentos.calendario');
+Route::get('/agendamentos/create', [AgendamentoController::class, 'create'])->name('agendamentos.create');
 
+// Pagamentos
+Route::resource('pagamento', PagamentoController::class);
+Route::post('/pagamento/{id}/registrar', [PagamentoController::class, 'registrar'])->name('pagamento.registrar');
+Route::get('/pagamento/create/{cliente_id?}', [PagamentoController::class, 'create'])->name('pagamento.create');
+
+// Atualizações e exclusões
 Route::put('/item/{item}', [ItemController::class, 'update'])->name('item.update');
 Route::delete('/terceirizada/{terceirizada}', [TerceirizadaController::class, 'destroy'])->name('terceirizada.destroy');
 Route::post('/terceirizada', [TerceirizadaController::class, 'store'])->name('terceirizada.store');
 
-
-
+// Imagens de pedidos
 Route::post('/pedido/{pedido}/imagens', [FormularioController::class, 'adicionarImagem'])->name('pedido.imagem.store');
 Route::delete('/pedido/imagens/{imagem}', [FormularioController::class, 'removerImagem'])->name('pedido.imagem.destroy');
 
-// Registrar middleware no grupo web (ou globalmente se quiser)
+// Middleware admin/gerente
 Route::middleware(['auth', CheckRole::class . ':admin,gerente'])->group(function () {
-    Route::get('/admin-area', function () {
-        return 'Área admin';
-    });
+    Route::get('/admin-area', function () { return 'Área admin'; });
+    Route::get('/producao', [ProducaoController::class, 'index'])->name('producao.index');
+    Route::put('/producao/{id}', [ProducaoController::class, 'update'])->name('producao.update');
 });
 
-Route::middleware(['auth', CheckRole::class . ':admin,gerente'])->group(function () {
-    // Suas rotas aqui
-
-Route::get('/producao', [ProducaoController::class, 'index'])->name('producao.index');
-
-    // Rotas de Pagamentos
-
-Route::resource('pagamento', PagamentoController::class);
-});
-Route::put('/producao/{id}', [ProducaoController::class, 'update'])->name('producao.update');
-Route::get('/agendamentos/create', [AgendamentoController::class, 'create'])->name('agendamentos.create');
-
-
-
+// Despesas
 Route::middleware(['auth'])->group(function () {
     Route::resource('despesas', DespesaController::class)->except(['show']);
 });
-
 Route::post('/despesas/{id}/registrar-pagamento', [DespesaController::class, 'registrarPagamento'])->name('despesas.registrar-pagamento');
 
+// Clientes e itens
 Route::get('/clientes/{id}/itens', [AgendamentoController::class, 'getItensCliente']);
 
-
-
+// Estoque
 Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
 Route::put('/estoque/{id}/quantidade', [EstoqueController::class, 'updateQuantidade'])->name('estoque.updateQuantidade');
 
+// Lista de Compras
+Route::middleware(['auth'])->group(function () {
+    Route::get('/estoque/listacompra', [ListaCompraController::class, 'index'])->name('estoque.listacompra');
+    Route::patch('/estoque/listacompra/{item}', [ListaCompraController::class, 'atualizarSituacao'])->name('estoque.listacompra.atualizarSituacao');
+});
+
+// Auth
 require __DIR__.'/auth.php';

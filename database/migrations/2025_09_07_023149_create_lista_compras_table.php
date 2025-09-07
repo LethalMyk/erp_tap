@@ -11,9 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('lista_compras', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+      Schema::create('lista_compras', function (Blueprint $table) {
+    $table->id();
+    $table->string('material');
+    $table->decimal('metragem', 8, 2);
+    $table->string('fornecedor')->nullable();
+    $table->enum('situacao', ['comprado','pendente','solicitado','em falta','fora de linha'])->default('pendente');
+    $table->foreignId('pedido_id')->nullable()->constrained('pedidos')->onDelete('set null');
+    $table->timestamps();
+
+
         });
     }
 

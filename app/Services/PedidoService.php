@@ -9,12 +9,22 @@ use App\Models\PedidoImagem;
 use App\Models\Terceirizada;
 use App\Models\Agendamento;
 use App\Services\ClienteService;
+use App\Services\ListaCompraService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Enums\StatusPagamento;
 
 class PedidoService
 {
+    protected $clienteService;
+    protected $listaCompraService;
+
+    public function __construct(ClienteService $clienteService, ListaCompraService $listaCompraService)
+    {
+        $this->clienteService = $clienteService;
+        $this->listaCompraService = $listaCompraService;
+    }
+
     /**
      * Converte valor monetário brasileiro para float
      * Ex: "R$ 1.234,56" => 1234.56
@@ -38,7 +48,6 @@ class PedidoService
         if (!empty($data['valor'])) {
             $data['valor'] = $this->formatarValor($data['valor']);
         }
-
         return Pedido::create($data);
     }
 
@@ -50,11 +59,10 @@ class PedidoService
         return DB::transaction(function () use ($data) {
 
             // --- CLIENTE ---
-            $clienteService = app(ClienteService::class);
             if (!empty($data['cliente_id'])) {
                 $data['cliente']['id'] = $data['cliente_id'];
             }
-            $cliente = $clienteService->criarOuAtualizarCliente($data['cliente'] ?? []);
+            $cliente = $this->clienteService->criarOuAtualizarCliente($data['cliente'] ?? []);
 
             // --- PEDIDO ---
             $periodo = $data['pedido']['periodo_retirada'] ?? '';
@@ -93,6 +101,15 @@ class PedidoService
                     $t['statusPg']  = $t['statusPg'] ?? StatusPagamento::PENDENTE->value;
                     Terceirizada::create($t);
                 }
+
+                // --- CRIA LISTA DE COMPRAS ---
+                $this->listaCompraService->criar([
+                    'material'   => $item->material,
+                    'metragem'   => $item->metragem,
+                    'fornecedor' => $item->fornecedor ?? null,
+                    'situacao'   => 'pendente',
+                    'pedido_id'  => $pedido->id
+                ]);
             }
 
             // --- PAGAMENTOS ---
@@ -136,7 +153,6 @@ class PedidoService
         }
 
         if ($pedido->data_retirada) {
-            $clienteService = app(ClienteService::class);
             $this->criarAgendamento($pedido, $pedido->cliente);
         }
 
@@ -148,8 +164,6 @@ class PedidoService
      */
     protected function criarAgendamento(Pedido $pedido, Cliente $cliente)
     {
-        $clienteService = app(ClienteService::class);
-
         $agendamento = Agendamento::firstOrNew([
             'tipo'      => 'retirada',
             'pedido_id' => $pedido->id,
@@ -160,7 +174,7 @@ class PedidoService
             'data'         => $pedido->data_retirada,
             'horario'      => '08:00',
             'nome_cliente' => $cliente->nome ?? '',
-            'endereco'     => $clienteService->getEnderecoCompleto($cliente),
+            'endereco'     => $this->clienteService->getEnderecoCompleto($cliente),
             'telefone'     => $cliente->telefone ?? '',
             'status'       => 'pendente',
             'obs'          => 'Agendamento automático gerado pelo pedido.',

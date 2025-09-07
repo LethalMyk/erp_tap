@@ -78,6 +78,9 @@
                             <x-dropdown-link :href="route('estoque.index')">
                                 {{ __('Controle de Estoque') }}
                             </x-dropdown-link>
+                            <x-dropdown-link :href="route('estoque.listacompra')">
+                                {{ __('Lista de Compras') }}
+                            </x-dropdown-link>
                             <x-dropdown-link :href="route('estoque.index')">
                                 {{ __('Relatórios') }}
                             </x-dropdown-link>
