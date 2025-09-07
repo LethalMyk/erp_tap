@@ -22,7 +22,7 @@
             <!-- Data do Pedido -->
             <div class="flex-1 mb-4">
                 <label>Data do Pedido</label>
-                <input type="date" name="data" class="w-min border border-gray-300 rounded px-2 py-1">
+                <input type="date" name="data" required class="w-min border border-gray-300 rounded px-2 py-1">
             </div>
 
 <!-- Cliente -->
@@ -79,8 +79,8 @@
                 <div id="itens" class="mb-4 p-3 border rounded shadow-sm bg-gray-50">
                     <div class="item mb-4">
                         <div class="flex gap-2 mb-2 flex-wrap">
-                            <input type="text" name="items[0][nomeItem]" placeholder="Nome do Item" class="flex-1 min-w-[150px]">
-                            <input type="text" name="items[0][material]" placeholder="Material" class="w-40">
+                            <input type="text" name="items[0][nomeItem]" placeholder="Nome do Item" required class="flex-1 min-w-[150px]">
+                            <input type="text" name="items[0][material]" placeholder="Material" required class="w-40">
                             <input type="number" name="items[0][metragem]" placeholder="Metragem" step="0.01" value="0" class="w-24">
                             <select name="items[0][material_disponib]" required class="w-32">
                                 <option value="Pedir" selected>Pedir</option>
@@ -123,7 +123,7 @@
             <div class="flex gap-4 mb-4">
                 <div class="flex-1">
                     <label>Data de Retirada</label>
-<input type="date" name="pedido[data_retirada]" id="data_retirada" class="w-min">
+<input type="date" name="data_retirada" id="data_retirada" class="w-min">
                 </div>
                 <div class="flex-1">
                     <label>Prazo</label>

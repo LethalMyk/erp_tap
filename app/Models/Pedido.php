@@ -16,7 +16,7 @@ class Pedido extends Model
         'data',
         'data_retirada',
         'prazo',
-        'valor',       // ✅ valor total do pedido
+        'valor',       // valor total do pedido
         'status',
         'obs',
         'imagem',      // caso queira gravar imagem principal
@@ -54,9 +54,14 @@ class Pedido extends Model
         return $this->hasMany(Terceirizada::class, 'pedido_id');
     }
 
+    public function agendamentos()
+    {
+        return $this->hasMany(Agendamento::class);
+    }
+
     /** MÉTODOS AUXILIARES **/
 
-    // Calcular valor total a partir dos itens (se usar preço unitário nos itens)
+    // Calcular valor total a partir dos itens
     public function calcularValorTotal(): float
     {
         return $this->items->sum(function($item) {
@@ -64,15 +69,15 @@ class Pedido extends Model
         });
     }
 
-    /** ACCESSORS - valores derivados **/
+    /** ACCESSORS **/
 
-    // ✅ Total já pago no pedido
+    // Total já pago no pedido
     public function getValorPagoAttribute(): float
     {
         return $this->pagamentos->sum('valor');
     }
 
-    // ✅ Valor restante (total - pagos)
+    // Valor restante (total - pagos)
     public function getValorRestaAttribute(): float
     {
         $total = $this->valor ?? 0;

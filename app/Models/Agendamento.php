@@ -16,6 +16,14 @@ class Agendamento extends Model
         'observacao',
         'status',
         'telefone',
-    
+        'pedido_id', // novo campo
     ];
+
+    /**
+     * Relacionamento: um agendamento pertence a um pedido
+     */
+    public function pedido()
+    {
+        return $this->belongsTo(Pedido::class, 'pedido_id');
+    }
 }

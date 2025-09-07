@@ -146,30 +146,28 @@ class PedidoService
     /**
      * Cria ou atualiza agendamento automático do pedido
      */
-    protected function criarAgendamento(Pedido $pedido)
-    {
-        $cliente = $pedido->cliente;
+protected function criarAgendamento(Pedido $pedido)
+{
+    $cliente = $pedido->cliente;
 
-        $agendamento = Agendamento::firstOrNew([
-            'tipo'  => 'retirada',
-            'items' => 'Pedido #' . $pedido->id,
-        ]);
+    $agendamento = Agendamento::firstOrNew([
+        'tipo'      => 'retirada',
+        'pedido_id' => $pedido->id, // <-- substituído
+    ]);
 
-        $agendamento->fill([
-            'qntItens'     => $pedido->qntItens ?? 0,
-            'data'         => $pedido->data_retirada,
-            'horario'      => '08:00',
-            'nome_cliente' => $cliente->nome ?? '',
-            'endereco'     => $cliente->endereco ?? '',
-            'telefone'     => $cliente->telefone ?? '',
-            'status'       => 'pendente',
-            'obs'          => 'Agendamento automático gerado pelo pedido.',
-        ]);
+    $agendamento->fill([
+        'qntItens'     => $pedido->qntItens ?? 0,
+        'data'         => $pedido->data_retirada,
+        'horario'      => '08:00',
+        'nome_cliente' => $cliente->nome ?? '',
+        'endereco'     => $cliente->endereco ?? '',
+        'telefone'     => $cliente->telefone ?? '',
+        'status'       => 'pendente',
+        'obs'          => 'Agendamento automático gerado pelo pedido.',
+    ]);
 
-        $agendamento->save();
-    }
-
-    /**
+    $agendamento->save();
+}    /**
      * Upload de imagens do pedido
      */
     public function uploadImagens(Pedido $pedido, array $imagens)
