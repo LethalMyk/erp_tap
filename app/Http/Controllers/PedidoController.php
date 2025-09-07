@@ -30,12 +30,15 @@ class PedidoController extends Controller
         $this->pagamentoService = $pagamentoService;
     }
 
-    public function index(Request $request)
-    {
-        $filters = $request->all();
-        $pedidos = $this->pedidoService->listarPedidos($filters);
-        return view('pedidos.index', compact('pedidos', 'filters'));
-    }
+  public function index(Request $request)
+{
+    $filters = $request->all();
+
+    // Carrega pedidos com cliente, imagens e profissional
+    $pedidos = $this->pedidoService->listarPedidos($filters)->load(['cliente', 'imagens', 'profissional']);
+
+    return view('pedidos.index', compact('pedidos', 'filters'));
+}
 
     public function create()
     {
@@ -44,58 +47,59 @@ class PedidoController extends Controller
         return view('pedidos.create', compact('clientes', 'profissionais'));
     }
 
-    public function store(Request $request)
-    {
-        $data = $request->all();
+public function store(Request $request)
+{
+    $data = $request->all();
 
-        // Cria ou atualiza cliente
-        $clienteData = $data['cliente'] ?? [];
-        $cliente = $this->clienteService->criarOuAtualizarCliente($clienteData);
+    // Cria ou atualiza cliente
+    $clienteData = $data['cliente'] ?? [];
+    $cliente = $this->clienteService->criarOuAtualizarCliente($clienteData);
 
-        // Prepara dados do pedido
-        $pedidoData = $data['pedido'] ?? [];
-        $pedidoData['cliente_id'] = $cliente->id;
-        $pedidoData['qntItens'] = count($data['items'] ?? []);
-        $pedidoData['valor'] = $data['valor'] ?? 0;
-        $pedidoData['data_retirada'] = $data['data_retirada'] ?? null;
+    // Prepara dados do pedido
+    $pedidoData = $data['pedido'] ?? [];
+    $pedidoData['cliente_id'] = $cliente->id;
+    $pedidoData['qntItens'] = count($data['items'] ?? []);
+    $pedidoData['valor'] = $data['valor'] ?? 0;
+    $pedidoData['data_retirada'] = $data['data_retirada'] ?? null;
+    $pedidoData['tapeceiro'] = $data['tapeceiro'] ?? null; // ✅ Adicionado para salvar o tapeceiro
 
-        // Cria o pedido completo (sem pagamentos ainda)
-        $pedidoCompletoData = [
-            'cliente_id' => $cliente->id,
-            'cliente' => $clienteData,
-            'pedido' => $pedidoData,
-            'items' => $data['items'] ?? [],
-            'imagens' => $request->file('imagens') ?? [],
-        ];
+    // Cria o pedido completo (sem pagamentos ainda)
+    $pedidoCompletoData = [
+        'cliente_id' => $cliente->id,
+        'cliente' => $clienteData,
+        'pedido' => $pedidoData,
+        'items' => $data['items'] ?? [],
+        'imagens' => $request->file('imagens') ?? [],
+    ];
 
-        $pedido = $this->pedidoService->criarPedidoCompleto($pedidoCompletoData);
+    $pedido = $this->pedidoService->criarPedidoCompleto($pedidoCompletoData);
 
-        // Cria pagamentos associados corretamente
-        foreach ($data['pagamentos'] ?? [] as $pagamentoData) {
-            $this->pagamentoService->criar([
-                'pedido_id' => $pedido->id,
-                'valor' => $pagamentoData['valor'] ?? 0,
-                'forma' => $pagamentoData['forma'] ?? 'OUTROS',
-                'obs' => $pagamentoData['obs'] ?? null,
-                'data' => $pagamentoData['data'] ?? now(),
-            ]);
-        }
-
-        // Cria agendamento automático no calendário
-        $this->agendamentoService->criar([
-            'tipo' => 'retirada',
-            'data' => $pedidoData['data_retirada'] ?? now()->toDateString(),
-            'horario' => $pedidoData['horario'] ?? '09:00',
-            'cliente_id' => $cliente->id,
-            'nome_cliente' => $cliente->nome,
-            'telefone' => $cliente->telefone,
-            'itens' => implode(', ', array_map(fn($item) => $item['nomeItem'] ?? '', $data['items'] ?? [])),
-            'observacao' => $pedidoData['obs'] ?? '',
+    // Cria pagamentos associados
+    foreach ($data['pagamentos'] ?? [] as $pagamentoData) {
+        $this->pagamentoService->criar([
+            'pedido_id' => $pedido->id,
+            'valor' => $pagamentoData['valor'] ?? 0,
+            'forma' => $pagamentoData['forma'] ?? 'OUTROS',
+            'obs' => $pagamentoData['obs'] ?? null,
+            'data' => $pagamentoData['data'] ?? now(),
         ]);
-
-        return redirect()->route('pedidos.index')
-            ->with('success', 'Pedido criado com sucesso, agendamento gerado e pagamentos configurados!');
     }
+
+    // Cria agendamento automático
+    $this->agendamentoService->criar([
+        'tipo' => 'retirada',
+        'data' => $pedidoData['data_retirada'] ?? now()->toDateString(),
+        'horario' => $pedidoData['horario'] ?? '09:00',
+        'cliente_id' => $cliente->id,
+        'nome_cliente' => $cliente->nome,
+        'telefone' => $cliente->telefone,
+        'itens' => implode(', ', array_map(fn($item) => $item['nomeItem'] ?? '', $data['items'] ?? [])),
+        'observacao' => $pedidoData['obs'] ?? '',
+    ]);
+
+    return redirect()->route('pedidos.index')
+        ->with('success', 'Pedido criado com sucesso, agendamento gerado e pagamentos configurados!');
+}
 
     public function imprimirViaTap($id)
     {

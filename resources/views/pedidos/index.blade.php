@@ -77,8 +77,6 @@
                         <th>Andamento</th>
                         <th>Tapeceiro</th>
                         <th>Prazo</th>
-                        <th>Data Início</th>
-                        <th>Data Término</th>
                         <th>Data Previsão</th>
                         <th>Status</th>
                         <th>Observação</th>
@@ -92,7 +90,7 @@
                             <td>{{ $pedido->cliente ? $pedido->cliente->nome : 'Cliente não encontrado' }}</td>
                             <td>{{ $pedido->cliente ? $pedido->cliente->endereco : 'Endereço não encontrado' }}</td>
                             <td>{{ $pedido->cliente ? $pedido->cliente->telefone : 'Telefone não encontrado' }}</td>
-                            <td>{{ $pedido->data }}</td>
+                            <td>{{ $pedido->formatarData($pedido->data) ?? '-' }}</td>
                             <td>{{ $pedido->qntItens }}</td>
                             <td>
                                 @if($pedido->imagens->count())
@@ -109,13 +107,11 @@
                                     <span class="text-gray-400 italic">Sem imagens</span>
                                 @endif
                             </td>
-                            <td>{{ $pedido->data_retirada ?? 'Não registrada' }}</td>
+                            <td>{{ $pedido->formatarData($pedido->data_retirada) ?? 'Não registrada' }}</td>
                             <td>{{ $pedido->andamento }}</td>
-                            <td>{{ $pedido->tapeceiro ?? 'Tapeceiro não informado' }}</td>
-                            <td>{{ $pedido->prazo ?? 'Não informado' }}</td>
-                            <td>{{ $pedido->data_inicio ?? 'Não informado' }}</td>
-                            <td>{{ $pedido->data_termino ?? 'Não informado' }}</td>
-                            <td>{{ $pedido->data_previsao ?? 'Sem previsão' }}</td>
+                            <td>{{ $pedido->profissional ? $pedido->profissional->nome : 'Distribuir' }}</td>
+                            <td>{{ $pedido->formatarData($pedido->prazo) ?? '-' }}</td>
+                            <td>{{ $pedido->formatarData($pedido->data_previsao) ?? 'Sem previsão' }}</td>
                             <td>{{ $pedido->status }}</td>
                             <td>{{ $pedido->obs ?? '-' }}</td> 
                             <td>

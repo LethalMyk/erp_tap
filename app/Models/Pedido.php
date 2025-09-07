@@ -20,6 +20,7 @@ class Pedido extends Model
         'status',
         'obs',
         'imagem',      // caso queira gravar imagem principal
+        'tapeceiro',
     ];
 
     /** RELACIONAMENTOS **/
@@ -83,4 +84,23 @@ class Pedido extends Model
         $total = $this->valor ?? 0;
         return max(0, $total - $this->valor_pago);
     }
+
+    public function formatarData($data)
+{
+    if (!$data) return null;
+    $meses = [
+        1 => 'Jan', 2 => 'Fev', 3 => 'Mar', 4 => 'Abr',
+        5 => 'Mai', 6 => 'Jun', 7 => 'Jul', 8 => 'Ago',
+        9 => 'Set', 10 => 'Out', 11 => 'Nov', 12 => 'Dez'
+    ];
+    $carbon = \Carbon\Carbon::parse($data);
+    return $carbon->format('d') . '' . $meses[$carbon->month] . ' ' . $carbon->year;
+}
+
+public function profissional()
+{
+    return $this->belongsTo(Profissional::class, 'tapeceiro');
+}
+
+
 }
