@@ -30,15 +30,13 @@ class PedidoController extends Controller
         $this->pagamentoService = $pagamentoService;
     }
 
-  public function index(Request $request)
-{
-    $filters = $request->all();
+    public function index(Request $request)
+    {
+        $filters = $request->all();
+        $pedidos = $this->pedidoService->listarPedidos($filters);
 
-    // Carrega pedidos com cliente, imagens e profissional
-    $pedidos = $this->pedidoService->listarPedidos($filters)->load(['cliente', 'imagens', 'profissional']);
-
-    return view('pedidos.index', compact('pedidos', 'filters'));
-}
+        return view('pedidos.index', compact('pedidos', 'filters'));
+    }
 
     public function create()
     {
@@ -47,59 +45,22 @@ class PedidoController extends Controller
         return view('pedidos.create', compact('clientes', 'profissionais'));
     }
 
-public function store(Request $request)
-{
-    $data = $request->all();
+    public function store(Request $request)
+    {
+        $data = $request->all();
 
-    // Cria ou atualiza cliente
-    $clienteData = $data['cliente'] ?? [];
-    $cliente = $this->clienteService->criarOuAtualizarCliente($clienteData);
+        // Delegar a criação completa do pedido ao service
+        $pedido = $this->pedidoService->criarPedidoCompleto($data);
 
-    // Prepara dados do pedido
-    $pedidoData = $data['pedido'] ?? [];
-    $pedidoData['cliente_id'] = $cliente->id;
-    $pedidoData['qntItens'] = count($data['items'] ?? []);
-    $pedidoData['valor'] = $data['valor'] ?? 0;
-    $pedidoData['data_retirada'] = $data['data_retirada'] ?? null;
-    $pedidoData['tapeceiro'] = $data['tapeceiro'] ?? null; // ✅ Adicionado para salvar o tapeceiro
-
-    // Cria o pedido completo (sem pagamentos ainda)
-    $pedidoCompletoData = [
-        'cliente_id' => $cliente->id,
-        'cliente' => $clienteData,
-        'pedido' => $pedidoData,
-        'items' => $data['items'] ?? [],
-        'imagens' => $request->file('imagens') ?? [],
-    ];
-
-    $pedido = $this->pedidoService->criarPedidoCompleto($pedidoCompletoData);
-
-    // Cria pagamentos associados
-    foreach ($data['pagamentos'] ?? [] as $pagamentoData) {
-        $this->pagamentoService->criar([
-            'pedido_id' => $pedido->id,
-            'valor' => $pagamentoData['valor'] ?? 0,
-            'forma' => $pagamentoData['forma'] ?? 'OUTROS',
-            'obs' => $pagamentoData['obs'] ?? null,
-            'data' => $pagamentoData['data'] ?? now(),
-        ]);
+        return redirect()->route('pedidos.index')
+            ->with('success', 'Pedido criado com sucesso, agendamento gerado e pagamentos configurados!');
     }
 
-    // Cria agendamento automático
-    $this->agendamentoService->criar([
-        'tipo' => 'retirada',
-        'data' => $pedidoData['data_retirada'] ?? now()->toDateString(),
-        'horario' => $pedidoData['horario'] ?? '09:00',
-        'cliente_id' => $cliente->id,
-        'nome_cliente' => $cliente->nome,
-        'telefone' => $cliente->telefone,
-        'itens' => implode(', ', array_map(fn($item) => $item['nomeItem'] ?? '', $data['items'] ?? [])),
-        'observacao' => $pedidoData['obs'] ?? '',
-    ]);
-
-    return redirect()->route('pedidos.index')
-        ->with('success', 'Pedido criado com sucesso, agendamento gerado e pagamentos configurados!');
-}
+    public function show($id)
+    {
+        $pedido = $this->pedidoService->getPedidoCompleto($id);
+        return view('pedidos.show', compact('pedido'));
+    }
 
     public function imprimirViaTap($id)
     {
@@ -119,21 +80,14 @@ public function store(Request $request)
         return $this->pedidoService->gerarImpressaoViaCompleta($pedido);
     }
 
-    public function show($id)
-    {
-        $pedido = $this->pedidoService->getPedidoCompleto($id);
-        return view('pedidos.show', compact('pedido'));
-    }
-
     public function adicionarImagem(Request $request, $pedidoId)
     {
-        $pedido = $this->pedidoService->getPedidoCompleto($pedidoId);
-
         $request->validate([
             'imagens' => 'required',
             'imagens.*' => 'image|max:5120',
         ]);
 
+        $pedido = $this->pedidoService->getPedidoCompleto($pedidoId);
         $this->pedidoService->uploadImagens($pedido, $request->file('imagens'));
 
         return redirect()->back()->with('success', 'Imagens adicionadas com sucesso!');
@@ -142,7 +96,6 @@ public function store(Request $request)
     public function removerImagem(PedidoImagem $imagem)
     {
         $this->pedidoService->removerImagem($imagem);
-
         return redirect()->back()->with('success', 'Imagem removida com sucesso!');
     }
 }

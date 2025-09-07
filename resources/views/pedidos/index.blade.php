@@ -1,66 +1,101 @@
 <x-app-layout>
     <div class="container">
         <h1 class="page-title">Lista de Pedidos</h1>
-        <a href="{{ route('formulario.index') }}" class="btn-create">Criar Pedido</a>
         <br><br><br><br>
 
-        <!-- Formulário de Filtros e Ordenação -->
-        <form action="{{ route('pedidos.index') }}" method="GET" class="mb-4">
-            <div class="filters">
-                <input type="text" name="id" value="{{ request('id') }}" placeholder="Filtrar por ID" class="filter-input">
-                <input type="text" name="cliente_nome" value="{{ request('cliente_nome') }}" placeholder="Filtrar por Nome do Cliente" class="filter-input">
-                <input type="text" name="endereco" value="{{ request('endereco') }}" placeholder="Filtrar por Endereço" class="filter-input">
-                <input type="text" name="telefone" value="{{ request('telefone') }}" placeholder="Filtrar por Telefone" class="filter-input">
-                <input type="date" name="data" value="{{ request('data') }}" class="filter-input">
+     @php
+    // Pega os anos distintos dos pedidos (ou pode passar isso do Controller)
+    $anos = \App\Models\Pedido::selectRaw('YEAR(created_at) as ano')->distinct()->orderBy('ano', 'desc')->pluck('ano')->toArray();
 
-                <select name="andamento[]" multiple class="filter-input" style="height: auto;">
-                    <option value="Produzindo" {{ in_array('Produzindo', (array) request('andamento', [])) ? 'selected' : '' }}>Produzindo</option>
-                    <option value="Retirar" {{ in_array('Retirar', (array) request('andamento', [])) ? 'selected' : '' }}>Retirar</option>
-                    <option value="Resta" {{ in_array('Resta', (array) request('andamento', [])) ? 'selected' : '' }}>Resta</option>
-                    <option value="Entregue" {{ in_array('Entregue', (array) request('andamento', [])) ? 'selected' : '' }}>Entregue</option>
-                </select>
+    // Meses fixos
+    $meses = [
+        1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril',
+        5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto',
+        9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro',
+    ];
 
-                <input type="text" name="tapeceiro" value="{{ request('tapeceiro') }}" placeholder="Filtrar por Tapeceiro" class="filter-input">
+    // Pega os filtros já selecionados da request para manter o estado
+    $anosSelecionados = request('ano', []);
+    if (!is_array($anosSelecionados)) $anosSelecionados = [$anosSelecionados];
 
-                <label for="mes">Pronto no mês de</label>
-                <select name="mes" id="mes" class="filter-input">
-                    <option value="">Selecione o Mês</option>
-                    @for ($m = 1; $m <= 12; $m++)
-                        <option value="{{ $m }}" {{ request('mes') == $m ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::create()->month($m)->format('F') }}
-                        </option>
-                    @endfor
-                </select>
+    $mesesSelecionados = request('mes', []);
+    if (!is_array($mesesSelecionados)) $mesesSelecionados = [$mesesSelecionados];
+@endphp
 
-                <!-- Campo para ordenar tapeceiros em ordem customizada -->
-                <input
-                    type="text"
-                    name="custom_order"
-                    value="{{ request('custom_order') }}"
-                    placeholder="Ordenar Tapeceiro (ex: Samuel,Paulo,João)"
-                    class="filter-input"
-                />
+  <h2>Filtros</h2>
+    <form method="GET" action="{{ route('pedidos.index') }}" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
+        <div>
+            <label for="id" style="font-weight: 600;">ID:</label><br>
+            <input type="number" name="id" id="id" value="{{ request('id') }}" style="padding: 5px; width: 80px;">
+        </div>
 
-                <!-- Select para ordenação tradicional -->
-                <select name="sort_field" class="filter-input">
-                    <option value="">Ordenar por</option>
-                    <option value="id" {{ request('sort_field') == 'id' ? 'selected' : '' }}>ID</option>
-                    <option value="data" {{ request('sort_field') == 'data' ? 'selected' : '' }}>Data</option>
-                    <option value="cliente_nome" {{ request('sort_field') == 'cliente_nome' ? 'selected' : '' }}>Nome do Cliente</option>
-                    <option value="andamento" {{ request('sort_field') == 'andamento' ? 'selected' : '' }}>Andamento</option>
-                    <option value="tapeceiro" {{ request('sort_field') == 'tapeceiro' ? 'selected' : '' }}>Tapeceiro</option>
-                    <option value="prazo" {{ request('sort_field') == 'prazo' ? 'selected' : '' }}>Prazo</option>
-                </select>
+        <div>
+            <label for="nome" style="font-weight: 600;">Nome:</label><br>
+            <input type="text" name="nome" id="nome" value="{{ request('nome') }}" style="padding: 5px;">
+        </div>
 
-                <select name="sort_direction" class="filter-input">
-                    <option value="asc" {{ request('sort_direction') == 'asc' ? 'selected' : '' }}>Ascendente</option>
-                    <option value="desc" {{ request('sort_direction') == 'desc' ? 'selected' : '' }}>Descendente</option>
-                </select>
-            </div>
+        <div>
+            <label for="endereco" style="font-weight: 600;">Endereço:</label><br>
+            <input type="text" name="endereco" id="endereco" value="{{ request('endereco') }}" style="padding: 5px;">
+        </div>
 
-            <button type="submit" class="btn-filter">Filtrar</button>
-            <a href="{{ route('pedidos.index') }}" class="btn-clear">Limpar Filtros</a>
-        </form>
+        <div>
+            <label for="telefone" style="font-weight: 600;">Telefone:</label><br>
+            <input type="text" name="telefone" id="telefone" value="{{ request('telefone') }}" style="padding: 5px;">
+        </div>
+                <div>
+                    <label for="tapeceiro" style="font-weight: 600;">Tapeceiro:</label><br>
+       <select name="tapeceiro" id="tapeceiro" style="padding: 5px;">
+           <option value="">Todos</option>
+           @foreach(\App\Models\Profissional::orderBy('nome')->get() as $prof)
+               <option value="{{ $prof->id }}" {{ request('tapeceiro') == $prof->id ? 'selected' : '' }}>
+                   {{ $prof->nome }}
+               </option>
+           @endforeach
+       </select>
+   </div>
+   
+   <div style="margin-top: 10px;">
+       <label style="font-weight: 600; cursor: pointer;" onclick="togglePeriodo()" id="togglePeriodoLabel">
+        Período <span id="seta" style="display: inline-block; transition: transform 0.3s;">&#x25B6;</span>
+    </label>
+    
+    <div id="periodoContainer" style="display: none; max-height: 220px; overflow-y: auto; border: 1px solid #ccc; padding: 8px; border-radius: 4px; margin-top: 5px;">
+        <strong>Ano:</strong><br>
+        @foreach($anos as $ano)
+            <label style="font-weight: normal; margin-right: 10px;">
+                <input type="checkbox" name="ano[]" value="{{ $ano }}" {{ in_array($ano, $anosSelecionados) ? 'checked' : '' }}>
+                {{ $ano }}
+            </label>
+            @endforeach
+            
+            <br><br>
+            <strong>Mês:</strong><br>
+        @foreach($meses as $num => $nome)
+        <label style="font-weight: normal; margin-right: 10px;">
+            <input type="checkbox" name="mes[]" value="{{ $num }}" {{ in_array($num, $mesesSelecionados) ? 'checked' : '' }}>
+                {{ $nome }}
+            </label>
+        @endforeach
+    </div>
+</div>
+
+<div>
+           <label style="font-weight: 600;">Status:</label><br>
+           <select name="status" style="padding: 5px;">
+               <option value="">Todos</option>
+               <option value="RESTA" {{ request('status') == 'RESTA' ? 'selected' : '' }}>RESTA</option>
+               <option value="PAGO" {{ request('status') == 'PAGO' ? 'selected' : '' }}>PAGO</option>
+           </select>
+       </div>
+
+        <div>
+            <button type="submit" style="padding: 6px 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Filtrar</button>
+        </div>
+        <div>
+            <a href="{{ route('pedidos.index') }}" style="padding: 6px 12px; background-color: #6c757d; color: white; border-radius: 4px; text-decoration: none;">Limpar</a>
+        </div>
+    </form>
 
         <div class="table-container">
             <table>
@@ -266,5 +301,63 @@
         .btn-view:hover {
             background-color: #117a8b;
         }
+
+        /* Linha selecionada */
+tr.selected {
+    background-color: #ffeeba !important; /* amarelo claro */
+}
+
     </style>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rows = document.querySelectorAll('table tbody tr');
+
+    rows.forEach(row => {
+        row.addEventListener('click', function() {
+            // Remove a seleção de todas as linhas
+            rows.forEach(r => r.classList.remove('selected'));
+            // Adiciona a classe 'selected' à linha clicada
+            this.classList.add('selected');
+        });
+
+        // Duplo clique para ir ao pedido
+        row.addEventListener('dblclick', function() {
+            const pedidoId = this.querySelector('td').innerText;
+            window.location.href = `/pedido/${pedidoId}/visualizar`;
+        });
+    });
+});
+</script>
+
+    <script>
+function togglePeriodo() {
+    const container = document.getElementById('periodoContainer');
+    const seta = document.getElementById('seta');
+
+    if (container.style.display === 'none' || container.style.display === '') {
+        container.style.display = 'block';
+        seta.style.transform = 'rotate(90deg)';
+    } else {
+        container.style.display = 'none';
+        seta.style.transform = 'rotate(0deg)';
+    }
+}
+</script>
+<script>
+    // Espera o DOM carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        // Seleciona todas as linhas do tbody
+        const rows = document.querySelectorAll('table tbody tr');
+
+        rows.forEach(row => {
+            row.addEventListener('dblclick', function() {
+                // Pega o ID do pedido da primeira célula da linha
+                const pedidoId = this.querySelector('td').innerText;
+                // Redireciona para a página de visualização do pedido
+                window.location.href = `/pedido/${pedidoId}/visualizar`;
+            });
+        });
+    });
+</script>
+
 </x-app-layout>

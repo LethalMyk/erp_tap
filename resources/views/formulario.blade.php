@@ -124,7 +124,21 @@
                 <div class="flex-1">
                     <label>Data de Retirada</label>
 <input type="date" name="data_retirada" id="data_retirada" class="w-min">
-                </div>
+<label class="flex items-center gap-1">
+    <input type="radio" name="periodo_retirada" value="Manhã">
+    Manhã
+</label>
+<label class="flex items-center gap-1">
+    <input type="radio" name="periodo_retirada" value="Tarde">
+    Tarde
+</label>
+<label class="flex items-center gap-1">
+    <input type="radio" name="periodo_retirada" value="Combinar" checked>
+    Combinar
+</label>
+</div>
+
+              
                 <div class="flex-1">
                     <label>Prazo</label>
                     <input type="date" name="prazo" id="prazo" class="w-min">
@@ -443,6 +457,20 @@ function validarFormulario() {
 
     return true; // envia o formulário
 }
+document.querySelectorAll('.periodo-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        // Permite marcar apenas um
+        if(this.checked){
+            document.querySelectorAll('.periodo-checkbox').forEach(cb => {
+                if(cb !== this) cb.checked = false;
+            });
+        }
+        // Atualiza hidden com o valor selecionado ou vazio
+        const checked = document.querySelector('.periodo-checkbox:checked');
+        document.getElementById('periodo_retirada_hidden').value = checked ? checked.value : '';
+    });
+});
+
 
 </script>
 </x-app-layout>

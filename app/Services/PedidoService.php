@@ -22,9 +22,9 @@ class PedidoService
     private function formatarValor($valor)
     {
         if (is_string($valor)) {
-            $valor = str_replace(['R$', ' '], '', $valor); // remove R$ e espaços
-            $valor = str_replace('.', '', $valor); // remove pontos de milhar
-            $valor = str_replace(',', '.', $valor); // substitui vírgula por ponto
+            $valor = str_replace(['R$', ' '], '', $valor);
+            $valor = str_replace('.', '', $valor);
+            $valor = str_replace(',', '.', $valor);
             $valor = floatval($valor);
         }
         return $valor ?? 0;
@@ -51,26 +51,26 @@ class PedidoService
 
             // --- CLIENTE ---
             $clienteService = app(ClienteService::class);
-
             if (!empty($data['cliente_id'])) {
                 $data['cliente']['id'] = $data['cliente_id'];
             }
-
             $cliente = $clienteService->criarOuAtualizarCliente($data['cliente'] ?? []);
 
             // --- PEDIDO ---
+            $periodo = $data['pedido']['periodo_retirada'] ?? '';
             $pedidoData = [
-                'cliente_id'    => $cliente->id,
-                'qntItens'      => $data['qntItens'] ?? 0,
-                'data'          => $data['pedido']['data'] ?? now(),
-                'valor'         => $this->formatarValor($data['pedido']['valor'] ?? 0),
-                'valorResta'    => $this->formatarValor($data['pedido']['valor'] ?? 0),
-                'status'        => 'RESTA',
-                'obs'           => $data['pedido']['obs'] ?? null,
-                'prazo'         => $data['pedido']['prazo'] ?? now(),
-                'data_retirada' => $data['pedido']['data_retirada'] ?? null,
-                'tapeceiro'     => $data['pedido']['tapeceiro'] ?? null,
-                'andamento'     => 'Retirar',
+                'cliente_id'       => $cliente->id,
+                'qntItens'         => $data['qntItens'] ?? 0,
+                'data'             => $data['pedido']['data'] ?? now(),
+                'valor'            => $this->formatarValor($data['pedido']['valor'] ?? 0),
+                'valorResta'       => $this->formatarValor($data['pedido']['valor'] ?? 0),
+                'status'           => 'RESTA',
+                'obs'              => $data['pedido']['obs'] ?? null,
+                'prazo'            => $data['pedido']['prazo'] ?? now(),
+                'data_retirada'    => $data['pedido']['data_retirada'] ?? null,
+                'periodo_retirada' => in_array($periodo, ['Manhã', 'Tarde']) ? $periodo : 'Combinar',
+                'tapeceiro'        => $data['pedido']['tapeceiro'] ?? null,
+                'andamento'        => 'Retirar',
             ];
 
             $pedido = Pedido::create($pedidoData);
@@ -128,6 +128,7 @@ class PedidoService
             'status'        => $data['status'] ?? $pedido->status,
             'obs'           => $data['obs'] ?? $pedido->obs,
             'valor'         => $data['valor'] ?? $pedido->valor,
+            'periodo_retirada' => in_array($data['periodo_retirada'] ?? '', ['Manhã', 'Tarde']) ? $data['periodo_retirada'] : $pedido->periodo_retirada,
         ]);
 
         if (!empty($data['cliente'])) {
@@ -141,33 +142,33 @@ class PedidoService
         return $pedido;
     }
 
-    // ... o resto do service permanece igual
-
     /**
      * Cria ou atualiza agendamento automático do pedido
      */
-protected function criarAgendamento(Pedido $pedido)
-{
-    $cliente = $pedido->cliente;
+    protected function criarAgendamento(Pedido $pedido)
+    {
+        $cliente = $pedido->cliente;
 
-    $agendamento = Agendamento::firstOrNew([
-        'tipo'      => 'retirada',
-        'pedido_id' => $pedido->id, // <-- substituído
-    ]);
+        $agendamento = Agendamento::firstOrNew([
+            'tipo'      => 'retirada',
+            'pedido_id' => $pedido->id,
+        ]);
 
-    $agendamento->fill([
-        'qntItens'     => $pedido->qntItens ?? 0,
-        'data'         => $pedido->data_retirada,
-        'horario'      => '08:00',
-        'nome_cliente' => $cliente->nome ?? '',
-        'endereco'     => $cliente->endereco ?? '',
-        'telefone'     => $cliente->telefone ?? '',
-        'status'       => 'pendente',
-        'obs'          => 'Agendamento automático gerado pelo pedido.',
-    ]);
+        $agendamento->fill([
+            'qntItens'     => $pedido->qntItens ?? 0,
+            'data'         => $pedido->data_retirada,
+            'horario'      => '08:00',
+            'nome_cliente' => $cliente->nome ?? '',
+            'endereco'     => $cliente->endereco ?? '',
+            'telefone'     => $cliente->telefone ?? '',
+            'status'       => 'pendente',
+            'obs'          => 'Agendamento automático gerado pelo pedido.',
+        ]);
 
-    $agendamento->save();
-}    /**
+        $agendamento->save();
+    }
+
+    /**
      * Upload de imagens do pedido
      */
     public function uploadImagens(Pedido $pedido, array $imagens)
@@ -223,15 +224,41 @@ protected function criarAgendamento(Pedido $pedido)
      */
     public function listarPedidos(array $filters = [])
     {
-        $query = Pedido::with(['cliente', 'items', 'pagamentos', 'imagens']);
+        $query = Pedido::query();
+        $query->with(['cliente', 'profissional', 'imagens']);
 
-        if (!empty($filters['cliente_id'])) {
-            $query->where('cliente_id', $filters['cliente_id']);
+        if (!empty($filters['id'])) {
+            $query->where('id', $filters['id']);
         }
+
+        if (!empty($filters['tapeceiro'])) {
+            $query->where('tapeceiro', $filters['tapeceiro']);
+        }
+
+        if (!empty($filters['nome'])) {
+            $query->whereHas('cliente', fn($q) => $q->where('nome', 'like', '%' . $filters['nome'] . '%'));
+        }
+
+        if (!empty($filters['endereco'])) {
+            $query->whereHas('cliente', fn($q) => $q->where('endereco', 'like', '%' . $filters['endereco'] . '%'));
+        }
+
+        if (!empty($filters['telefone'])) {
+            $query->whereHas('cliente', fn($q) => $q->where('telefone', 'like', '%' . $filters['telefone'] . '%'));
+        }
+
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        return $query->orderBy('id', 'desc')->get();
+        if (!empty($filters['ano']) && is_array($filters['ano'])) {
+            $query->whereIn(\DB::raw('YEAR(created_at)'), $filters['ano']);
+        }
+
+        if (!empty($filters['mes']) && is_array($filters['mes'])) {
+            $query->whereIn(\DB::raw('MONTH(created_at)'), $filters['mes']);
+        }
+
+        return $query->orderBy('created_at', 'desc')->get();
     }
 }

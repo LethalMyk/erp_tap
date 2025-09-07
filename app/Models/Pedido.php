@@ -21,6 +21,7 @@ class Pedido extends Model
         'obs',
         'imagem',      // caso queira gravar imagem principal
         'tapeceiro',
+        'periodo_retirada', // novo campo para período de retirada
     ];
 
     /** RELACIONAMENTOS **/
