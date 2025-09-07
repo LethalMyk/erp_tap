@@ -120,5 +120,11 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/estoque/listacompra/{item}', [ListaCompraController::class, 'atualizarSituacao'])->name('estoque.listacompra.atualizarSituacao');
 });
 
+Route::patch('lista-compras/{id}/arquivar', [ListaCompraController::class, 'arquivar'])
+    ->name('estoque.listacompra.arquivar');
+Route::patch('lista-compras/{id}/desarquivar', [ListaCompraController::class, 'desarquivar'])
+    ->name('estoque.listacompra.desarquivar');
+
+
 // Auth
 require __DIR__.'/auth.php';

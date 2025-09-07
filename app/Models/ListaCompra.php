@@ -16,7 +16,7 @@ class ListaCompra extends Model
         'metragem',
         'fornecedor',
         'situacao',
-        'pedido_id'
+        'pedido_id', 'arquivado'
     ];
 
     public function pedido()

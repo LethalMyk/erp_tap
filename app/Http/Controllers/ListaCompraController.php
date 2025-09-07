@@ -24,6 +24,22 @@ class ListaCompraController extends Controller
     return view('estoque.listacompra', compact('compras'));
 }
 
+public function arquivar($id)
+{
+    $compra = \App\Models\ListaCompra::findOrFail($id);
+    $compra->arquivado = true;
+    $compra->save();
+
+    return redirect()->back()->with('success', 'Compra arquivada com sucesso!');
+}
+public function desarquivar($id)
+{
+    $compra = \App\Models\ListaCompra::findOrFail($id);
+    $compra->arquivado = false;
+    $compra->save();
+
+    return redirect()->back()->with('success', 'Compra desarquivada com sucesso!');
+}
 
     /**
      * Atualiza situação, metragem e fornecedor de um item de compra
