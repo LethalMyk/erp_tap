@@ -14,7 +14,7 @@ return new class extends Migration
     Schema::table('pedidos', function (Blueprint $table) {
         $table->text('obs_retirada')->nullable();
         $table->string('tapeceiro')->nullable();
-        $table->enum('andamento', ['retirar', 'montado', 'desmanchado', 'produzindo', 'entregar', 'concluído']);
+        $table->enum('andamento', ['Retirar', 'Montado', 'Desmanchado', 'Produzindo', 'Entregar', 'Concluído']);
         $table->date('data_inicio')->nullable();
         $table->text('dificuldade')->nullable();
         $table->date('previsto_para')->nullable();

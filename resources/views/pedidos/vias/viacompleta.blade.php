@@ -319,20 +319,24 @@
             <p><strong>Valor:</strong> R$ {{ number_format($pagamento->valor, 2, ',', '.') }}</p>
             <p><strong>Forma:</strong> {{ $pagamento->forma }}</p>
             <p><strong>Status:</strong> {{ $pagamento->status }}</p>
+            <p><strong>Observação:</strong> {{ $pagamento->obs }}</p>
 
-            @if ($pagamento->status === 'EM ABERTO')
-                <form action="{{ route('pagamento.registrar', $pagamento->id) }}" method="POST">
-                    @csrf
-                    <input type="text" name="obs" placeholder="Observação (opcional)" class="form-control" />
-                    <button type="submit" class="btn btn-success mt-2" onclick="return confirm('Confirmar pagamento?')">✅ Registrar Pagamento</button>
-                </form>
-            @endif
+@if ($pagamento->status === 'EM ABERTO' && $userRole === 'admin')
+    <form action="{{ route('pagamento.registrar', $pagamento->id) }}" method="POST">
+        @csrf
+        <input type="text" name="obs" placeholder="Observação (alterar obs)" class="form-control" />
+        <button type="submit" class="btn btn-success mt-2" onclick="return confirm('Confirmar pagamento?')">
+            ✅ Registrar Pagamento
+        </button>
+    </form>
+@endif
 
             @if ($pagamento->data_registro)
                 <p><strong>Registrado em:</strong> {{ \Carbon\Carbon::parse($pagamento->data_registro)->format('d/m/Y') }}</p>
             @endif
             <hr>
         </div>
+
     @endforeach
     @if(in_array($userRole, ['gerente', 'admin']))
 

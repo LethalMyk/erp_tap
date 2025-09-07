@@ -18,13 +18,18 @@ class PagamentoController extends Controller
 
     /**
      * Lista todos os pedidos com pagamentos e valores calculados
+     * Filtra por cliente se passar cliente_id na query string
      */
     public function index(Request $request)
     {
-        $pedidos = Pedido::with(['cliente', 'pagamentos'])->get();
+        $clienteId = $request->query('cliente_id');
 
-        $pedidos = $pedidos->map(function ($pedido) {
-            // Somar apenas pagamentos registrados
+        $pedidosQuery = Pedido::with(['cliente', 'pagamentos']);
+        if ($clienteId) {
+            $pedidosQuery->where('cliente_id', $clienteId);
+        }
+
+        $pedidos = $pedidosQuery->get()->map(function ($pedido) {
             $totalPago = $pedido->pagamentos
                 ->where('status', 'PAGAMENTO REGISTRADO')
                 ->sum('valor');
@@ -39,19 +44,23 @@ class PagamentoController extends Controller
             ];
         });
 
-        return view('pagamento.index', compact('pedidos'));
+        return view('pagamento.index', compact('pedidos', 'clienteId'));
     }
 
     /**
      * Formulário de criação de pagamento
      */
-    public function create($cliente_id = null)
+    public function create(Request $request)
     {
-        $pedidos = $cliente_id 
-            ? Pedido::where('cliente_id', $cliente_id)->get() 
-            : Pedido::all();
+        $clienteId = $request->query('cliente_id');
 
-        return view('pagamento.create', compact('pedidos', 'cliente_id'));
+        if ($clienteId) {
+            $pedidos = Pedido::where('cliente_id', $clienteId)->get();
+        } else {
+            $pedidos = Pedido::all();
+        }
+
+        return view('pagamento.create', compact('pedidos', 'clienteId'));
     }
 
     /**
@@ -69,7 +78,7 @@ class PagamentoController extends Controller
 
         $this->service->criar($dados);
 
-        return redirect()->route('pagamento.index')
+        return redirect()->route('pagamento.index', ['cliente_id' => $request->input('cliente_id')])
                          ->with('success', 'Pagamento registrado com sucesso.');
     }
 
@@ -80,25 +89,18 @@ class PagamentoController extends Controller
     {
         $pagamento = Pagamento::findOrFail($id);
 
-        // Só altera status de EM ABERTO para PAGAMENTO REGISTRADO
         $this->service->registrar($pagamento, $request->input('obs'));
 
         return redirect()->back()
                          ->with('success', 'Pagamento registrado com sucesso!');
     }
 
-    /**
-     * Formulário de edição de pagamento
-     */
     public function edit(Pagamento $pagamento)
     {
         $pedidos = Pedido::all();
         return view('pagamento.edit', compact('pagamento', 'pedidos'));
     }
 
-    /**
-     * Atualiza um pagamento
-     */
     public function update(Request $request, Pagamento $pagamento)
     {
         $dados = $request->validate([
@@ -109,18 +111,17 @@ class PagamentoController extends Controller
 
         $this->service->atualizar($pagamento, $dados);
 
-        return redirect()->route('pagamento.index')
+        return redirect()->route('pagamento.index', ['cliente_id' => $pagamento->pedido->cliente_id])
                          ->with('success', 'Pagamento atualizado com sucesso!');
     }
 
-    /**
-     * Exclui um pagamento
-     */
     public function destroy(Pagamento $pagamento)
     {
+        $clienteId = $pagamento->pedido->cliente_id;
+
         $this->service->deletar($pagamento);
 
-        return redirect()->route('pagamento.index')
+        return redirect()->route('pagamento.index', ['cliente_id' => $clienteId])
                          ->with('success', 'Pagamento excluído com sucesso!');
     }
 }
