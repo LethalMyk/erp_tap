@@ -17,28 +17,22 @@
         <form action="{{ route('despesas.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
 
-            {{-- Data --}}
+            {{-- Campos básicos --}}
             <div>
                 <label for="data" class="block font-medium text-gray-700">Data</label>
                 <input type="date" name="data" id="data" value="{{ old('data', date('Y-m-d')) }}" required
                     class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
             </div>
-
-            {{-- Descrição --}}
             <div>
                 <label for="descricao" class="block font-medium text-gray-700">Descrição da Nota/Fatura</label>
                 <input type="text" name="descricao" id="descricao" value="{{ old('descricao') }}" required
                     class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
             </div>
-
-            {{-- Valor Total --}}
             <div>
                 <label for="valor" class="block font-medium text-gray-700">Valor Total</label>
                 <input type="number" step="0.01" name="valor" id="valor" value="{{ old('valor') }}" required
                     class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
             </div>
-
-            {{-- Categoria --}}
             <div>
                 <label for="categoria" class="block font-medium text-gray-700">Categoria</label>
                 <select name="categoria" id="categoria" required class="mt-1 block w-full rounded border-gray-300 shadow-sm">
@@ -53,7 +47,6 @@
                 <input type="checkbox" id="expandirProdutos" class="form-checkbox h-5 w-5 text-blue-600">
                 <label for="expandirProdutos" class="text-gray-700 font-medium">Mostrar/ocultar produtos adicionados</label>
             </div>
-
             <div id="produtos-container" class="space-y-4 mt-2"></div>
             <button type="button" id="add-produto"
                 class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 mt-2">
@@ -126,9 +119,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const addProdutoBtn = document.getElementById("add-produto");
     const expandirProdutosCheckbox = document.getElementById("expandirProdutos");
     const produtosList = @json($produtos);
-
     const formasPagamentoParcela = ['PIX', 'DINHEIRO', 'DÉBITO', 'CRÉDITO', 'TRANSFERÊNCIA', 'BOLETO', 'CHEQUE', 'OUTROS'];
 
+    // Toggle de forma de pagamento
     function toggleFields() {
         if(selectForma.value === "A PRAZO") {
             pendenteFields.classList.remove("hidden");
@@ -177,39 +170,49 @@ document.addEventListener("DOMContentLoaded", function () {
     selectForma.addEventListener('change', toggleFields);
     toggleFields();
 
-    // Produtos
+    // Função para adicionar produto
     function addProduto() {
         const div = document.createElement('div');
         div.classList.add('border','p-3','rounded','bg-gray-50','relative');
         div.innerHTML = `
             <button type="button" class="remove-produto absolute top-2 right-2 text-red-600 hover:text-red-800 font-bold">X</button>
-            <div class="flex items-center gap-2">
-                <label class="block text-sm font-medium">Produto</label>
+
+            <div class="flex flex-col gap-2">
+                <label class="block text-sm font-medium">Produto Existente</label>
                 <select name="produtos_id[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm">
                     <option value="">Selecione o Produto</option>
                     ${produtosList.map(p=>`<option value="${p.id}" data-unidade="${p.unidade_medida}" data-categoria="${p.categoria}">${p.nome}</option>`).join('')}
                 </select>
+
+                <label class="block text-sm font-medium mt-2">Ou Novo Produto</label>
+                <input type="text" name="produtos_novo[]" placeholder="Digite o nome do novo produto" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/>
             </div>
+
             <div class="flex items-center gap-2 mt-2">
                 <label class="block text-sm font-medium">Categoria</label>
                 <input type="text" name="produtos_categoria[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" readonly/>
             </div>
+
             <div class="flex items-center gap-2 mt-2">
                 <label class="block text-sm font-medium">Quantidade</label>
                 <input type="number" step="0.01" name="produtos_quantidade[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" required/>
             </div>
+
             <div class="flex items-center gap-2 mt-2">
                 <label class="block text-sm font-medium">Unidade de Medida</label>
                 <input type="text" name="produtos_unidade_medida[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" readonly/>
             </div>
+
             <div>
                 <label class="block text-sm font-medium">Valor Unitário</label>
                 <input type="number" step="0.01" name="produtos_valor_unitario[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" required/>
             </div>
+
             <div>
                 <label class="block text-sm font-medium">Valor Total</label>
                 <input type="number" step="0.01" name="produtos_valor_total[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" required/>
             </div>
+
             <div>
                 <label class="block text-sm font-medium">Observação</label>
                 <textarea name="produtos_obs[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm"></textarea>
@@ -217,18 +220,33 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         const selectProduto = div.querySelector('select[name="produtos_id[]"]');
+        const novoProdutoInput = div.querySelector('input[name="produtos_novo[]"]');
         const categoriaInput = div.querySelector('input[name="produtos_categoria[]"]');
         const unidadeInput = div.querySelector('input[name="produtos_unidade_medida[]"]');
-        const toggleBtn = div.querySelector('.toggle-novo-produto');
 
+        // Atualiza categoria/unidade quando seleciona produto existente
         selectProduto.addEventListener('change', function(){
             const opt = this.options[this.selectedIndex];
-            categoriaInput.value = opt.dataset.categoria || '';
-            unidadeInput.value = opt.dataset.unidade || '';
-            unidadeInput.readOnly = true;
+            if(opt.value){
+                categoriaInput.value = opt.dataset.categoria || '';
+                unidadeInput.value = opt.dataset.unidade || '';
+                unidadeInput.readOnly = true;
+                novoProdutoInput.value = '';
+            } else {
+                categoriaInput.value = '';
+                unidadeInput.value = '';
+            }
         });
 
-       
+        // Limpa select e libera unidade se digitar novo produto
+        novoProdutoInput.addEventListener('input', function(){
+            if(this.value.trim() !== ''){
+                selectProduto.value = '';
+                categoriaInput.value = '';
+                unidadeInput.value = '';
+                unidadeInput.readOnly = false;
+            }
+        });
 
         produtosContainer.appendChild(div);
     }

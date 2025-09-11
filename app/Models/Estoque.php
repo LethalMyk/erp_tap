@@ -11,17 +11,25 @@ class Estoque extends Model
 {
     use HasFactory;
 
-    protected $table = 'estoque'; // Nome real da tabela
+    protected $table = 'estoque'; // Nome da tabela real
 
     protected $fillable = [
         'produto_id',
-        'localizacao',
+        'quantidade_disponivel',
         'nivel_medio',
         'quantidade_minima',
     ];
 
+    protected $casts = [
+        'quantidade_disponivel' => 'decimal:2',
+        'nivel_medio' => 'decimal:2',
+        'quantidade_minima' => 'decimal:2',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     /**
-     * Produto vinculado a este estoque
+     * Relacionamento com o produto
      */
     public function produto()
     {
@@ -29,7 +37,7 @@ class Estoque extends Model
     }
 
     /**
-     * Movimentos de entrada/saída deste estoque
+     * Relacionamento com os movimentos de estoque
      */
     public function movimentos()
     {
@@ -37,54 +45,60 @@ class Estoque extends Model
     }
 
     /**
-     * Calcula a quantidade disponível no estoque
+     * Retorna a quantidade disponível atual
      */
-    public function quantidadeDisponivel(): int
+    public function quantidadeDisponivel(): float
     {
-        // Soma todos os movimentos (entrada positiva, saída negativa)
-        return $this->movimentos->sum(function ($mov) {
-            return $mov->tipo === 'saida' ? -$mov->quantidade : $mov->quantidade;
-        });
+        return $this->quantidade_disponivel ?? 0;
     }
 
     /**
-     * Adiciona quantidade ao estoque
-     *
-     * @param int $quantidade
-     * @param string $descricao
-     * @return MovimentoEstoque
+     * Adiciona quantidade ao estoque e registra movimento
      */
-    public function adicionar(int $quantidade, string $descricao = 'Entrada de estoque'): MovimentoEstoque
+    public function adicionar(float $quantidade, string $vinculo = null, string $obs = null)
     {
-        return $this->movimentos()->create([
+        if ($quantidade <= 0) {
+            throw new \InvalidArgumentException('A quantidade deve ser maior que zero.');
+        }
+
+        $this->quantidade_disponivel += $quantidade;
+        $this->save();
+
+        MovimentoEstoque::create([
+            'estoque_id' => $this->id,
             'quantidade' => $quantidade,
             'tipo' => 'entrada',
-            'descricao' => $descricao,
+            'vinculo' => $vinculo,
             'usuario_id' => auth()->id(),
             'data_movimento' => now(),
+            'obs' => $obs,
         ]);
     }
 
     /**
-     * Remove quantidade do estoque
-     *
-     * @param int $quantidade
-     * @param string $descricao
-     * @return MovimentoEstoque
-     * @throws \Exception se estoque insuficiente
+     * Remove quantidade do estoque e registra movimento
      */
-    public function remover(int $quantidade, string $descricao = 'Saída de estoque'): MovimentoEstoque
+    public function remover(float $quantidade, string $vinculo = null, string $obs = null)
     {
-        if ($quantidade > $this->quantidadeDisponivel()) {
-            throw new \Exception('Estoque insuficiente para esta operação.');
+        if ($quantidade <= 0) {
+            throw new \InvalidArgumentException('A quantidade deve ser maior que zero.');
         }
 
-        return $this->movimentos()->create([
+        if ($quantidade > $this->quantidadeDisponivel()) {
+            throw new \InvalidArgumentException('Quantidade insuficiente no estoque.');
+        }
+
+        $this->quantidade_disponivel -= $quantidade;
+        $this->save();
+
+        MovimentoEstoque::create([
+            'estoque_id' => $this->id,
             'quantidade' => $quantidade,
             'tipo' => 'saida',
-            'descricao' => $descricao,
+            'vinculo' => $vinculo,
             'usuario_id' => auth()->id(),
             'data_movimento' => now(),
+            'obs' => $obs,
         ]);
     }
 }

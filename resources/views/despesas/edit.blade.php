@@ -20,31 +20,36 @@
 
             <div>
                 <label for="descricao" class="block font-medium text-gray-700">Descrição</label>
-                <input type="text" name="descricao" id="descricao" value="{{ old('descricao', $despesa->descricao) }}" required
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
+                <input type="text" name="descricao" id="descricao" 
+                       value="{{ old('descricao', $despesa->descricao) }}" required
+                       class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
             </div>
 
             <div>
                 <label for="valor" class="block font-medium text-gray-700">Valor</label>
-                <input type="number" step="0.01" name="valor" id="valor" value="{{ old('valor', $despesa->valor) }}" required
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
+                <input type="number" step="0.01" name="valor" id="valor" 
+                       value="{{ old('valor', $despesa->valor) }}" required
+                       class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
             </div>
 
             <div>
                 <label for="data_vencimento" class="block font-medium text-gray-700">Data Vencimento</label>
-                <input type="date" name="data_vencimento" id="data_vencimento" value="{{ old('data_vencimento', $despesa->data_vencimento ? $despesa->data_vencimento->format('Y-m-d') : '') }}" required
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
+                <input type="date" name="data_vencimento" id="data_vencimento" 
+                       value="{{ old('data_vencimento', $despesa->data_vencimento ? $despesa->data_vencimento->format('Y-m-d') : '') }}" required
+                       class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
             </div>
 
             <div>
                 <label for="data_pagamento" class="block font-medium text-gray-700">Data Pagamento</label>
-                <input type="date" name="data_pagamento" id="data_pagamento" value="{{ old('data_pagamento', $despesa->data_pagamento ? $despesa->data_pagamento->format('Y-m-d') : '') }}"
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
+                <input type="date" name="data_pagamento" id="data_pagamento" 
+                       value="{{ old('data_pagamento', $despesa->data_pagamento ? $despesa->data_pagamento->format('Y-m-d') : '') }}"
+                       class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
             </div>
 
             <div>
                 <label for="status" class="block font-medium text-gray-700">Status</label>
-                <select name="status" id="status" required class="mt-1 block w-full rounded border-gray-300 shadow-sm">
+                <select name="status" id="status" required 
+                        class="mt-1 block w-full rounded border-gray-300 shadow-sm">
                     @foreach(['PENDENTE', 'PAGO', 'ATRASADO'] as $status)
                         <option value="{{ $status }}" @selected(old('status', $despesa->status) == $status)>{{ $status }}</option>
                     @endforeach
@@ -53,7 +58,8 @@
 
             <div>
                 <label for="categoria" class="block font-medium text-gray-700">Categoria</label>
-                <select name="categoria" id="categoria" required class="mt-1 block w-full rounded border-gray-300 shadow-sm">
+                <select name="categoria" id="categoria" required 
+                        class="mt-1 block w-full rounded border-gray-300 shadow-sm">
                     @foreach(['FORNECEDOR', 'AGUA', 'LUZ', 'MATERIAL', 'PARTICULAR', 'OUTROS'] as $cat)
                         <option value="{{ $cat }}" @selected(old('categoria', $despesa->categoria) == $cat)>{{ $cat }}</option>
                     @endforeach
@@ -62,7 +68,8 @@
 
             <div>
                 <label for="forma_pagamento" class="block font-medium text-gray-700">Forma Pagamento</label>
-                <select name="forma_pagamento" id="forma_pagamento" required class="mt-1 block w-full rounded border-gray-300 shadow-sm">
+                <select name="forma_pagamento" id="forma_pagamento" required 
+                        class="mt-1 block w-full rounded border-gray-300 shadow-sm">
                     @foreach(['PIX', 'DINHEIRO', 'BOLETO', 'CARTAO', 'TRANSFERENCIA', 'OUTROS'] as $fp)
                         <option value="{{ $fp }}" @selected(old('forma_pagamento', $despesa->forma_pagamento) == $fp)>{{ $fp }}</option>
                     @endforeach
@@ -71,31 +78,43 @@
 
             <div>
                 <label for="chave_pagamento" class="block font-medium text-gray-700">Chave Pagamento</label>
-                <input type="text" name="chave_pagamento" id="chave_pagamento" value="{{ old('chave_pagamento', $despesa->chave_pagamento) }}"
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
+                <input type="text" name="chave_pagamento" id="chave_pagamento" 
+                       value="{{ old('chave_pagamento', $despesa->chave_pagamento) }}"
+                       class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
             </div>
 
+            {{-- ✅ Múltiplos comprovantes --}}
             <div>
-                <label for="comprovante" class="block font-medium text-gray-700">Comprovante Atual</label>
-                @if($despesa->comprovante)
-                    <div class="mb-2">
-                        <a href="{{ asset('storage/'.$despesa->comprovante) }}" target="_blank" class="text-blue-600 underline">Ver Comprovante</a>
+                <label class="block font-medium text-gray-700">Comprovantes Atuais</label>
+                @if($despesa->imagens && $despesa->imagens->count())
+                    <div class="mb-2 space-y-1">
+                        @foreach($despesa->imagens as $img)
+                            <a href="{{ asset('storage/'.$img->caminho) }}" target="_blank" class="text-blue-600 underline">
+                                Ver Comprovante #{{ $loop->iteration }}
+                            </a><br>
+                        @endforeach
                     </div>
                 @else
                     <div class="mb-2 text-gray-500">Nenhum comprovante enviado.</div>
                 @endif
-                <label for="comprovante" class="block font-medium text-gray-700">Alterar Comprovante</label>
-                <input type="file" name="comprovante" id="comprovante" accept=".jpg,.jpeg,.png,.pdf" class="mt-1 block w-full" />
+
+                <label for="comprovantes" class="block font-medium text-gray-700">Adicionar/Alterar Comprovantes</label>
+                <input type="file" name="comprovantes[]" id="comprovantes" accept=".jpg,.jpeg,.png,.pdf" 
+                       class="mt-1 block w-full" multiple />
             </div>
 
             <div>
                 <label for="observacao" class="block font-medium text-gray-700">Observação</label>
-                <textarea name="observacao" id="observacao" rows="3" class="mt-1 block w-full rounded border-gray-300 shadow-sm">{{ old('observacao', $despesa->observacao) }}</textarea>
+                <textarea name="observacao" id="observacao" rows="3" 
+                          class="mt-1 block w-full rounded border-gray-300 shadow-sm">{{ old('observacao', $despesa->observacao) }}</textarea>
             </div>
-<div class="mb-3">
-    <label class="block mb-1 font-medium">Separador</label>
-    <input type="text" name="separador" x-model="editDespesa.separador" class="w-full border rounded px-2 py-1" placeholder="Ex: Grupo A, Financeiro, etc.">
-</div>
+
+            <div>
+                <label for="separador" class="block font-medium text-gray-700">Separador</label>
+                <input type="text" name="separador" id="separador" 
+                       value="{{ old('separador', $despesa->separador) }}"
+                       class="mt-1 block w-full rounded border-gray-300 shadow-sm" placeholder="Ex: Grupo A, Financeiro, etc." />
+            </div>
 
             <div>
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">

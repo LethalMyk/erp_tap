@@ -1,116 +1,159 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Services;
 
+use App\Repositories\DespesaRepository;
+use App\Repositories\ProdutoRepository;
 use App\Models\Despesa;
-use App\Models\Produto;
-use Illuminate\Http\Request;
-use App\Services\DespesaService;
-use Illuminate\Support\Facades\Auth;
+use App\Models\ProdutoComprado;
+use App\Services\MovimentoEstoqueService;
+use App\Models\Estoque;
 
-class DespesaController extends Controller
+class DespesaService
 {
-    protected DespesaService $despesaService;
+    protected DespesaRepository $despesaRepo;
+    protected ProdutoRepository $produtoRepo;
 
-    public function __construct(DespesaService $despesaService)
+    public function __construct(DespesaRepository $despesaRepo, ProdutoRepository $produtoRepo)
     {
-        $this->despesaService = $despesaService;
+        $this->despesaRepo = $despesaRepo;
+        $this->produtoRepo = $produtoRepo;
     }
 
     /**
-     * Lista despesas com filtros e paginação
+     * Cria uma despesa com produtos (existentes ou novos)
      */
-    public function index(Request $request)
+    public function criarDespesaComProdutos(array $data, ?string $comprovantePath = null): Despesa
     {
-        $query = Despesa::with('usuario', 'parcelas', 'produtosComprados.produto');
+        // Cria a despesa usando o valor_total enviado pelo formulário
+        $despesa = $this->despesaRepo->create([
+            'data' => $data['data'],
+            'descricao' => $data['descricao'],
+            'valor_total' => $data['valor_total'] ?? 0, // usa valor digitado na view
+            'categoria' => $data['categoria'],
+            'forma_pagamento' => $data['forma_pagamento'],
+            'observacao' => $data['observacao'] ?? null,
+            'comprovante' => $comprovantePath,
+            'created_by' => $data['created_by'] ?? null,
+        ]);
 
-        if ($request->filled('descricao')) {
-            $query->where('descricao', 'like', "%{$request->descricao}%");
+        // Associa produtos e atualiza estoque
+        $this->associarProdutos($despesa, $data);
+
+        return $despesa;
+    }
+
+    /**
+     * Atualiza uma despesa
+     */
+    public function atualizarDespesa(array $data, Despesa $despesa, ?string $comprovantePath = null): void
+    {
+        $data['comprovante'] = $comprovantePath ?? $despesa->comprovante;
+        $data['valor_total'] = $data['valor_total'] ?? $despesa->valor_total;
+
+        $this->despesaRepo->update($despesa, $data);
+
+        // Atualiza produtos se enviados
+        if (!empty($data['produtos_id']) || !empty($data['produtos_novo'])) {
+            // Remove produtos antigos e seus movimentos no estoque
+            foreach ($despesa->produtosComprados as $produtoComprado) {
+                $estoque = Estoque::where('produto_id', $produtoComprado->produto_id)->first();
+                if ($estoque) {
+                    app(MovimentoEstoqueService::class)->registrarMovimento(
+                        $estoque,
+                        -$produtoComprado->quantidade,
+                        "Atualização despesa ID {$despesa->id}",
+                        "Remoção produto antigo"
+                    );
+                }
+            }
+            $despesa->produtosComprados()->delete();
+            $this->associarProdutos($despesa, $data);
+        }
+    }
+
+    /**
+     * Associa produtos à despesa e registra movimentos de estoque
+     */
+    protected function associarProdutos(Despesa $despesa, array $data): void
+    {
+        $movimentoService = app(MovimentoEstoqueService::class);
+        $produtosId = $data['produtos_id'] ?? [];
+        $produtosNovo = $data['produtos_novo'] ?? [];
+        $quantidades = $data['produtos_quantidade'] ?? [];
+        $valoresUnitarios = $data['produtos_valor_unitario'] ?? [];
+        $valoresTotal = $data['produtos_valor_total'] ?? [];
+        $categorias = $data['produtos_categoria'] ?? [];
+        $unidades = $data['produtos_unidade_medida'] ?? [];
+
+        foreach ($produtosId as $i => $id) {
+            $produto = null;
+
+            if (!empty($id)) {
+                $produto = $this->produtoRepo->find($id);
+            } elseif (!empty($produtosNovo[$i])) {
+                $produto = $this->produtoRepo->create([
+                    'nome' => $produtosNovo[$i],
+                    'categoria' => $categorias[$i] ?? null,
+                    'unidade_medida' => $unidades[$i] ?? null,
+                ]);
+            }
+
+            if ($produto) {
+                // Atualiza estoque
+                $estoque = Estoque::firstOrCreate(
+                    ['produto_id' => $produto->id],
+                    ['quantidade_disponivel' => 0, 'nivel_medio' => 0, 'quantidade_minima' => 0]
+                );
+
+                if (!empty($quantidades[$i])) {
+                    $movimentoService->registrarMovimento(
+                        $estoque,
+                        $quantidades[$i],
+                        "Despesa ID {$despesa->id}",
+                        "Produto comprado"
+                    );
+                }
+
+                // Cria registro ProdutoComprado
+                ProdutoComprado::create([
+                    'despesa_id' => $despesa->id,
+                    'produto_id' => $produto->id,
+                    'quantidade' => $quantidades[$i] ?? 0,
+                    'valor_unitario' => $valoresUnitarios[$i] ?? 0,
+                    'valor_total' => $valoresTotal[$i] ?? 0,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Registra pagamento de parcela
+     */
+    public function registrarPagamentoParcela($parcela, array $data): void
+    {
+        $parcela->update($data);
+    }
+
+    /**
+     * Exclui despesa e produtos associados
+     */
+    public function excluirDespesa(Despesa $despesa): void
+    {
+        // Remove produtos e ajusta estoque
+        foreach ($despesa->produtosComprados as $produtoComprado) {
+            $estoque = Estoque::where('produto_id', $produtoComprado->produto_id)->first();
+            if ($estoque) {
+                app(MovimentoEstoqueService::class)->registrarMovimento(
+                    $estoque,
+                    -$produtoComprado->quantidade,
+                    "Despesa ID {$despesa->id}",
+                    "Exclusão de produto"
+                );
+            }
         }
 
-        if ($request->filled('categoria')) {
-            $query->where('categoria', $request->categoria);
-        }
-
-        if ($request->filled('forma_pagamento')) {
-            $query->where('forma_pagamento', $request->forma_pagamento);
-        }
-
-        $despesas = $query->orderBy('created_at', 'desc')
-                          ->paginate(10)
-                          ->appends($request->all());
-
-        return view('despesas.index', compact('despesas'));
-    }
-
-    /**
-     * Formulário de criação de despesa
-     */
-    public function create()
-    {
-        $produtos = Produto::orderBy('nome')->get();
-        return view('despesas.create', compact('produtos'));
-    }
-
-    /**
-     * Armazena uma nova despesa
-     */
-    public function store(Request $request)
-    {
-        $validated = $this->despesaService->validarDespesa($request);
-
-        $comprovante = $request->file('comprovante');
-
-        $this->despesaService->criarDespesa($validated, $comprovante, Auth::id());
-
-        return redirect()->route('despesas.index')
-                         ->with('success', 'Despesa cadastrada com sucesso!');
-    }
-
-    /**
-     * Formulário de edição de despesa
-     */
-    public function edit(Despesa $despesa)
-    {
-        $despesa->load('parcelas', 'produtosComprados.produto');
-        $produtos = Produto::orderBy('nome')->get();
-
-        return view('despesas.edit', compact('despesa', 'produtos'));
-    }
-
-    /**
-     * Atualiza uma despesa existente
-     */
-    public function update(Request $request, Despesa $despesa)
-    {
-        $validated = $this->despesaService->validarDespesa($request, $despesa);
-
-        $comprovante = $request->file('comprovante');
-
-        $this->despesaService->atualizarDespesa($despesa, $validated, $comprovante);
-
-        return redirect()->route('despesas.index')
-                         ->with('success', 'Despesa atualizada com sucesso!');
-    }
-
-    /**
-     * Registrar pagamento de uma parcela
-     */
-    public function registrarPagamento(Request $request, int $parcelaId)
-    {
-        $this->despesaService->registrarPagamento($parcelaId, $request);
-
-        return response()->json(['success' => true]);
-    }
-
-    /**
-     * Excluir despesa
-     */
-    public function destroy(Despesa $despesa)
-    {
-        $this->despesaService->excluirDespesa($despesa);
-
-        return redirect()->route('despesas.index')
-                         ->with('success', 'Despesa excluída com sucesso!');
+        $despesa->produtosComprados()->delete();
+        $this->despesaRepo->delete($despesa);
     }
 }

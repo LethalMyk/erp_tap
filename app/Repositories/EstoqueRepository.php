@@ -6,47 +6,55 @@ use App\Models\Estoque;
 
 class EstoqueRepository
 {
+    protected $model;
+
+    public function __construct(Estoque $model)
+    {
+        $this->model = $model;
+    }
+
     /**
-     * Retorna todos os produtos com quantidade maior que zero
+     * Retorna todos os produtos em estoque
+     */
+    public function all()
+    {
+        return $this->model->with('produto')->get();
+    }
+
+    /**
+     * Retorna todos os produtos disponíveis (quantidade > 0)
      */
     public function allDisponiveis()
     {
-        return Estoque::with('produto')
+        return $this->model->with('produto')
             ->where('quantidade_disponivel', '>', 0)
-            ->orderBy('id', 'asc')
             ->get();
     }
 
     /**
-     * Atualiza a quantidade de um produto no estoque
+     * Cria um novo registro de estoque
      */
-    public function updateQuantidade($estoqueId, $quantidade)
+    public function create(array $data)
     {
-        $estoque = Estoque::findOrFail($estoqueId);
+        return $this->model->create($data);
+    }
+
+    /**
+     * Atualiza a quantidade disponível de um produto no estoque
+     */
+    public function updateQuantidade(int $produtoId, float $quantidade)
+    {
+        $estoque = $this->model->where('produto_id', $produtoId)->firstOrFail();
         $estoque->quantidade_disponivel = $quantidade;
         $estoque->save();
-
         return $estoque;
     }
 
     /**
-     * Cria um novo produto no estoque
+     * Busca estoque por produto
      */
-    public function create(array $data)
+    public function findByProdutoId(int $produtoId)
     {
-        return Estoque::create([
-            'nome' => $data['nome'],
-            'categoria' => $data['categoria'] ?? null,
-            'quantidade_disponivel' => $data['quantidade_disponivel'] ?? 0,
-            'unidade_medida' => $data['unidade_medida'],
-        ]);
-    }
-
-    /**
-     * Retorna um produto pelo ID
-     */
-    public function findById($estoqueId)
-    {
-        return Estoque::findOrFail($estoqueId);
+        return $this->model->where('produto_id', $produtoId)->first();
     }
 }

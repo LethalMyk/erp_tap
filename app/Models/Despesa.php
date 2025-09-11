@@ -4,9 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
-use App\Models\Parcela;
-use App\Models\ProdutoComprado;
 
 class Despesa extends Model
 {
@@ -16,27 +13,27 @@ class Despesa extends Model
         'descricao',
         'valor_total',
         'categoria',
-        'separador',
         'forma_pagamento',
         'observacao',
         'created_by',
     ];
 
-    protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
     /**
-     * Usuário que criou a despesa
+     * Boot method para gerar o despesa_id automaticamente.
      */
-    public function usuario()
+    protected static function boot()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->despesa_id)) {
+                $model->despesa_id = 'D-' . time() . '-' . rand(100, 999); // ex: D-1694440000-123
+            }
+        });
     }
 
     /**
-     * Parcelas vinculadas à despesa
+     * Relacionamento: uma despesa possui várias parcelas.
      */
     public function parcelas()
     {
@@ -44,44 +41,55 @@ class Despesa extends Model
     }
 
     /**
-     * Produtos comprados vinculados à despesa
+     * Relacionamento: uma despesa possui vários produtos comprados.
      */
     public function produtosComprados()
     {
-        return $this->hasMany(ProdutoComprado::class, 'despesa_id');
+        return $this->hasMany(ProdutoComprado::class);
     }
 
     /**
-     * Retorna valor total pago das parcelas
+     * Relacionamento: uma despesa possui várias imagens/comprovantes.
      */
-    public function valorPago()
+    public function imagens()
     {
-        return $this->parcelas()->where('status', 'PAGO')->sum('valor_parcela');
+        return $this->hasMany(DespesaImagem::class);
     }
 
     /**
-     * Retorna valor restante a pagar
+     * Cria automaticamente parcelas de acordo com a forma de pagamento.
      */
-    public function valorRestante()
+    public function criarParcelas(array $dados, ?array $comprovantes = null)
     {
-        return $this->valor_total - $this->valorPago();
-    }
+        if ($this->forma_pagamento === 'À VISTA') {
+            $this->parcelas()->create([
+                'numero' => 1,
+                'valor_parcela' => $this->valor_total,
+                'status' => 'PAGO',
+                'data_vencimento' => $dados['data'] ?? now(),
+                'forma_pagamento' => $dados['forma_pagamento_avista'] ?? 'PIX',
+                'chave_pagamento' => $dados['chave_pagamento'][0] ?? null,
+                'comprovante' => $comprovantes[0] ?? null,
+            ]);
+        } else {
+            $parcelasDesc = $dados['parcelas_descricao'] ?? [$this->descricao];
+            $parcelasValor = $dados['parcelas_valor'] ?? [$this->valor_total];
+            $parcelasForma = $dados['parcelas_forma_pagamento'] ?? [];
+            $datas = $dados['data_vencimento'] ?? [null];
+            $chaves = $dados['chave_pagamento'] ?? [];
 
-    /**
-     * Retorna status geral da despesa com base nas parcelas
-     */
-    public function getStatusAttribute()
-    {
-        $totalParcelas = $this->parcelas()->count();
-        if ($totalParcelas == 0) {
-            return 'SEM PARCELAS';
+            foreach ($parcelasDesc as $index => $desc) {
+                $this->parcelas()->create([
+                    'numero' => $index + 1,
+                    'descricao' => $desc,
+                    'valor_parcela' => $parcelasValor[$index] ?? $this->valor_total,
+                    'status' => 'PENDENTE',
+                    'data_vencimento' => $datas[$index] ?? null,
+                    'forma_pagamento' => $parcelasForma[$index] ?? 'PIX',
+                    'chave_pagamento' => $chaves[$index] ?? null,
+                    'comprovante' => $comprovantes[$index] ?? null,
+                ]);
+            }
         }
-
-        $parcelasPagas = $this->parcelas()->where('status', 'PAGO')->count();
-
-        if ($parcelasPagas == 0) return 'PENDENTE';
-        if ($parcelasPagas < $totalParcelas) return 'PARCIAL';
-        return 'PAGO';
     }
-    
 }

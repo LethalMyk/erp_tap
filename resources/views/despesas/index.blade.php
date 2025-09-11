@@ -19,7 +19,6 @@
                 <input type="checkbox" id="toggle-all-parcelas" class="h-4 w-4">
                 Exibir todas as parcelas
             </label>
-            
         </div>
 
         <div class="overflow-x-auto bg-white shadow rounded">
@@ -69,20 +68,16 @@
                             <td class="px-4 py-2">{{ $despesa->created_at ? \Carbon\Carbon::parse($despesa->created_at)->format('d/m/Y H:i') : '-' }}</td>
                             <td class="px-4 py-2">{{ $despesa->updated_at ? \Carbon\Carbon::parse($despesa->updated_at)->format('d/m/Y H:i') : '-' }}</td>
                             <td class="px-4 py-2 flex gap-2">
-
                                 @php
                                     $despesaParaJS = $despesa->toArray();
                                     $despesaParaJS['data_vencimento'] = $despesa->data_vencimento ? \Carbon\Carbon::parse($despesa->data_vencimento)->format('Y-m-d') : null;
                                     $despesaParaJS['data_pagamento'] = $despesa->data_pagamento ? \Carbon\Carbon::parse($despesa->data_pagamento)->format('Y-m-d') : null;
                                     $despesaParaJS['action'] = route('despesas.update', $despesa->id);
                                 @endphp
-
-                                <button 
-                                    class="bg-yellow-600 text-black font-semibold px-4 py-2 rounded-lg shadow border border-yellow-800 hover:bg-yellow-700 transition"
+                                <button class="bg-yellow-600 text-black font-semibold px-4 py-2 rounded-lg shadow border border-yellow-800 hover:bg-yellow-700 transition"
                                     data-despesa='@json($despesaParaJS)'>
                                     Editar
                                 </button>
-
                                 <form action="{{ route('despesas.destroy', $despesa->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta despesa?');">
                                     @csrf
                                     @method('DELETE')
@@ -124,13 +119,10 @@
                                         $parcelaParaJS['data_pagamento'] = $parcela->data_pagamento ? \Carbon\Carbon::parse($parcela->data_pagamento)->format('Y-m-d') : null;
                                         $parcelaParaJS['action'] = route('despesas.update', $parcela->id);
                                     @endphp
-
-                                    <button 
-                                        class="bg-yellow-600 text-black font-semibold px-4 py-2 rounded-lg shadow border border-yellow-800 hover:bg-yellow-700 transition"
+                                    <button class="bg-yellow-600 text-black font-semibold px-4 py-2 rounded-lg shadow border border-yellow-800 hover:bg-yellow-700 transition"
                                         data-parcela='@json($parcelaParaJS)'>
                                         Editar
                                     </button>
-
                                     <form action="{{ route('despesas.destroy', $parcela->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta parcela?');">
                                         @csrf
                                         @method('DELETE')
@@ -176,8 +168,8 @@
                     <input type="date" name="data_pagamento" id="modal_pagamento" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium">Comprovante</label>
-                    <input type="file" name="comprovante" id="modal_comprovante" class="mt-1 block w-full"/>
+                    <label class="block text-sm font-medium">Comprovantes</label>
+                    <input type="file" name="comprovantes[]" id="modal_comprovante" class="mt-1 block w-full" accept="image/*" multiple/>
                 </div>
                 <div class="flex justify-end gap-2 mt-4">
                     <button type="button" id="cancelModal" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition">
@@ -247,8 +239,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData();
             formData.append('data_pagamento', document.getElementById("modal_pagamento").value);
             formData.append('descricao', document.getElementById("modal_descricao").value);
-            const comprovanteFile = document.getElementById("modal_comprovante").files[0];
-            if(comprovanteFile) formData.append('comprovante', comprovanteFile);
+
+            const comprovantes = document.getElementById("modal_comprovante").files;
+            for (let i = 0; i < comprovantes.length; i++) {
+                formData.append('comprovantes[]', comprovantes[i]);
+            }
 
             fetch(`/despesas/${parcelaId}/registrar-pagamento`, {
                 method: 'POST',

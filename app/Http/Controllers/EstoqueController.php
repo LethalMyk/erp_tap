@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 
 class EstoqueController extends Controller
 {
+    /**
+     * Exibe a lista de produtos no estoque
+     */
     public function index()
     {
         $estoques = Estoque::with('produto', 'movimentos')->get();
@@ -16,6 +19,9 @@ class EstoqueController extends Controller
         return view('estoque.index', compact('estoques', 'produtos'));
     }
 
+    /**
+     * Adiciona um novo produto ao estoque
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -39,6 +45,9 @@ class EstoqueController extends Controller
         return redirect()->route('estoque.index')->with('success', 'Produto adicionado ao estoque!');
     }
 
+    /**
+     * Retorna um produto existente ou cria um novo
+     */
     private function getOrCreateProduto(array $data)
     {
         if (!empty($data['produto_existente'])) {
