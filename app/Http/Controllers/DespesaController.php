@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Arr;
 
 class DespesaController extends Controller
 {
@@ -75,7 +76,6 @@ class DespesaController extends Controller
 
         DB::transaction(function () use ($validated, $request, $comprovantePath) {
 
-            // Cria a despesa
             $despesa = Despesa::create([
                 'descricao' => $validated['descricao'],
                 'valor_total' => $validated['valor'],
@@ -85,7 +85,7 @@ class DespesaController extends Controller
                 'created_by' => Auth::id(),
             ]);
 
-            // Cria parcelas
+            // Parcelas
             if ($validated['forma_pagamento'] === 'À VISTA') {
                 Parcela::create([
                     'despesa_id' => $despesa->id,
@@ -93,8 +93,8 @@ class DespesaController extends Controller
                     'valor_parcela' => $validated['valor'],
                     'data_vencimento' => $validated['data'],
                     'status' => 'PAGO',
-                    'chave_pagamento' => $request->chave_pagamento[0] ?? null,
-                    'forma_pagamento' => $request->parcelas_forma_pagamento[0] ?? 'PIX',
+                    'chave_pagamento' => Arr::get($request->chave_pagamento, 0),
+                    'forma_pagamento' => Arr::get($request->parcelas_forma_pagamento, 0, 'PIX'),
                     'comprovante' => $comprovantePath,
                 ]);
             } else {
@@ -118,53 +118,60 @@ class DespesaController extends Controller
                 }
             }
 
-            // Produtos comprados e estoque (sem quantidade_disponivel)
-            $produtosCount = max(count($request->produtos_id ?? []), count($request->produtos_novo ?? []));
+            // Produtos e estoque
+            $produtosCount = max(
+                count($request->produtos_id ?? []),
+                count($request->produtos_novo ?? []),
+                count($request->produtos_quantidade ?? [])
+            );
 
             for ($i = 0; $i < $produtosCount; $i++) {
+                $quantidade = (float) Arr::get($request->produtos_quantidade, $i, 0);
+                if ($quantidade <= 0) continue;
 
-                $nomeProduto = $request->produtos_novo[$i] ?? null;
-                $categoria = $request->produtos_categoria[$i] ?? 'GERAL';
-                $unidade = $request->produtos_unidade_medida[$i] ?? 'UN';
+                $nomeProduto = Arr::get($request->produtos_novo, $i);
+                $idProdutoExistente = Arr::get($request->produtos_id, $i);
 
-                // Cria ou busca produto
                 if ($nomeProduto) {
                     $produto = Produto::firstOrCreate(
                         ['nome' => $nomeProduto],
-                        ['unidade_medida' => $unidade, 'categoria' => $categoria, 'descricao' => $request->produtos_obs[$i] ?? null]
+                        [
+                            'unidade_medida' => Arr::get($request->produtos_unidade_medida, $i, 'UN'),
+                            'categoria' => Arr::get($request->produtos_categoria, $i, 'GERAL'),
+                            'descricao' => Arr::get($request->produtos_obs, $i),
+                        ]
                     );
+                } elseif ($idProdutoExistente) {
+                    $produto = Produto::find($idProdutoExistente);
                 } else {
-                    $produtoId = $request->produtos_id[$i] ?? null;
-                    $produto = Produto::find($produtoId);
-                    if (!$produto) continue;
+                    continue;
                 }
 
-                // Cria entrada em produtos_comprados
-                ProdutoComprado::create([
+                // Atualiza ou cria ProdutoComprado
+                $produtoComprado = ProdutoComprado::firstOrNew([
                     'despesa_id' => $despesa->id,
                     'produto_id' => $produto->id,
-                    'quantidade' => $request->produtos_quantidade[$i] ?? 0,
-                    'unidade_medida' => $unidade,
-                    'valor_unitario' => $request->produtos_valor_unitario[$i] ?? 0,
-                    'valor_total' => $request->produtos_valor_total[$i] ?? 0,
-                    'obs' => $request->produtos_obs[$i] ?? null,
                 ]);
+                $produtoComprado->quantidade = ($produtoComprado->quantidade ?? 0) + $quantidade;
+                $produtoComprado->unidade_medida = Arr::get($request->produtos_unidade_medida, $i, 'UN');
+                $produtoComprado->valor_unitario = Arr::get($request->produtos_valor_unitario, $i, 0);
+                $produtoComprado->valor_total = ($produtoComprado->valor_total ?? 0) + Arr::get($request->produtos_valor_total, $i, 0);
+                $produtoComprado->obs = Arr::get($request->produtos_obs, $i);
+                $produtoComprado->save();
 
-                // Cria registro de estoque sem quantidade_disponivel
-                Estoque::firstOrCreate(
+                $estoque = Estoque::firstOrCreate(
                     ['produto_id' => $produto->id],
                     ['nivel_medio' => 0, 'quantidade_minima' => 0]
                 );
 
-                // Registro de movimento de estoque
                 MovimentoEstoque::create([
                     'tipo' => 'ENTRADA',
-                    'estoque_id' => Estoque::where('produto_id', $produto->id)->first()->id,
-                    'quantidade' => $request->produtos_quantidade[$i] ?? 0,
-                    'vinculo' => 'Despesa ID '.$despesa->id,
+                    'estoque_id' => $estoque->id,
+                    'quantidade' => $quantidade,
+                    'vinculo' => 'Despesa ID ' . $despesa->id,
                     'usuario_id' => Auth::id(),
                     'data_movimento' => now(),
-                    'obs' => $request->produtos_obs[$i] ?? null,
+                    'obs' => Arr::get($request->produtos_obs, $i),
                 ]);
             }
         });
@@ -203,6 +210,62 @@ class DespesaController extends Controller
 
         $despesa->update($validated);
 
+        // Produtos existentes ou novos
+        $produtosCount = max(
+            count($request->produtos_id ?? []),
+            count($request->produtos_novo ?? []),
+            count($request->produtos_quantidade ?? [])
+        );
+
+        for ($i = 0; $i < $produtosCount; $i++) {
+            $quantidade = (float) Arr::get($request->produtos_quantidade, $i, 0);
+            if ($quantidade <= 0) continue;
+
+            $nomeProduto = Arr::get($request->produtos_novo, $i);
+            $idProdutoExistente = Arr::get($request->produtos_id, $i);
+
+            if ($nomeProduto) {
+                $produto = Produto::firstOrCreate(
+                    ['nome' => $nomeProduto],
+                    [
+                        'unidade_medida' => Arr::get($request->produtos_unidade_medida, $i, 'UN'),
+                        'categoria' => Arr::get($request->produtos_categoria, $i, 'GERAL'),
+                        'descricao' => Arr::get($request->produtos_obs, $i),
+                    ]
+                );
+            } elseif ($idProdutoExistente) {
+                $produto = Produto::find($idProdutoExistente);
+            } else {
+                continue;
+            }
+
+            $produtoComprado = ProdutoComprado::firstOrNew([
+                'despesa_id' => $despesa->id,
+                'produto_id' => $produto->id,
+            ]);
+            $produtoComprado->quantidade = ($produtoComprado->quantidade ?? 0) + $quantidade;
+            $produtoComprado->unidade_medida = Arr::get($request->produtos_unidade_medida, $i, 'UN');
+            $produtoComprado->valor_unitario = Arr::get($request->produtos_valor_unitario, $i, 0);
+            $produtoComprado->valor_total = ($produtoComprado->valor_total ?? 0) + Arr::get($request->produtos_valor_total, $i, 0);
+            $produtoComprado->obs = Arr::get($request->produtos_obs, $i);
+            $produtoComprado->save();
+
+            $estoque = Estoque::firstOrCreate(
+                ['produto_id' => $produto->id],
+                ['nivel_medio' => 0, 'quantidade_minima' => 0]
+            );
+
+            MovimentoEstoque::create([
+                'tipo' => 'ENTRADA',
+                'estoque_id' => $estoque->id,
+                'quantidade' => $quantidade,
+                'vinculo' => 'Despesa ID ' . $despesa->id,
+                'usuario_id' => Auth::id(),
+                'data_movimento' => now(),
+                'obs' => Arr::get($request->produtos_obs, $i),
+            ]);
+        }
+
         return redirect()->route('despesas.index')->with('success', 'Despesa atualizada com sucesso!');
     }
 
@@ -214,7 +277,7 @@ class DespesaController extends Controller
         $parcela->descricao = $request->descricao ?? $parcela->descricao;
         $parcela->status = 'PAGO';
 
-        if($request->hasFile('comprovante')){
+        if ($request->hasFile('comprovante')) {
             $parcela->comprovante = $request->file('comprovante')->store('comprovantes', 'public');
         }
 
@@ -234,7 +297,6 @@ class DespesaController extends Controller
             }
 
             foreach ($despesa->produtosComprados as $pc) {
-                // Remove produto_comprado sem mexer na quantidade_disponivel
                 $pc->delete();
             }
 

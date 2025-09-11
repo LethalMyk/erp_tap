@@ -189,7 +189,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     <option value="">Selecione o Produto</option>
                     ${produtosList.map(p=>`<option value="${p.id}" data-unidade="${p.unidade_medida}" data-categoria="${p.categoria}">${p.nome}</option>`).join('')}
                 </select>
-                <button type="button" class="toggle-novo-produto bg-gray-300 px-2 rounded text-sm">Novo</button>
             </div>
             <div class="flex items-center gap-2 mt-2">
                 <label class="block text-sm font-medium">Categoria</label>
@@ -229,17 +228,7 @@ document.addEventListener("DOMContentLoaded", function () {
             unidadeInput.readOnly = true;
         });
 
-        toggleBtn.addEventListener('click', function(){
-            const inputNovo = document.createElement('input');
-            inputNovo.type = 'text';
-            inputNovo.name = 'produtos_novo[]';
-            inputNovo.className = selectProduto.className;
-            inputNovo.placeholder = 'Digite o nome do novo produto';
-            selectProduto.replaceWith(inputNovo);
-            categoriaInput.readOnly = false;
-            unidadeInput.readOnly = false;
-            toggleBtn.textContent = 'Seleção';
-        });
+       
 
         produtosContainer.appendChild(div);
     }
