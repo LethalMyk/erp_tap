@@ -156,10 +156,6 @@
                     <input type="text" name="unidade_medida" x-model="unidade" 
                            :readonly="produtoExistente != ''" class="w-full border px-3 py-2 rounded mb-3">
 
-                    <input type="hidden" name="categoria" :value="categoria">
-                    <input type="hidden" name="sub_categoria" :value="subcategoria">
-                    <input type="hidden" name="unidade_medida" :value="unidade">
-
                     <label class="block mb-2">Quantidade:</label>
                     <input type="number" name="quantidade_inicial" min="0" value="0" class="w-full border px-3 py-2 rounded mb-3">
 
@@ -178,12 +174,20 @@
 
                 <p class="mb-2 text-gray-600">Quantidade atual: <span x-text="quantidadeDisponivel"></span></p>
 
-                <form :action="`/estoque/${estoqueId}/movimento`" method="POST" @submit.prevent="processarMovimento($event)">
+                <form :action="`/estoque/${estoqueId}/movimento`" method="POST" @submit.prevent="processarMovimento($event, $el)">
                     @csrf
 
                     <label class="block mb-2">Nova quantidade:</label>
-                    <input type="number" name="nova_quantidade" x-model="quantidadeMovimento" min="0"
-                           placeholder="Digite a quantidade" class="w-full border px-3 py-2 rounded mb-3" required>
+                    <div class="flex gap-2 mb-3">
+                        <button type="button" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                                @click="quantidadeMovimento = Math.max(0, quantidadeMovimento - 1)">−</button>
+
+                        <input type="number" name="nova_quantidade" x-model.number="quantidadeMovimento" min="0"
+                               placeholder="Digite a quantidade" class="w-full border px-3 py-2 rounded" required>
+
+                        <button type="button" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                                @click="quantidadeMovimento++">+</button>
+                    </div>
 
                     <input type="hidden" name="tipo" x-model="tipoMovimento">
 
@@ -246,7 +250,7 @@ function estoqueModal() {
             this.modalMovimento = true;
         },
 
-        processarMovimento(event) {
+        processarMovimento(event, form) {
             if(this.quantidadeMovimento > this.quantidadeDisponivel){
                 this.tipoMovimento = 'entrada';
             } else if(this.quantidadeMovimento < this.quantidadeDisponivel){
@@ -256,7 +260,7 @@ function estoqueModal() {
                 return;
             }
 
-            event.target.submit();
+            form.submit();
         },
 
         onProdutoChange(event) {
