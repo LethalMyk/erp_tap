@@ -57,7 +57,7 @@ class DespesaController extends Controller
             'chave_pagamento' => 'nullable|array',
             'comprovante' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'observacao' => 'nullable|string',
-            
+
             // Produtos
             'produtos_id' => 'nullable|array',
             'produtos_quantidade' => 'nullable|array',
@@ -118,7 +118,7 @@ class DespesaController extends Controller
                 }
             }
 
-            // Produtos comprados e estoque
+            // Produtos comprados e estoque (sem quantidade_disponivel)
             $produtosCount = max(count($request->produtos_id ?? []), count($request->produtos_novo ?? []));
 
             for ($i = 0; $i < $produtosCount; $i++) {
@@ -150,17 +150,16 @@ class DespesaController extends Controller
                     'obs' => $request->produtos_obs[$i] ?? null,
                 ]);
 
-                // Atualiza estoque
-                $estoque = Estoque::firstOrCreate(
+                // Cria registro de estoque sem quantidade_disponivel
+                Estoque::firstOrCreate(
                     ['produto_id' => $produto->id],
-                    ['quantidade_disponivel' => 0, 'nivel_medio' => 0, 'quantidade_minima' => 0]
+                    ['nivel_medio' => 0, 'quantidade_minima' => 0]
                 );
-                $estoque->increment('quantidade_disponivel', $request->produtos_quantidade[$i] ?? 0);
 
                 // Registro de movimento de estoque
                 MovimentoEstoque::create([
                     'tipo' => 'ENTRADA',
-                    'estoque_id' => $estoque->id,
+                    'estoque_id' => Estoque::where('produto_id', $produto->id)->first()->id,
                     'quantidade' => $request->produtos_quantidade[$i] ?? 0,
                     'vinculo' => 'Despesa ID '.$despesa->id,
                     'usuario_id' => Auth::id(),
@@ -235,10 +234,7 @@ class DespesaController extends Controller
             }
 
             foreach ($despesa->produtosComprados as $pc) {
-                $estoque = Estoque::where('produto_id', $pc->produto_id)->first();
-                if ($estoque) {
-                    $estoque->decrement('quantidade_disponivel', $pc->quantidade);
-                }
+                // Remove produto_comprado sem mexer na quantidade_disponivel
                 $pc->delete();
             }
 
