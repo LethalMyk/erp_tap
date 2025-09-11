@@ -21,6 +21,8 @@ use App\Http\Controllers\EstoqueController;
 use App\Http\Controllers\ListaCompraController;
 use App\Http\Middleware\CheckRole;
 use App\Models\Terceirizada;
+use App\Http\Controllers\MovimentoEstoqueController;
+
 
 // Página inicial
 Route::get('/', function () { return view('welcome'); });
@@ -110,9 +112,12 @@ Route::post('/despesas/{id}/registrar-pagamento', [DespesaController::class, 're
 // Clientes e itens
 Route::get('/clientes/{id}/itens', [AgendamentoController::class, 'getItensCliente']);
 
-// Estoque
+
 Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
-Route::put('/estoque/{id}/quantidade', [EstoqueController::class, 'updateQuantidade'])->name('estoque.updateQuantidade');
+Route::post('/estoque', [EstoqueController::class, 'store'])->name('estoque.store');
+
+Route::post('/estoque/{estoque}/movimento', [MovimentoEstoqueController::class, 'store'])->name('estoque.movimento.store');
+
 
 // Lista de Compras
 Route::middleware(['auth'])->group(function () {

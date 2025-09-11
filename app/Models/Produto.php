@@ -15,6 +15,7 @@ class Produto extends Model
         'nome',
         'unidade_medida',
         'categoria',
+        'sub_categoria', // adiciona subcategoria
         'descricao',
     ];
 
@@ -37,5 +38,25 @@ class Produto extends Model
     public function estoque()
     {
         return $this->hasOne(Estoque::class, 'produto_id');
+    }
+
+    /**
+     * Retorna a quantidade disponível do produto no estoque, calculada pelos movimentos
+     */
+    public function quantidadeDisponivel()
+    {
+        if ($this->estoque) {
+            return $this->estoque->movimentos()->sum('quantidade');
+        }
+
+        return 0;
+    }
+
+    /**
+     * Retorna a categoria completa: Categoria / Subcategoria
+     */
+    public function categoriaCompleta()
+    {
+        return $this->categoria . ($this->sub_categoria ? ' / ' . $this->sub_categoria : '');
     }
 }

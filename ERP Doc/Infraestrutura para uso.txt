@@ -1,0 +1,244 @@
+🔐 Segurança
+1. Criptografia de senhas
+
+O que é: Guardar senha em forma de código embaralhado, impossível de reverter para o texto original.
+
+Como fazer no Laravel:
+
+Laravel já usa bcrypt no Auth.
+
+Exemplo:
+
+use Illuminate\Support\Facades\Hash;
+
+$user->password = Hash::make('senha123');
+$user->save();
+
+
+Assim, a senha nunca fica exposta no banco.
+
+2. Controle de acessos
+
+O que é: Definir permissões diferentes (ex.: administrador pode cadastrar equipamentos, funcionário só pode criar pedidos).
+
+Como fazer no Laravel:
+
+Use middleware para checar nível do usuário antes de acessar uma rota.
+
+Route::middleware(['auth', 'is_admin'])->group(function () {
+    Route::get('/admin', [AdminController::class, 'index']);
+});
+
+
+Você cria o middleware is_admin e verifica se user->role == 'admin'.
+
+3. HTTPS (SSL)
+
+O que é: O sistema só pode ser acessado com cadeado 🔒 (https://).
+
+Como fazer:
+
+Se for usar hospedagem (Hostinger, DigitalOcean, etc.), instale Let’s Encrypt (gratuito).
+
+No Apache ou Nginx, redirecione tudo de http para https.
+
+4. Validação de dados
+
+O que é: Impedir que usuários insiram dados inválidos ou maliciosos.
+
+Como fazer no Laravel:
+
+Use o Request com validate:
+
+$request->validate([
+    'nome' => 'required|string|max:255',
+    'cpf' => 'required|digits:11',
+    'email' => 'nullable|email'
+]);
+
+🛠️ Infraestrutura
+5. Servidor dedicado ou VPS confiável
+
+O que é: Não usar XAMPP em produção (serve só para testes locais).
+
+Como fazer:
+
+Contratar um VPS ou hospedagem que suporte Laravel + MySQL (Hostinger, Linode, DigitalOcean).
+
+Instalar stack de produção: Apache/Nginx + PHP + MySQL.
+
+6. Banco de dados isolado
+
+O que é: Não usar o usuário root para conectar seu sistema.
+
+Como fazer no MySQL:
+
+CREATE USER 'erp_user'@'localhost' IDENTIFIED BY 'senhaSegura123';
+GRANT ALL PRIVILEGES ON erp_database.* TO 'erp_user'@'localhost';
+FLUSH PRIVILEGES;
+
+
+Depois, configure no .env:
+
+DB_USERNAME=erp_user
+DB_PASSWORD=senhaSegura123
+
+7. Backup automático
+
+O que é: Cópia diária do banco e arquivos.
+
+Como fazer:
+
+Banco: mysqldump -u user -p erp_database > backup.sql
+
+Automatizar com cron job (Linux agenda tarefa).
+
+Arquivos: fazer backup da pasta /storage e /public/uploads.
+
+8. Logs ativos
+
+O que é: Registro de erros e ações.
+
+Como fazer no Laravel:
+
+Laravel já grava em storage/logs/laravel.log.
+
+Você pode gravar logs customizados:
+
+use Illuminate\Support\Facades\Log;
+
+Log::info('Pedido criado', ['pedido_id' => $pedido->id]);
+
+📦 Deploy e Atualizações
+9. Ambiente de testes (homologação)
+
+O que é: Ter uma cópia do ERP para testar mudanças antes de colocar em produção.
+
+Como fazer:
+
+Clone o projeto em outra pasta/servidor.
+
+Use banco separado (ex.: erp_test).
+
+Teste lá antes de aplicar no sistema da empresa.
+
+10. Controle de versão (Git)
+
+O que é: Guardar histórico do código (pode voltar atrás se der erro).
+
+Como fazer:
+
+No projeto:
+
+git init
+git add .
+git commit -m "primeira versão ERP"
+
+
+Subir para GitHub/GitLab.
+
+11. Migrações de banco
+
+O que é: Controle das mudanças de tabelas via código.
+
+Como fazer no Laravel:
+
+Criar migration:
+
+php artisan make:migration add_campo_x_to_pedidos
+
+
+Editar migration e rodar:
+
+php artisan migrate
+
+📊 Dados e Backup
+12. Backup antes do Go Live
+
+O que é: Guardar os dados atuais da empresa (Excel, Access).
+
+Como fazer:
+
+Exporte os dados para CSV.
+
+Guarde cópia em nuvem (Google Drive, OneDrive).
+
+13. Rotina de exportação
+
+O que é: Possibilidade de gerar relatórios em PDF/CSV para não depender só do sistema.
+
+Como fazer no Laravel:
+
+Use maatwebsite/excel para exportar CSV/Excel.
+
+Use barryvdh/laravel-dompdf para PDF.
+
+14. Plano de recuperação
+
+O que é: Saber quanto tempo leva para restaurar o ERP se o servidor cair.
+
+Como fazer:
+
+Teste: apague o banco de teste e restaure usando backup.
+
+Documente os passos.
+
+👨‍💻 Usuários e Treinamento
+15. Treinamento de colaboradores
+
+O que é: Mostrar como usar o ERP corretamente.
+
+Como fazer:
+
+Explique cada tela (Cadastro, Pedido, Itens, Pagamento).
+
+Dê acesso de teste antes de liberar em produção.
+
+16. Suporte rápido
+
+O que é: Quem corrige se o sistema parar.
+
+Como fazer:
+
+Você mesmo no início.
+
+Tenha um canal (WhatsApp/Telegram) só para suporte interno.
+
+17. Manual simples
+
+O que é: Guia para quem esquece como usar.
+
+Como fazer:
+
+Crie um PDF com prints passo a passo.
+
+Ex.: “Para cadastrar pedido: clique em Criar Pedido → selecione cliente → adicione itens → clique em Salvar”.
+
+🚨 Monitoramento
+18. Acompanhar primeiros dias
+
+O que é: Ficar de olho nos erros logo no início.
+
+Como fazer:
+
+Verifique logs em storage/logs/laravel.log.
+
+Pergunte aos colaboradores se encontraram dificuldades.
+
+19. Alertas automáticos
+
+O que é: Mostrar mensagens quando há algo errado.
+
+Como fazer no Laravel:
+
+Usar validações e session flash para exibir erro na tela.
+
+20. Auditoria básica
+
+O que é: Saber quem fez o quê.
+
+Como fazer no Laravel:
+
+Criar tabela logs e registrar sempre que alguém criar/alterar/excluir algo.
+
+👉 Isso é a base para deixar seu ERP seguro, confiável e profissional já em uso.

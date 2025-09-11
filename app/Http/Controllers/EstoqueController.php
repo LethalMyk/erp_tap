@@ -2,35 +2,55 @@
 
 namespace App\Http\Controllers;
 
-use App\Repositories\EstoqueRepository;
-use App\Services\EstoqueService;
+use App\Models\Produto;
+use App\Models\Estoque;
 use Illuminate\Http\Request;
 
 class EstoqueController extends Controller
 {
-    protected $repository;
-    protected $service;
-
-    public function __construct(EstoqueRepository $repository, EstoqueService $service)
-    {
-        $this->repository = $repository;
-        $this->service = $service;
-    }
-
     public function index()
     {
-        $produtos = $this->repository->allDisponiveis();
-        return view('estoque.index', compact('produtos'));
+        $estoques = Estoque::with('produto', 'movimentos')->get();
+        $produtos = Produto::all();
+
+        return view('estoque.index', compact('estoques', 'produtos'));
     }
 
-    public function updateQuantidade(Request $request, $estoqueId)
+    public function store(Request $request)
     {
         $data = $request->validate([
-            'quantidade_disponivel' => 'required|integer|min:0',
+            'produto_existente' => 'nullable|exists:produtos,id',
+            'nome' => 'nullable|string|max:255',
+            'categoria' => 'required|string|max:255',
+            'sub_categoria' => 'nullable|string|max:255',
+            'unidade_medida' => 'required|string|max:50',
+            'quantidade_inicial' => 'nullable|integer|min:0',
+            'descricao' => 'nullable|string|max:1000',
         ]);
 
-        $this->service->atualizarQuantidade($estoqueId, $data['quantidade_disponivel']);
+        $produto = $this->getOrCreateProduto($data);
 
-        return redirect()->route('estoque.index')->with('success', 'Quantidade atualizada com sucesso!');
+        $estoque = Estoque::firstOrCreate(['produto_id' => $produto->id]);
+
+        if (!empty($data['quantidade_inicial']) && $data['quantidade_inicial'] > 0) {
+            $estoque->adicionar($data['quantidade_inicial'], 'Quantidade inicial');
+        }
+
+        return redirect()->route('estoque.index')->with('success', 'Produto adicionado ao estoque!');
+    }
+
+    private function getOrCreateProduto(array $data)
+    {
+        if (!empty($data['produto_existente'])) {
+            return Produto::findOrFail($data['produto_existente']);
+        }
+
+        return Produto::create([
+            'nome' => $data['nome'],
+            'categoria' => $data['categoria'],
+            'sub_categoria' => $data['sub_categoria'] ?? null,
+            'unidade_medida' => $data['unidade_medida'],
+            'descricao' => $data['descricao'] ?? null,
+        ]);
     }
 }
