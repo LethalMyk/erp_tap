@@ -13,11 +13,13 @@ class Despesa extends Model
         'descricao',
         'valor_total',
         'categoria',
-        'nome',           // se for produto novo
+        'nome',             // se for produto novo
         'forma_pagamento',
         'observacao',
-        'sub_categoria',   // <- adiciona aqui
+        'sub_categoria',
         'created_by',
+        'comprovante',
+        'data',
     ];
 
     /**
@@ -58,10 +60,6 @@ class Despesa extends Model
         return $this->hasMany(DespesaImagem::class);
     }
 
-     public function despesa()
-    {
-        return $this->belongsTo(Despesa::class);
-    }
     /**
      * Cria automaticamente parcelas de acordo com a forma de pagamento.
      */
@@ -69,7 +67,8 @@ class Despesa extends Model
     {
         if ($this->forma_pagamento === 'À VISTA') {
             $this->parcelas()->create([
-                'numero' => 1,
+                'numero_parcela' => 1,
+                'descricao' => $this->descricao,
                 'valor_parcela' => $this->valor_total,
                 'status' => 'PAGO',
                 'data_vencimento' => $dados['data'] ?? now(),
@@ -81,16 +80,16 @@ class Despesa extends Model
             $parcelasDesc = $dados['parcelas_descricao'] ?? [$this->descricao];
             $parcelasValor = $dados['parcelas_valor'] ?? [$this->valor_total];
             $parcelasForma = $dados['parcelas_forma_pagamento'] ?? [];
-            $datas = $dados['data_vencimento'] ?? [null];
+            $datas = $dados['data_vencimento'] ?? [];
             $chaves = $dados['chave_pagamento'] ?? [];
 
             foreach ($parcelasDesc as $index => $desc) {
                 $this->parcelas()->create([
-                    'numero' => $index + 1,
+                    'numero_parcela' => $index + 1,
                     'descricao' => $desc,
                     'valor_parcela' => $parcelasValor[$index] ?? $this->valor_total,
                     'status' => 'PENDENTE',
-                    'data_vencimento' => $datas[$index] ?? null,
+                    'data_vencimento' => $datas[$index] ?? now(),
                     'forma_pagamento' => $parcelasForma[$index] ?? 'PIX',
                     'chave_pagamento' => $chaves[$index] ?? null,
                     'comprovante' => $comprovantes[$index] ?? null,

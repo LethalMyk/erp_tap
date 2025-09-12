@@ -6,22 +6,28 @@ use App\Repositories\DespesaRepository;
 use App\Repositories\ProdutoRepository;
 use App\Models\Despesa;
 use App\Models\ProdutoComprado;
-use App\Services\MovimentoEstoqueService;
 use App\Models\Estoque;
+use App\Services\MovimentoEstoqueService;
+use App\Services\ParcelaService;
 
 class DespesaService
 {
     protected DespesaRepository $despesaRepo;
     protected ProdutoRepository $produtoRepo;
+    protected ParcelaService $parcelaService;
 
-    public function __construct(DespesaRepository $despesaRepo, ProdutoRepository $produtoRepo)
-    {
+    public function __construct(
+        DespesaRepository $despesaRepo,
+        ProdutoRepository $produtoRepo,
+        ParcelaService $parcelaService
+    ) {
         $this->despesaRepo = $despesaRepo;
         $this->produtoRepo = $produtoRepo;
+        $this->parcelaService = $parcelaService;
     }
 
     /**
-     * Cria uma despesa com produtos (existentes ou novos)
+     * Cria uma despesa com produtos e gera parcelas
      */
     public function criarDespesaComProdutos(array $data, ?string $comprovantePath = null): Despesa
     {
@@ -38,11 +44,14 @@ class DespesaService
 
         $this->associarProdutos($despesa, $data);
 
+        // Cria todas as parcelas (múltiplas)
+        $this->parcelaService->criarParcelas($despesa, $data, $data['parcelas_comprovantes'] ?? []);
+
         return $despesa;
     }
 
     /**
-     * Atualiza uma despesa
+     * Atualiza uma despesa, produtos e parcelas
      */
     public function atualizarDespesa(array $data, Despesa $despesa, ?string $comprovantePath = null): void
     {
@@ -51,6 +60,7 @@ class DespesaService
 
         $this->despesaRepo->update($despesa, $data);
 
+        // Remove produtos antigos e atualiza os novos
         if (!empty($data['produtos_id']) || !empty($data['produtos_novo'])) {
             foreach ($despesa->produtosComprados as $produtoComprado) {
                 $estoque = Estoque::where('produto_id', $produtoComprado->produto_id)->first();
@@ -66,6 +76,10 @@ class DespesaService
             $despesa->produtosComprados()->delete();
             $this->associarProdutos($despesa, $data);
         }
+
+        // Remove parcelas antigas e cria novas
+        $despesa->parcelas()->delete();
+        $this->parcelaService->criarParcelas($despesa, $data, $data['parcelas_comprovantes'] ?? []);
     }
 
     /**
@@ -74,6 +88,7 @@ class DespesaService
     protected function associarProdutos(Despesa $despesa, array $data): void
     {
         $movimentoService = app(MovimentoEstoqueService::class);
+
         $produtosId = $data['produtos_id'] ?? [];
         $produtosNovo = $data['produtos_novo'] ?? [];
         $quantidades = $data['produtos_quantidade'] ?? [];
@@ -82,7 +97,7 @@ class DespesaService
         $categorias = $data['produtos_categoria'] ?? [];
         $subCategorias = $data['produtos_sub_categoria'] ?? [];
         $unidades = $data['produtos_unidade_medida'] ?? [];
-        $observacoes = $data['produtos_obs'] ?? []; // <-- Captura as observações do formulário
+        $observacoes = $data['produtos_obs'] ?? [];
 
         foreach ($produtosId as $i => $id) {
             $produto = null;
@@ -122,22 +137,22 @@ class DespesaService
                     'quantidade' => $quantidades[$i] ?? 0,
                     'valor_unitario' => $valoresUnitarios[$i] ?? 0,
                     'valor_total' => $valoresTotal[$i] ?? 0,
-                    'obs' => $observacoes[$i] ?? null, // <-- Observação registrada aqui
+                    'obs' => $observacoes[$i] ?? null,
                 ]);
             }
         }
     }
 
     /**
-     * Registra pagamento de parcela
+     * Registrar pagamento de parcela
      */
     public function registrarPagamentoParcela($parcela, array $data): void
     {
-        $parcela->update($data);
+        $this->parcelaService->registrarPagamento($parcela, $data);
     }
 
     /**
-     * Exclui despesa e produtos associados
+     * Exclui despesa, produtos e parcelas associados
      */
     public function excluirDespesa(Despesa $despesa): void
     {
@@ -154,6 +169,7 @@ class DespesaService
         }
 
         $despesa->produtosComprados()->delete();
+        $despesa->parcelas()->delete();
         $this->despesaRepo->delete($despesa);
     }
 }
