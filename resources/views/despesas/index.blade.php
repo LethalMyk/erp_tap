@@ -117,7 +117,7 @@
                                         $parcelaParaJS = $parcela->toArray();
                                         $parcelaParaJS['data_vencimento'] = $parcela->data_vencimento ? \Carbon\Carbon::parse($parcela->data_vencimento)->format('Y-m-d') : null;
                                         $parcelaParaJS['data_pagamento'] = $parcela->data_pagamento ? \Carbon\Carbon::parse($parcela->data_pagamento)->format('Y-m-d') : null;
-                                        $parcelaParaJS['action'] = route('despesas.update', $parcela->id);
+                                        $parcelaParaJS['action'] = route('parcelas.update', $parcela->id);
                                     @endphp
                                     <button class="bg-yellow-600 text-black font-semibold px-4 py-2 rounded-lg shadow border border-yellow-800 hover:bg-yellow-700 transition"
                                         data-parcela='@json($parcelaParaJS)'>
@@ -164,6 +164,18 @@
                     <input type="date" name="data_vencimento" id="modal_vencimento" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/>
                 </div>
                 <div class="mb-2">
+    <label class="block text-sm font-medium">Forma de Pagamento</label>
+    <select name="forma_pagamento" id="modal_forma_pagamento" class="mt-1 block w-full rounded border-gray-300 shadow-sm">
+        <option value="">Selecione</option>
+        <option value="Dinheiro">Dinheiro</option>
+        <option value="Cartão Crédito">Cartão Crédito</option>
+        <option value="Cartão Débito">Cartão Débito</option>
+        <option value="PIX">PIX</option>
+        <option value="Boleto">Boleto</option>
+    </select>
+</div>
+
+                <div class="mb-2">
                     <label class="block text-sm font-medium">Data Pagamento</label>
                     <input type="date" name="data_pagamento" id="modal_pagamento" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/>
                 </div>
@@ -206,9 +218,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById("modal_descricao").value = dados.descricao || '';
         document.getElementById("modal_valor").value = dados.valor_total || dados.valor_parcela || 0;
         document.getElementById("modal_vencimento").value = dados.data_vencimento || hoje;
-        document.getElementById("modal_pagamento").value = dados.data_pagamento || hoje;
+        document.getElementById("modal_pagamento").value = dados.data_pagamento || '';
+        document.getElementById("modal_forma_pagamento").value = dados.forma_pagamento || '';
+
         document.getElementById("modal_comprovante").value = '';
         editForm.action = dados.action || '';
+        
         editModal.classList.remove("hidden");
     }
 

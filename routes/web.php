@@ -22,6 +22,7 @@ use App\Http\Controllers\ListaCompraController;
 use App\Http\Middleware\CheckRole;
 use App\Models\Terceirizada;
 use App\Http\Controllers\MovimentoEstoqueController;
+use App\Http\Controllers\ParcelaController;
 
 
 // Página inicial
@@ -108,6 +109,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('despesas', DespesaController::class)->except(['show']);
 });
 Route::post('/despesas/{id}/registrar-pagamento', [DespesaController::class, 'registrarPagamento'])->name('despesas.registrar-pagamento');
+Route::put('/parcelas/{id}', [ParcelaController::class, 'update'])->name('parcelas.update');
 
 // Clientes e itens
 Route::get('/clientes/{id}/itens', [AgendamentoController::class, 'getItensCliente']);
