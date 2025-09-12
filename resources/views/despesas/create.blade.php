@@ -14,7 +14,7 @@
             </div>
         @endif
 
-        <form action="{{ route('despesas.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        <form id="despesa-form" action="{{ route('despesas.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
 
             {{-- Campos básicos --}}
@@ -23,16 +23,19 @@
                 <input type="date" name="data" id="data" value="{{ old('data', date('Y-m-d')) }}" required
                     class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
             </div>
+
             <div>
                 <label for="descricao" class="block font-medium text-gray-700">Descrição da Nota/Fatura</label>
                 <input type="text" name="descricao" id="descricao" value="{{ old('descricao') }}" required
                     class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
             </div>
+
             <div>
-                <label for="valor" class="block font-medium text-gray-700">Valor Total</label>
-                <input type="number" step="0.01" name="valor" id="valor" value="{{ old('valor') }}" required
+                <label for="valor_total" class="block font-medium text-gray-700">Valor Total da Despesa</label>
+                <input type="number" step="0.01" name="valor_total" id="valor_total" value="{{ old('valor_total') }}" required
                     class="mt-1 block w-full rounded border-gray-300 shadow-sm" />
             </div>
+
             <div>
                 <label for="categoria" class="block font-medium text-gray-700">Categoria</label>
                 <select name="categoria" id="categoria" required class="mt-1 block w-full rounded border-gray-300 shadow-sm">
@@ -108,89 +111,37 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const selectForma = document.getElementById("forma_pagamento");
-    const pendenteFields = document.getElementById("pagamento_pendente");
-    const avistaFields = document.getElementById("pagamento_avista");
-    const addParcelaBtn = document.getElementById("add-parcela");
-    const parcelasContainer = document.getElementById("parcelas-container");
-    const descricaoNota = document.getElementById("descricao");
-
     const produtosContainer = document.getElementById("produtos-container");
     const addProdutoBtn = document.getElementById("add-produto");
     const expandirProdutosCheckbox = document.getElementById("expandirProdutos");
+    const valorTotalDespesaInput = document.getElementById("valor_total");
     const produtosList = @json($produtos);
-    const formasPagamentoParcela = ['PIX', 'DINHEIRO', 'DÉBITO', 'CRÉDITO', 'TRANSFERÊNCIA', 'BOLETO', 'CHEQUE', 'OUTROS'];
 
-    // Toggle de forma de pagamento
-    function toggleFields() {
-        if(selectForma.value === "A PRAZO") {
-            pendenteFields.classList.remove("hidden");
-            avistaFields.classList.add("hidden");
-            if(!parcelasContainer.children.length) addParcela();
-        } else {
-            pendenteFields.classList.add("hidden");
-            parcelasContainer.innerHTML = "";
-            avistaFields.classList.remove("hidden");
-        }
-    }
-
-    function addParcela() {
-        const index = parcelasContainer.children.length + 1;
-        const numero = index.toString().padStart(2,'0');
-        const descricaoParcela = `${descricaoNota.value} - ${numero}`;
-        const div = document.createElement('div');
-        div.classList.add('border','p-3','rounded','bg-gray-50','relative');
-        div.innerHTML = `
-            <button type="button" class="remove-parcela absolute top-2 right-2 text-red-600 hover:text-red-800 font-bold">X</button>
-            <div><label class="block text-sm font-medium">Descrição da Parcela</label><input type="text" name="parcelas_descricao[]" value="${descricaoParcela}" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/></div>
-            <div><label class="block text-sm font-medium">Valor</label><input type="number" step="0.01" name="parcelas_valor[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/></div>
-            <div><label class="block text-sm font-medium">Data Vencimento</label><input type="date" name="data_vencimento[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/></div>
-            <div><label class="block text-sm font-medium">Chave Pagamento</label><input type="text" name="chave_pagamento[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/></div>
-            <div><label class="block text-sm font-medium">Forma de Pagamento</label><select name="parcelas_forma_pagamento[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm">${formasPagamentoParcela.map(f=>`<option value="${f}" ${f==='PIX'?'selected':''}>${f}</option>`).join('')}</select></div>
-        `;
-        parcelasContainer.appendChild(div);
-        div.querySelector('.remove-parcela').addEventListener('click',()=>div.remove());
-    }
-
-    descricaoNota.addEventListener('input',()=>{
-        Array.from(parcelasContainer.children).forEach((div,idx)=>{
-            const input = div.querySelector('input[name="parcelas_descricao[]"]');
-            if(!input.dataset.userEdited){
-                const numero = (idx+1).toString().padStart(2,'0');
-                input.value = `${descricaoNota.value} - ${numero}`;
-            }
-        });
-    });
-
-    parcelasContainer.addEventListener('input', e=>{
-        if(e.target.name==='parcelas_descricao[]') e.target.dataset.userEdited = true;
-    });
-
-    addParcelaBtn.addEventListener('click', addParcela);
-    selectForma.addEventListener('change', toggleFields);
-    toggleFields();
-
-    // Função para adicionar produto
     function addProduto() {
         const div = document.createElement('div');
         div.classList.add('border','p-3','rounded','bg-gray-50','relative');
         div.innerHTML = `
             <button type="button" class="remove-produto absolute top-2 right-2 text-red-600 hover:text-red-800 font-bold">X</button>
 
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2 produto-nome-container">
                 <label class="block text-sm font-medium">Produto Existente</label>
                 <select name="produtos_id[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm">
                     <option value="">Selecione o Produto</option>
-                    ${produtosList.map(p=>`<option value="${p.id}" data-unidade="${p.unidade_medida}" data-categoria="${p.categoria}">${p.nome}</option>`).join('')}
+                    ${produtosList.map(p=>`<option value="${p.id}" data-unidade="${p.unidade_medida}" data-categoria="${p.categoria}" data-subcategoria="${p.subcategoria || ''}">${p.nome}</option>`).join('')}
                 </select>
 
-                <label class="block text-sm font-medium mt-2">Ou Novo Produto</label>
-                <input type="text" name="produtos_novo[]" placeholder="Digite o nome do novo produto" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/>
+                <button type="button" class="novo-produto-btn mt-2 text-blue-600 hover:underline text-left">Ou Novo Produto</button>
+                <input type="text" name="produtos_novo[]" placeholder="Digite o nome do novo produto" class="mt-1 block w-full rounded border-gray-300 shadow-sm" style="display:none;"/>
             </div>
 
             <div class="flex items-center gap-2 mt-2">
                 <label class="block text-sm font-medium">Categoria</label>
                 <input type="text" name="produtos_categoria[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" readonly/>
+            </div>
+
+            <div class="flex items-center gap-2 mt-2">
+                <label class="block text-sm font-medium">Subcategoria</label>
+                <input type="text" name="produtos_sub_categoria[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" readonly/>
             </div>
 
             <div class="flex items-center gap-2 mt-2">
@@ -209,8 +160,8 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
 
             <div>
-                <label class="block text-sm font-medium">Valor Total</label>
-                <input type="number" step="0.01" name="produtos_valor_total[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" required/>
+                <label class="block text-sm font-medium">Valor Total do Produto</label>
+                <input type="number" step="0.01" name="produtos_valor_total[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm" readonly/>
             </div>
 
             <div>
@@ -221,32 +172,70 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const selectProduto = div.querySelector('select[name="produtos_id[]"]');
         const novoProdutoInput = div.querySelector('input[name="produtos_novo[]"]');
+        const novoProdutoBtn = div.querySelector('.novo-produto-btn');
         const categoriaInput = div.querySelector('input[name="produtos_categoria[]"]');
+        const subcategoriaInput = div.querySelector('input[name="produtos_sub_categoria[]"]');
         const unidadeInput = div.querySelector('input[name="produtos_unidade_medida[]"]');
+        const quantidadeInput = div.querySelector('input[name="produtos_quantidade[]"]');
+        const valorUnitarioInput = div.querySelector('input[name="produtos_valor_unitario[]"]');
+        const valorTotalInput = div.querySelector('input[name="produtos_valor_total[]"]');
 
-        // Atualiza categoria/unidade quando seleciona produto existente
+        function atualizarProdutoTotal() {
+            const quantidade = parseFloat(quantidadeInput.value) || 0;
+            const valorUnit = parseFloat(valorUnitarioInput.value) || 0;
+            valorTotalInput.value = (quantidade * valorUnit).toFixed(2);
+            atualizarDespesaTotal();
+        }
+
+        function atualizarDespesaTotal() {
+            const totais = Array.from(produtosContainer.querySelectorAll('input[name="produtos_valor_total[]"]'))
+                                .map(input=>parseFloat(input.value)||0);
+            valorTotalDespesaInput.value = totais.reduce((a,b)=>a+b,0).toFixed(2);
+        }
+
         selectProduto.addEventListener('change', function(){
             const opt = this.options[this.selectedIndex];
             if(opt.value){
                 categoriaInput.value = opt.dataset.categoria || '';
+                subcategoriaInput.value = opt.dataset.subcategoria || '';
                 unidadeInput.value = opt.dataset.unidade || '';
+                categoriaInput.readOnly = true;
+                subcategoriaInput.readOnly = true;
                 unidadeInput.readOnly = true;
                 novoProdutoInput.value = '';
+                novoProdutoInput.style.display = 'none';
             } else {
                 categoriaInput.value = '';
+                subcategoriaInput.value = '';
                 unidadeInput.value = '';
             }
+            atualizarProdutoTotal();
         });
 
-        // Limpa select e libera unidade se digitar novo produto
+        novoProdutoBtn.addEventListener('click', function(){
+            selectProduto.value = '';
+            categoriaInput.value = '';
+            subcategoriaInput.value = '';
+            unidadeInput.value = '';
+            categoriaInput.readOnly = false;
+            subcategoriaInput.readOnly = false;
+            unidadeInput.readOnly = false;
+            novoProdutoInput.style.display = 'block';
+            novoProdutoInput.focus();
+        });
+
         novoProdutoInput.addEventListener('input', function(){
             if(this.value.trim() !== ''){
                 selectProduto.value = '';
-                categoriaInput.value = '';
-                unidadeInput.value = '';
+                categoriaInput.readOnly = false;
+                subcategoriaInput.readOnly = false;
                 unidadeInput.readOnly = false;
             }
+            atualizarProdutoTotal();
         });
+
+        quantidadeInput.addEventListener('input', atualizarProdutoTotal);
+        valorUnitarioInput.addEventListener('input', atualizarProdutoTotal);
 
         produtosContainer.appendChild(div);
     }
@@ -255,11 +244,13 @@ document.addEventListener("DOMContentLoaded", function () {
     produtosContainer.addEventListener('click', e=>{
         if(e.target.classList.contains('remove-produto')){
             e.target.closest('div.border').remove();
+            const totais = Array.from(produtosContainer.querySelectorAll('input[name="produtos_valor_total[]"]'))
+                                .map(input=>parseFloat(input.value)||0);
+            valorTotalDespesaInput.value = totais.reduce((a,b)=>a+b,0).toFixed(2);
         }
     });
 
-    // Expandir produtos apenas mostra/esconde o container
-    expandirProdutosCheckbox.addEventListener('change', ()=>{
+    expandirProdutosCheckbox.addEventListener('change', ()=> {
         produtosContainer.style.display = expandirProdutosCheckbox.checked ? 'block' : 'none';
     });
 });

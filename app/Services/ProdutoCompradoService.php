@@ -8,7 +8,6 @@ use App\Models\Estoque;
 use App\Models\MovimentoEstoque;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Arr;
 
 class ProdutoCompradoService
 {
@@ -24,6 +23,7 @@ class ProdutoCompradoService
      *       'unidade_medida' => string,
      *       'valor_unitario' => float,
      *       'categoria' => string|null,
+     *       'sub_categoria' => string|null,
      *       'obs' => string|null,
      *   ]
      */
@@ -37,6 +37,7 @@ class ProdutoCompradoService
                     [
                         'unidade_medida' => $data['unidade_medida'] ?? 'UN',
                         'categoria' => $data['categoria'] ?? 'GERAL',
+                        'subcategoria' => $data['sub_categoria'] ?? null,
                         'descricao' => $data['obs'] ?? null,
                     ]
                 );
@@ -55,14 +56,15 @@ class ProdutoCompradoService
             $produtoComprado->quantidade = ($produtoComprado->quantidade ?? 0) + $data['quantidade'];
             $produtoComprado->unidade_medida = $data['unidade_medida'] ?? 'UN';
             $produtoComprado->valor_unitario = $data['valor_unitario'] ?? 0;
-            $produtoComprado->valor_total = $produtoComprado->calcularValorTotal();
+            $produtoComprado->valor_total = ($produtoComprado->quantidade * $produtoComprado->valor_unitario);
             $produtoComprado->obs = $data['obs'] ?? null;
+            $produtoComprado->sub_categoria = $data['sub_categoria'] ?? null;
             $produtoComprado->save();
 
             // 3. Atualizar estoque
             $estoque = Estoque::firstOrCreate(
                 ['produto_id' => $produto->id],
-                ['nivel_medio' => 0, 'quantidade_minima' => 0]
+                ['nivel_medio' => 0, 'quantidade_minima' => 0, 'quantidade_disponivel' => 0]
             );
 
             // Registrar movimento de estoque

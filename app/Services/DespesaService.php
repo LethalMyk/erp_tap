@@ -25,11 +25,10 @@ class DespesaService
      */
     public function criarDespesaComProdutos(array $data, ?string $comprovantePath = null): Despesa
     {
-        // Cria a despesa usando o valor_total enviado pelo formulário
         $despesa = $this->despesaRepo->create([
             'data' => $data['data'],
             'descricao' => $data['descricao'],
-            'valor_total' => $data['valor_total'] ?? 0, // usa valor digitado na view
+            'valor_total' => $data['valor_total'] ?? 0,
             'categoria' => $data['categoria'],
             'forma_pagamento' => $data['forma_pagamento'],
             'observacao' => $data['observacao'] ?? null,
@@ -37,7 +36,6 @@ class DespesaService
             'created_by' => $data['created_by'] ?? null,
         ]);
 
-        // Associa produtos e atualiza estoque
         $this->associarProdutos($despesa, $data);
 
         return $despesa;
@@ -53,9 +51,7 @@ class DespesaService
 
         $this->despesaRepo->update($despesa, $data);
 
-        // Atualiza produtos se enviados
         if (!empty($data['produtos_id']) || !empty($data['produtos_novo'])) {
-            // Remove produtos antigos e seus movimentos no estoque
             foreach ($despesa->produtosComprados as $produtoComprado) {
                 $estoque = Estoque::where('produto_id', $produtoComprado->produto_id)->first();
                 if ($estoque) {
@@ -84,7 +80,9 @@ class DespesaService
         $valoresUnitarios = $data['produtos_valor_unitario'] ?? [];
         $valoresTotal = $data['produtos_valor_total'] ?? [];
         $categorias = $data['produtos_categoria'] ?? [];
+        $subCategorias = $data['produtos_sub_categoria'] ?? [];
         $unidades = $data['produtos_unidade_medida'] ?? [];
+        $observacoes = $data['produtos_obs'] ?? []; // <-- Captura as observações do formulário
 
         foreach ($produtosId as $i => $id) {
             $produto = null;
@@ -92,15 +90,18 @@ class DespesaService
             if (!empty($id)) {
                 $produto = $this->produtoRepo->find($id);
             } elseif (!empty($produtosNovo[$i])) {
-                $produto = $this->produtoRepo->create([
-                    'nome' => $produtosNovo[$i],
-                    'categoria' => $categorias[$i] ?? null,
-                    'unidade_medida' => $unidades[$i] ?? null,
-                ]);
+                $produto = $this->produtoRepo->findByName($produtosNovo[$i]);
+                if (!$produto) {
+                    $produto = $this->produtoRepo->create([
+                        'nome' => $produtosNovo[$i],
+                        'categoria' => $categorias[$i] ?? null,
+                        'sub_categoria' => $subCategorias[$i] ?? null,
+                        'unidade_medida' => $unidades[$i] ?? null,
+                    ]);
+                }
             }
 
             if ($produto) {
-                // Atualiza estoque
                 $estoque = Estoque::firstOrCreate(
                     ['produto_id' => $produto->id],
                     ['quantidade_disponivel' => 0, 'nivel_medio' => 0, 'quantidade_minima' => 0]
@@ -115,13 +116,13 @@ class DespesaService
                     );
                 }
 
-                // Cria registro ProdutoComprado
                 ProdutoComprado::create([
                     'despesa_id' => $despesa->id,
                     'produto_id' => $produto->id,
                     'quantidade' => $quantidades[$i] ?? 0,
                     'valor_unitario' => $valoresUnitarios[$i] ?? 0,
                     'valor_total' => $valoresTotal[$i] ?? 0,
+                    'obs' => $observacoes[$i] ?? null, // <-- Observação registrada aqui
                 ]);
             }
         }
@@ -140,7 +141,6 @@ class DespesaService
      */
     public function excluirDespesa(Despesa $despesa): void
     {
-        // Remove produtos e ajusta estoque
         foreach ($despesa->produtosComprados as $produtoComprado) {
             $estoque = Estoque::where('produto_id', $produtoComprado->produto_id)->first();
             if ($estoque) {

@@ -13,8 +13,10 @@ class Despesa extends Model
         'descricao',
         'valor_total',
         'categoria',
+        'nome',           // se for produto novo
         'forma_pagamento',
         'observacao',
+        'sub_categoria',   // <- adiciona aqui
         'created_by',
     ];
 
@@ -56,6 +58,10 @@ class Despesa extends Model
         return $this->hasMany(DespesaImagem::class);
     }
 
+     public function despesa()
+    {
+        return $this->belongsTo(Despesa::class);
+    }
     /**
      * Cria automaticamente parcelas de acordo com a forma de pagamento.
      */
