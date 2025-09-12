@@ -40,28 +40,26 @@ class PagamentoService
         return $this->repository->find($id);
     }
 
+    /**
+     * Cria um novo pagamento sempre em aberto
+     */
     public function criar(array $dados)
     {
         $pedido = Pedido::findOrFail($dados['pedido_id']);
 
         $dados['valor'] = $this->formatarValor($dados['valor'] ?? 0);
-
-        $forma = strtoupper(trim($dados['forma']));
-        $formasEmAberto = ['BOLETO', 'CHEQUE', 'OUTROS', 'NA ENTREGA', 'A PRAZO'];
-
-        $status = in_array($forma, $formasEmAberto) ? 'EM ABERTO' : 'PAGAMENTO REGISTRADO';
-        $dados['status'] = $status;
+        $dados['status'] = 'EM ABERTO';
         $dados['data'] = $dados['data'] ?? now();
 
         $pagamento = $this->repository->create($dados);
 
-        if ($status === 'PAGAMENTO REGISTRADO') {
-            $this->atualizarStatusPedido($pedido);
-        }
-
+        // não atualiza status do pedido ainda (só quando registrar)
         return $pagamento;
     }
 
+    /**
+     * Atualiza um pagamento existente
+     */
     public function atualizar(Pagamento $pagamento, array $dados)
     {
         $pedido = $pagamento->pedido;
@@ -70,12 +68,7 @@ class PagamentoService
             $dados['valor'] = $this->formatarValor($dados['valor']);
         }
 
-        if (isset($dados['forma'])) {
-            $forma = strtoupper(trim($dados['forma']));
-            $formasEmAberto = ['BOLETO', 'CHEQUE', 'OUTROS', 'NA ENTREGA', 'A PRAZO'];
-            $dados['status'] = in_array($forma, $formasEmAberto) ? 'EM ABERTO' : 'PAGAMENTO REGISTRADO';
-        }
-
+        // não alterar status aqui, só valor/forma/obs
         $this->repository->update($pagamento, $dados);
 
         $pagamento->refresh();
@@ -84,6 +77,9 @@ class PagamentoService
         return $pagamento;
     }
 
+    /**
+     * Deleta um pagamento
+     */
     public function deletar(Pagamento $pagamento)
     {
         $pedido = $pagamento->pedido;
@@ -91,6 +87,9 @@ class PagamentoService
         $this->atualizarStatusPedido($pedido);
     }
 
+    /**
+     * Registra efetivamente o pagamento (confirma)
+     */
     public function registrar(Pagamento $pagamento, $obs = null)
     {
         if ($pagamento->status === 'EM ABERTO') {
@@ -105,6 +104,9 @@ class PagamentoService
         return $pagamento;
     }
 
+    /**
+     * Atualiza o status do pedido baseado nos pagamentos já registrados
+     */
     private function atualizarStatusPedido(Pedido $pedido)
     {
         $totalPago = $this->repository->sumPagamentosRegistrados($pedido->id);

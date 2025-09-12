@@ -37,4 +37,16 @@ class PagamentoRepository
                         ->where('status', 'PAGAMENTO REGISTRADO')
                         ->sum('valor');
     }
+
+    public function pagamentosPorPedido($pedidoId)
+{
+    return Pagamento::where('pedido_id', $pedidoId)->get();
+}
+
+public function pagamentosPendentes($pedidoId)
+{
+    return Pagamento::where('pedido_id', $pedidoId)
+                    ->whereNull('data_pagamento')
+                    ->get();
+}
 }

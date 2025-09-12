@@ -64,7 +64,7 @@ class PagamentoController extends Controller
     }
 
     /**
-     * Armazena um novo pagamento
+     * Armazena um novo pagamento (sempre em aberto)
      */
     public function store(Request $request)
     {
@@ -79,7 +79,7 @@ class PagamentoController extends Controller
         $this->service->criar($dados);
 
         return redirect()->route('pagamento.index', ['cliente_id' => $request->input('cliente_id')])
-                         ->with('success', 'Pagamento registrado com sucesso.');
+                         ->with('success', 'Pagamento criado em aberto com sucesso. Agora registre-o quando for confirmado.');
     }
 
     /**
@@ -95,12 +95,18 @@ class PagamentoController extends Controller
                          ->with('success', 'Pagamento registrado com sucesso!');
     }
 
+    /**
+     * Edita um pagamento
+     */
     public function edit(Pagamento $pagamento)
     {
         $pedidos = Pedido::all();
         return view('pagamento.edit', compact('pagamento', 'pedidos'));
     }
 
+    /**
+     * Atualiza dados de um pagamento
+     */
     public function update(Request $request, Pagamento $pagamento)
     {
         $dados = $request->validate([
@@ -115,6 +121,9 @@ class PagamentoController extends Controller
                          ->with('success', 'Pagamento atualizado com sucesso!');
     }
 
+    /**
+     * Remove um pagamento
+     */
     public function destroy(Pagamento $pagamento)
     {
         $clienteId = $pagamento->pedido->cliente_id;

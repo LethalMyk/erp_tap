@@ -13,6 +13,7 @@ use App\Services\ListaCompraService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Enums\StatusPagamento;
+use Carbon\Carbon;
 
 class PedidoService
 {
@@ -113,11 +114,27 @@ class PedidoService
             }
 
             // --- PAGAMENTOS ---
-            foreach ($data['pagamentos'] ?? [] as $pagData) {
-                $pagData['pedido_id'] = $pedido->id;
-                $pagData['valor'] = $this->formatarValor($pagData['valor'] ?? 0);
-                Pagamento::create($pagData);
-            }
+$formasParaRegistrar = ['PIX','DEBITO','DINHEIRO','CREDITO À VISTA','CREDITO PARCELADO'];
+
+foreach ($data['pagamentos'] ?? [] as $pagData) {
+    $pagData['pedido_id'] = $pedido->id;
+    $pagData['valor'] = $this->formatarValor($pagData['valor'] ?? 0);
+
+    if (!empty($pagData['status'])) {
+        $status = $pagData['status'];
+    } else {
+        // Se a forma de pagamento estiver na lista de registrar, marca como PAGO
+        if (!empty($pagData['forma']) && in_array($pagData['forma'], $formasParaRegistrar)) {
+            $status = StatusPagamento::PAGO->value;
+        } else {
+            $status = StatusPagamento::PENDENTE->value;
+        }
+    }
+
+    $pagData['status'] = $status;
+
+    Pagamento::create($pagData);
+}
 
             // --- IMAGENS ---
             if (!empty($data['imagens'])) {
