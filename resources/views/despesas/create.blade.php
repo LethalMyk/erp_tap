@@ -67,6 +67,7 @@
                 </select>
             </div>
 
+            {{-- Campos à vista --}}
             <div id="pagamento_avista" class="hidden mt-4">
                 <label for="forma_pagamento_avista" class="block font-medium text-gray-700">Forma de Pagamento à Vista</label>
                 <select name="forma_pagamento_avista" id="forma_pagamento_avista" class="mt-1 block w-full rounded border-gray-300 shadow-sm">
@@ -76,6 +77,7 @@
                 </select>
             </div>
 
+            {{-- Campos a prazo --}}
             <div id="pagamento_pendente" class="hidden space-y-4 mt-4">
                 <button type="button" id="add-parcela"
                     class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
@@ -117,6 +119,66 @@ document.addEventListener("DOMContentLoaded", function () {
     const valorTotalDespesaInput = document.getElementById("valor_total");
     const produtosList = @json($produtos);
 
+    const selectForma = document.getElementById("forma_pagamento");
+    const pendenteFields = document.getElementById("pagamento_pendente");
+    const avistaFields = document.getElementById("pagamento_avista");
+    const addParcelaBtn = document.getElementById("add-parcela");
+    const parcelasContainer = document.getElementById("parcelas-container");
+    const descricaoNota = document.getElementById("descricao");
+
+    const formasPagamentoParcela = ['PIX', 'DINHEIRO', 'DÉBITO', 'CRÉDITO', 'TRANSFERÊNCIA', 'BOLETO', 'CHEQUE', 'OUTROS'];
+
+    function toggleFields() {
+        if(selectForma.value === "A PRAZO") {
+            pendenteFields.classList.remove("hidden");
+            avistaFields.classList.add("hidden");
+            if(!parcelasContainer.children.length) addParcela();
+        } else {
+            pendenteFields.classList.add("hidden");
+            avistaFields.classList.remove("hidden");
+            parcelasContainer.innerHTML = "";
+        }
+    }
+
+    function addParcela() {
+        const index = parcelasContainer.children.length + 1;
+        const numero = index.toString().padStart(2,'0');
+        const descricaoParcela = `${descricaoNota.value} - ${numero}`;
+        const div = document.createElement('div');
+        div.classList.add('border','p-3','rounded','bg-gray-50','relative');
+        div.innerHTML = `
+            <button type="button" class="remove-parcela absolute top-2 right-2 text-red-600 hover:text-red-800 font-bold">X</button>
+            <div><label class="block text-sm font-medium">Descrição da Parcela</label><input type="text" name="parcelas_descricao[]" value="${descricaoParcela}" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/></div>
+            <div><label class="block text-sm font-medium">Valor</label><input type="number" step="0.01" name="parcelas_valor[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/></div>
+            <div><label class="block text-sm font-medium">Data Vencimento</label><input type="date" name="data_vencimento[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/></div>
+            <div><label class="block text-sm font-medium">Chave Pagamento</label><input type="text" name="chave_pagamento[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/></div>
+            <div><label class="block text-sm font-medium">Forma de Pagamento</label><select name="parcelas_forma_pagamento[]" class="mt-1 block w-full rounded border-gray-300 shadow-sm">${formasPagamentoParcela.map(f=>`<option value="${f}" ${f==='PIX'?'selected':''}>${f}</option>`).join('')}</select></div>
+        `;
+        parcelasContainer.appendChild(div);
+        div.querySelector('.remove-parcela').addEventListener('click',()=>div.remove());
+    }
+
+    descricaoNota.addEventListener('input',()=> {
+        Array.from(parcelasContainer.children).forEach((div,idx)=>{
+            const input = div.querySelector('input[name="parcelas_descricao[]"]');
+            if(!input.dataset.userEdited){
+                const numero = (idx+1).toString().padStart(2,'0');
+                input.value = `${descricaoNota.value} - ${numero}`;
+            }
+        });
+    });
+
+    parcelasContainer.addEventListener('input',e=>{
+        if(e.target.name==='parcelas_descricao[]'){
+            e.target.dataset.userEdited = true;
+        }
+    });
+
+    selectForma.addEventListener('change', toggleFields);
+    addParcelaBtn.addEventListener('click', addParcela);
+    toggleFields(); // inicializa de acordo com o valor atual
+
+    // --- Produtos ---
     function addProduto() {
         const div = document.createElement('div');
         div.classList.add('border','p-3','rounded','bg-gray-50','relative');
@@ -253,5 +315,6 @@ document.addEventListener("DOMContentLoaded", function () {
     expandirProdutosCheckbox.addEventListener('change', ()=> {
         produtosContainer.style.display = expandirProdutosCheckbox.checked ? 'block' : 'none';
     });
+
 });
 </script>
