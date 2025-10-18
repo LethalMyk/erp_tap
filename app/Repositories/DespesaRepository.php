@@ -50,7 +50,6 @@ public function all(array $filters = [])
     $end = $filters['parcela_data_fim'] ?? null;
 
     if ($start || $end) {
-        // Garantir que a despesa tenha pelo menos uma parcela dentro do intervalo
         $query->whereHas('parcelas', function($q) use ($start, $end) {
             if ($start && $end) {
                 $q->whereBetween('data_vencimento', [$start, $end]);
@@ -61,7 +60,6 @@ public function all(array $filters = [])
             }
         });
 
-        // Carregar apenas as parcelas dentro do intervalo
         $query->with(['parcelas' => function($q) use ($start, $end) {
             if ($start && $end) {
                 $q->whereBetween('data_vencimento', [$start, $end]);
@@ -82,13 +80,14 @@ public function all(array $filters = [])
 
     if (in_array($sort, $allowedSorts)) {
         if ($sort === 'data_vencimento') {
-            // Ordenar pela PRÓXIMA parcela a vencer (ignora as já pagas)
             $table = $this->model->getTable();
             $query->orderByRaw("(
-                select min(p.data_vencimento)
+                select p.data_vencimento
                 from parcelas p
                 where p.despesa_id = {$table}.id
                 and (p.status is null or p.status != 'PAGO')
+                order by p.data_vencimento asc, p.numero_parcela asc
+                limit 1
             ) {$direction}");
         } else {
             $query->orderBy($sort, $direction);
@@ -97,11 +96,14 @@ public function all(array $filters = [])
         $query->orderBy('created_at', 'desc');
     }
 
-    // 🔹 Eager loading adicional de produtos e paginação
+    // 🔹 Eager loading adicional de produtos
     $query->with('produtosComprados.produto');
 
-    return $query->paginate($filters['per_page'] ?? 10);
+    // 🔹 Paginação mantendo filtros e estados da página
+    return $query->paginate($filters['per_page'] ?? 10)
+                 ->appends($filters); // <- mantém filtros, botão de ocultar/exibir, etc.
 }
+
 
 
     /**

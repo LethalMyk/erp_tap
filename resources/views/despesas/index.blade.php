@@ -82,17 +82,19 @@
                         <th class="px-4 py-2 text-left">Separador</th>
                         <th class="px-4 py-2 text-left">Descrição</th>
                         <th class="px-4 py-2 text-left">Valor</th>
-                        <th class="px-4 py-2 text-left">
-                            <a href="{{ route('despesas.index', array_merge(request()->all(), [
-                                'sort' => 'data_vencimento',
-                                'direction' => request('direction') === 'asc' ? 'desc' : 'asc'
-                            ])) }}" class="text-blue-600 hover:underline">
-                                Data de Vencimento
-                                @if(request('sort') === 'data_vencimento')
-                                    <span>{{ request('direction') === 'asc' ? '▲' : '▼' }}</span>
-                                @endif
-                            </a>
-                        </th>
+<th class="px-4 py-2 text-left">
+    <a href="{{ route('despesas.index', array_merge(request()->all(), [
+        'sort' => 'data_vencimento',
+        'direction' => request('direction') === 'asc' ? 'desc' : 'asc',
+        // Mantém o estado dos checkboxes
+        'exibir_parcelas' => request('exibir_parcelas') ? 1 : 0,
+    ])) }}" class="text-blue-600 hover:underline">
+        Data de Vencimento
+        @if(request('sort') === 'data_vencimento')
+            <span>{{ request('direction') === 'asc' ? '▲' : '▼' }}</span>
+        @endif
+    </a>
+</th>
                         <th class="px-4 py-2 text-left">Data Pagamento</th>
                         <th class="px-4 py-2 text-left">Status</th>
                         <th class="px-4 py-2 text-left">Categoria</th>
