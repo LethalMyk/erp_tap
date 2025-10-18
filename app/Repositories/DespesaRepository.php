@@ -24,7 +24,7 @@ class DespesaRepository
     /**
      * Retorna todas as despesas com filtros opcionais e paginação
      */
-    public function all(array $filters = [])
+public function all(array $filters = [])
 {
     $query = $this->model->query();
 
@@ -46,10 +46,11 @@ class DespesaRepository
     }
 
     // 🔹 Filtro por data de vencimento das parcelas
-    if (!empty($filters['parcela_data_inicio']) || !empty($filters['parcela_data_fim'])) {
-        $start = $filters['parcela_data_inicio'] ?? null;
-        $end = $filters['parcela_data_fim'] ?? null;
+    $start = $filters['parcela_data_inicio'] ?? null;
+    $end = $filters['parcela_data_fim'] ?? null;
 
+    if ($start || $end) {
+        // Garantir que a despesa tenha pelo menos uma parcela dentro do intervalo
         $query->whereHas('parcelas', function($q) use ($start, $end) {
             if ($start && $end) {
                 $q->whereBetween('data_vencimento', [$start, $end]);
@@ -59,6 +60,19 @@ class DespesaRepository
                 $q->whereDate('data_vencimento', '<=', $end);
             }
         });
+
+        // Carregar apenas as parcelas dentro do intervalo
+        $query->with(['parcelas' => function($q) use ($start, $end) {
+            if ($start && $end) {
+                $q->whereBetween('data_vencimento', [$start, $end]);
+            } elseif ($start) {
+                $q->whereDate('data_vencimento', '>=', $start);
+            } elseif ($end) {
+                $q->whereDate('data_vencimento', '<=', $end);
+            }
+        }]);
+    } else {
+        $query->with('parcelas');
     }
 
     // 🔹 Ordenação
@@ -68,7 +82,7 @@ class DespesaRepository
 
     if (in_array($sort, $allowedSorts)) {
         if ($sort === 'data_vencimento') {
-            // Ordenar pela PRÓXIMA parcela a vencer (ignora as já pagas ou vencidas)
+            // Ordenar pela PRÓXIMA parcela a vencer (ignora as já pagas)
             $table = $this->model->getTable();
             $query->orderByRaw("(
                 select min(p.data_vencimento)
@@ -83,9 +97,12 @@ class DespesaRepository
         $query->orderBy('created_at', 'desc');
     }
 
-    // 🔹 Eager loading e paginação
-    return $query->with('parcelas', 'produtosComprados.produto')->paginate($filters['per_page'] ?? 10);
+    // 🔹 Eager loading adicional de produtos e paginação
+    $query->with('produtosComprados.produto');
+
+    return $query->paginate($filters['per_page'] ?? 10);
 }
+
 
     /**
      * Cria uma nova despesa

@@ -33,7 +33,16 @@
                         </option>
                     @endforeach
                 </select>
+ <!-- Data de vencimento -->
+    <div>
+        <label class="block text-sm font-medium">Vencimento de</label>
+        <input type="date" name="parcela_data_inicio" value="{{ request('parcela_data_inicio') }}" class="border rounded px-2 py-1">
+    </div>
 
+    <div>
+        <label class="block text-sm font-medium">Até</label>
+        <input type="date" name="parcela_data_fim" value="{{ request('parcela_data_fim') }}" class="border rounded px-2 py-1">
+    </div>
                 <select name="status" class="py-2 px-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
                     <option value="">Todos os Status</option>
                     <option value="PAGO" {{ request()->get('status') == 'PAGO' ? 'selected' : '' }}>PAGO</option>
