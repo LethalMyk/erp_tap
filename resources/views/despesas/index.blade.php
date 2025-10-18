@@ -15,12 +15,56 @@
                class="bg-blue-700 text-white font-semibold px-5 py-3 rounded-lg shadow border border-blue-900 hover:bg-blue-800 transition">
                 Nova Despesa
             </a>
-            <label class="flex items-center gap-2 text-sm font-medium">
-                <input type="checkbox" id="toggle-all-parcelas" class="h-4 w-4">
-                Exibir todas as parcelas
-            </label>
+
+            {{-- FILTROS E ORDENAÇÃO --}}
+            <form method="GET" action="{{ route('despesas.index') }}" class="flex gap-2 items-center">
+                <div class="relative">
+                    <input type="text" name="search" value="{{ request()->get('search') }}" placeholder="Buscar Despesa..." class="pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                    <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a7 7 0 100 14 7 7 0 000-14zm0 0l7 7m-7-7l-7 7"/>
+                    </svg>
+                </div>
+
+                <select name="categoria" class="py-2 px-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                    <option value="">Todas as Categorias</option>
+                    @foreach($categorias as $categoria)
+                        <option value="{{ $categoria->id }}" {{ request()->get('categoria') == $categoria->id ? 'selected' : '' }}>
+                            {{ $categoria->nome }}
+                        </option>
+                    @endforeach
+                </select>
+
+                <select name="status" class="py-2 px-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                    <option value="">Todos os Status</option>
+                    <option value="PAGO" {{ request()->get('status') == 'PAGO' ? 'selected' : '' }}>PAGO</option>
+                    <option value="PENDENTE" {{ request()->get('status') == 'PENDENTE' ? 'selected' : '' }}>PENDENTE</option>
+                    <option value="CANCELADO" {{ request()->get('status') == 'CANCELADO' ? 'selected' : '' }}>CANCELADO</option>
+                </select>
+
+                <button type="submit" class="bg-gray-700 text-white px-3 py-2 rounded hover:bg-gray-800">Aplicar</button>
+                <a href="{{ route('despesas.index') }}" class="ml-1 text-sm text-gray-600 underline">Limpar</a>
+            </form>
+
+<div class="ml-auto flex items-center gap-2">
+    <label class="flex items-center gap-2 text-sm font-medium">
+        <input type="checkbox" id="toggle-all-parcelas" name="exibir_parcelas" value="1"
+            {{ request()->get('exibir_parcelas') ? 'checked' : '' }} class="h-4 w-4">
+        Exibir todas as parcelas
+    </label>
+
+    <button type="button" id="toggle-visualizacao" 
+            class="bg-gray-600 text-white text-sm px-3 py-2 rounded hover:bg-gray-700 transition">
+        Ocultar Despesas
+    </button>
+</div>
+
+             
+            </div>
         </div>
 
+        <div class="mt-4">
+            {{ $despesas->appends(request()->except('page'))->links() }}
+        </div>
         <div class="overflow-x-auto bg-white shadow rounded">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50">
@@ -29,7 +73,17 @@
                         <th class="px-4 py-2 text-left">Separador</th>
                         <th class="px-4 py-2 text-left">Descrição</th>
                         <th class="px-4 py-2 text-left">Valor</th>
-                        <th class="px-4 py-2 text-left">Data Vencimento</th>
+                        <th class="px-4 py-2 text-left">
+                            <a href="{{ route('despesas.index', array_merge(request()->all(), [
+                                'sort' => 'data_vencimento',
+                                'direction' => request('direction') === 'asc' ? 'desc' : 'asc'
+                            ])) }}" class="text-blue-600 hover:underline">
+                                Data de Vencimento
+                                @if(request('sort') === 'data_vencimento')
+                                    <span>{{ request('direction') === 'asc' ? '▲' : '▼' }}</span>
+                                @endif
+                            </a>
+                        </th>
                         <th class="px-4 py-2 text-left">Data Pagamento</th>
                         <th class="px-4 py-2 text-left">Status</th>
                         <th class="px-4 py-2 text-left">Categoria</th>
@@ -164,16 +218,16 @@
                     <input type="date" name="data_vencimento" id="modal_vencimento" class="mt-1 block w-full rounded border-gray-300 shadow-sm"/>
                 </div>
                 <div class="mb-2">
-    <label class="block text-sm font-medium">Forma de Pagamento</label>
-    <select name="forma_pagamento" id="modal_forma_pagamento" class="mt-1 block w-full rounded border-gray-300 shadow-sm">
-        <option value="">Selecione</option>
-        <option value="Dinheiro">Dinheiro</option>
-        <option value="Cartão Crédito">Cartão Crédito</option>
-        <option value="Cartão Débito">Cartão Débito</option>
-        <option value="PIX">PIX</option>
-        <option value="Boleto">Boleto</option>
-    </select>
-</div>
+                    <label class="block text-sm font-medium">Forma de Pagamento</label>
+                    <select name="forma_pagamento" id="modal_forma_pagamento" class="mt-1 block w-full rounded border-gray-300 shadow-sm">
+                        <option value="">Selecione</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                        <option value="Cartão Crédito">Cartão Crédito</option>
+                        <option value="Cartão Débito">Cartão Débito</option>
+                        <option value="PIX">PIX</option>
+                        <option value="Boleto">Boleto</option>
+                    </select>
+                </div>
 
                 <div class="mb-2">
                     <label class="block text-sm font-medium">Data Pagamento</label>
@@ -205,6 +259,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelModalBtn = document.getElementById("cancelModal");
     const editForm = document.getElementById("editParcelaForm");
     const registrarPagamentoBtn = document.getElementById("registrarPagamento");
+    const toggleAllParcelasCheckbox = document.getElementById('toggle-all-parcelas');
+    const toggleDespesasBtn = document.getElementById('toggle-visualizacao');
+    const showFullTableBtn = document.getElementById('show-full-table');
 
     function formatDate(date) {
         const d = new Date(date);
@@ -220,13 +277,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById("modal_vencimento").value = dados.data_vencimento || hoje;
         document.getElementById("modal_pagamento").value = dados.data_pagamento || '';
         document.getElementById("modal_forma_pagamento").value = dados.forma_pagamento || '';
-
         document.getElementById("modal_comprovante").value = '';
         editForm.action = dados.action || '';
-        
         editModal.classList.remove("hidden");
     }
 
+    // Botões de editar despesa e parcela
     document.querySelectorAll('button[data-despesa]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -244,22 +300,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Fechar modal
     closeModalBtn.addEventListener("click", () => editModal.classList.add("hidden"));
     cancelModalBtn.addEventListener("click", () => editModal.classList.add("hidden"));
     document.addEventListener('keydown', (e) => { if(e.key === "Escape") editModal.classList.add("hidden"); });
 
+    // Registrar pagamento
     registrarPagamentoBtn.addEventListener("click", () => {
         if(confirm("Deseja registrar o pagamento desta parcela como PAGO?")) {
             const parcelaId = editForm.action.split('/').pop();
             const formData = new FormData();
             formData.append('data_pagamento', document.getElementById("modal_pagamento").value);
             formData.append('descricao', document.getElementById("modal_descricao").value);
-
             const comprovantes = document.getElementById("modal_comprovante").files;
-            for (let i = 0; i < comprovantes.length; i++) {
-                formData.append('comprovantes[]', comprovantes[i]);
-            }
-
+            for (let i = 0; i < comprovantes.length; i++) formData.append('comprovantes[]', comprovantes[i]);
             fetch(`/despesas/${parcelaId}/registrar-pagamento`, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
@@ -270,17 +324,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Botão alternar visualização despesas/parcelas
+    if (toggleDespesasBtn) {
+        toggleDespesasBtn.addEventListener('click', () => {
+            const despRows = document.querySelectorAll('.despesa-row');
+            const parcelasRows = document.querySelectorAll('[class*="parcela-"]');
+
+            if (toggleDespesasBtn.textContent.includes('Ocultar')) {
+                despRows.forEach(r => r.classList.add('hidden'));
+                parcelasRows.forEach(r => r.classList.remove('hidden'));
+                toggleDespesasBtn.textContent = 'Mostrar Despesas';
+                if (toggleAllParcelasCheckbox) toggleAllParcelasCheckbox.checked = true;
+            } else {
+                despRows.forEach(r => r.classList.remove('hidden'));
+                parcelasRows.forEach(r => {
+                    if (!toggleAllParcelasCheckbox.checked) r.classList.add('hidden');
+                });
+                toggleDespesasBtn.textContent = 'Ocultar Despesas';
+            }
+        });
+    }
+
+   
+
+    // Checkbox exibir todas as parcelas
+    if (toggleAllParcelasCheckbox) {
+        toggleAllParcelasCheckbox.addEventListener('change', function(){
+            const parcelas = document.querySelectorAll('[class*="parcela-"]');
+            parcelas.forEach(r => {
+                this.checked ? r.classList.remove('hidden') : r.classList.add('hidden');
+            });
+        });
+    }
+
+    // Toggle por clique em linha de despesa (mostrar/ocultar parcelas específicas)
     document.querySelectorAll('.despesa-row').forEach(row => {
         row.addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') return;
             const despesaId = row.getAttribute('data-despesa-id');
             document.querySelectorAll('.parcela-' + despesaId).forEach(r => r.classList.toggle('hidden'));
-        });
-    });
-
-    document.getElementById('toggle-all-parcelas').addEventListener('change', function(){
-        document.querySelectorAll('[class*="parcela-"]').forEach(r => {
-            this.checked ? r.classList.remove('hidden') : r.classList.add('hidden');
         });
     });
 });

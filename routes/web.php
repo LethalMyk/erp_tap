@@ -109,7 +109,12 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('despesas', DespesaController::class)->except(['show']);
 });
 Route::post('/despesas/{id}/registrar-pagamento', [DespesaController::class, 'registrarPagamento'])->name('despesas.registrar-pagamento');
-Route::put('/parcelas/{id}', [ParcelaController::class, 'update'])->name('parcelas.update');
+
+// rota para atualizar parcela (usada pelo modal "Salvar Alterações")
+Route::put('/parcelas/{parcela}', [DespesaController::class, 'updateParcela'])->name('parcelas.update');
+
+// rota para registrar pagamento via AJAX (botão "Registrar Pagamento")
+Route::post('/despesas/{parcela}/registrar-pagamento', [DespesaController::class, 'registrarPagamento'])->name('parcelas.registrarPagamento');
 
 // Clientes e itens
 Route::get('/clientes/{id}/itens', [AgendamentoController::class, 'getItensCliente']);

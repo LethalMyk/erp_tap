@@ -7,6 +7,7 @@ use App\Repositories\DespesaRepository;
 use Illuminate\Http\Request;
 use App\Models\Produto;
 use App\Models\Parcela;
+use Illuminate\Support\Facades\Storage;
 
 class DespesaController extends Controller
 {
@@ -20,13 +21,36 @@ class DespesaController extends Controller
     }
 
     /**
-     * Lista de despesas
+     * Lista de despesas com filtros e ordenação
      */
-    public function index(Request $request)
-    {
-        $despesas = $this->repository->all($request->all());
-        return view('despesas.index', compact('despesas'));
-    }
+public function index(Request $request)
+{
+    // Captura filtros compatíveis com o repository
+    $filters = $request->only([
+        'descricao', 'categoria', 'status', 'forma_pagamento',
+        'sort', 'direction', 'per_page'
+    ]);
+
+    // Filtros de data
+    $filters['parcela_data_inicio'] = $request->input('parcela_data_inicio');
+    $filters['parcela_data_fim'] = $request->input('parcela_data_fim');
+
+    // Busca despesas aplicando filtros e ordenação
+    $despesas = $this->repository->all($filters);
+
+    // Lista fixa de categorias
+    $categorias = [
+        (object)['id' => 'FORNECEDOR', 'nome' => 'Fornecedor'],
+        (object)['id' => 'AGUA', 'nome' => 'Água'],
+        (object)['id' => 'LUZ', 'nome' => 'Luz'],
+        (object)['id' => 'MATERIAL', 'nome' => 'Material'],
+        (object)['id' => 'PARTICULAR', 'nome' => 'Particular'],
+        (object)['id' => 'OUTROS', 'nome' => 'Outros'],
+    ];
+
+    // Retorna a view com tudo pronto
+    return view('despesas.index', compact('despesas', 'categorias'));
+}
 
     /**
      * Formulário de criação
@@ -50,7 +74,7 @@ class DespesaController extends Controller
 
         $validated['produtos'] = $this->agruparProdutos($validated);
 
-        // Adiciona dados das parcelas ao array principal
+        // Adiciona dados das parcelas
         $validated['parcelas_valor'] = $request->input('parcelas_valor', []);
         $validated['parcelas_descricao'] = $request->input('parcelas_descricao', []);
         $validated['parcelas_forma_pagamento'] = $request->input('parcelas_forma_pagamento', []);
@@ -88,7 +112,6 @@ class DespesaController extends Controller
 
         $validated['produtos'] = $this->agruparProdutos($validated);
 
-        // Adiciona dados das parcelas ao array principal
         $validated['parcelas_valor'] = $request->input('parcelas_valor', []);
         $validated['parcelas_descricao'] = $request->input('parcelas_descricao', []);
         $validated['parcelas_forma_pagamento'] = $request->input('parcelas_forma_pagamento', []);
@@ -133,7 +156,7 @@ class DespesaController extends Controller
     }
 
     /**
-     * Validação comum para criação e atualização de despesa
+     * Validação comum para criação e atualização
      */
     protected function validateDespesa(Request $request)
     {
@@ -163,12 +186,12 @@ class DespesaController extends Controller
     }
 
     /**
-     * Agrupa produtos iguais para evitar duplicidade
+     * Agrupa produtos iguais
      */
     protected function agruparProdutos(array $validated)
     {
         $produtos = [];
-        if(isset($validated['produtos_id'])){
+        if (isset($validated['produtos_id'])) {
             foreach ($validated['produtos_id'] as $i => $id) {
                 $nome = $validated['produtos_novo'][$i] ?? null;
                 $categoria = $validated['produtos_categoria'][$i] ?? '';
@@ -179,16 +202,63 @@ class DespesaController extends Controller
 
                 $key = ($id ?? $nome) . '|' . $subcategoria;
 
-                if(isset($produtos[$key])){
+                if (isset($produtos[$key])) {
                     $produtos[$key]['quantidade'] += $quantidade;
                     $produtos[$key]['valor_total'] += $valor_total;
                 } else {
                     $produtos[$key] = compact(
-                        'id','nome','categoria','subcategoria','quantidade','valor_unitario','valor_total'
+                        'id', 'nome', 'categoria', 'subcategoria', 'quantidade', 'valor_unitario', 'valor_total'
                     );
                 }
             }
         }
         return $produtos;
+    }
+
+    /**
+     * Atualiza uma parcela (modal)
+     */
+    public function updateParcela(Request $request, $id)
+    {
+        $parcela = Parcela::findOrFail($id);
+
+        $validated = $request->validate([
+            'descricao' => 'nullable|string|max:255',
+            'valor' => 'nullable|numeric|min:0',
+            'data_vencimento' => 'nullable|date',
+            'forma_pagamento' => 'nullable|string|max:50',
+            'data_pagamento' => 'nullable|date',
+            'comprovantes.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        if (array_key_exists('descricao', $validated)) {
+            $parcela->descricao = $validated['descricao'];
+        }
+        if (array_key_exists('valor', $validated)) {
+            $parcela->valor_parcela = $validated['valor'];
+        }
+        if (array_key_exists('data_vencimento', $validated)) {
+            $parcela->data_vencimento = $validated['data_vencimento'];
+        }
+        if (array_key_exists('forma_pagamento', $validated)) {
+            $parcela->forma_pagamento = $validated['forma_pagamento'];
+        }
+
+        if (!empty($validated['data_pagamento'])) {
+            $parcela->data_pagamento = $validated['data_pagamento'];
+            $parcela->status = 'PAGO';
+        }
+
+        if ($request->hasFile('comprovantes')) {
+            $paths = $parcela->comprovante ? (array) json_decode($parcela->comprovante, true) : [];
+            foreach ($request->file('comprovantes') as $file) {
+                $paths[] = $file->store('comprovantes', 'public');
+            }
+            $parcela->comprovante = json_encode($paths);
+        }
+
+        $parcela->save();
+
+        return redirect()->back()->with('success', 'Parcela atualizada com sucesso!');
     }
 }
