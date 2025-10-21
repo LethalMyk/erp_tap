@@ -23,6 +23,8 @@ use App\Http\Middleware\CheckRole;
 use App\Models\Terceirizada;
 use App\Http\Controllers\MovimentoEstoqueController;
 use App\Http\Controllers\ParcelaController;
+use App\Http\Controllers\OrcamentoController;
+
 
 
 // Página inicial
@@ -137,6 +139,16 @@ Route::patch('lista-compras/{id}/arquivar', [ListaCompraController::class, 'arqu
 Route::patch('lista-compras/{id}/desarquivar', [ListaCompraController::class, 'desarquivar'])
     ->name('estoque.listacompra.desarquivar');
 
+// Orçamentos
+
+Route::prefix('orcamentos')->name('orcamentos.')->group(function() {
+    Route::get('/', [OrcamentoController::class, 'index'])->name('index');
+    Route::get('/create', [OrcamentoController::class, 'create'])->name('create');
+    Route::post('/store', [OrcamentoController::class, 'store'])->name('store');
+    Route::get('/{id}', [OrcamentoController::class, 'show'])->name('show');
+    Route::get('/{id}/pdf', [OrcamentoController::class, 'pdf'])->name('pdf');
+    Route::post('/{id}/converter', [OrcamentoController::class, 'converter'])->name('converter');
+});
 
 // Auth
 require __DIR__.'/auth.php';

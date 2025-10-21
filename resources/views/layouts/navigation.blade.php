@@ -28,6 +28,10 @@
                         </x-slot>
 
                         <x-slot name="content">
+
+                          <x-dropdown-link :href="route('orcamentos.index')">
+                                {{ __('Orçamentos') }}
+                            </x-dropdown-link>
                             <x-dropdown-link :href="route('formulario.index')">
                                 {{ __('Novo Pedido') }}
                             </x-dropdown-link>
