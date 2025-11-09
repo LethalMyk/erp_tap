@@ -257,7 +257,7 @@ class PedidoService
     public function listarPedidos(array $filters = [])
     {
         $query = Pedido::query();
-        $query->with(['cliente', 'profissional', 'imagens']);
+$query->with(['cliente', 'profissional', 'imagens', 'items', 'agendamento']);
 
         if (!empty($filters['id'])) {
             $query->where('id', $filters['id']);

@@ -61,6 +61,19 @@ class Pedido extends Model
         return $this->hasMany(Agendamento::class);
     }
 
+    /**
+     * Relação singular para acessar o último agendamento facilmente
+     */
+    public function agendamento()
+    {
+        return $this->hasOne(Agendamento::class)->latestOfMany();
+    }
+
+    public function profissional()
+    {
+        return $this->belongsTo(Profissional::class, 'tapeceiro');
+    }
+
     /** MÉTODOS AUXILIARES **/
 
     // Calcular valor total a partir dos itens
@@ -86,22 +99,16 @@ class Pedido extends Model
         return max(0, $total - $this->valor_pago);
     }
 
+    /** FORMATAÇÃO DE DATA **/
     public function formatarData($data)
-{
-    if (!$data) return null;
-    $meses = [
-        1 => 'Jan', 2 => 'Fev', 3 => 'Mar', 4 => 'Abr',
-        5 => 'Mai', 6 => 'Jun', 7 => 'Jul', 8 => 'Ago',
-        9 => 'Set', 10 => 'Out', 11 => 'Nov', 12 => 'Dez'
-    ];
-    $carbon = \Carbon\Carbon::parse($data);
-    return $carbon->format('d') . '' . $meses[$carbon->month] . ' ' . $carbon->year;
-}
-
-public function profissional()
-{
-    return $this->belongsTo(Profissional::class, 'tapeceiro');
-}
-
-
+    {
+        if (!$data) return null;
+        $meses = [
+            1 => 'Jan', 2 => 'Fev', 3 => 'Mar', 4 => 'Abr',
+            5 => 'Mai', 6 => 'Jun', 7 => 'Jul', 8 => 'Ago',
+            9 => 'Set', 10 => 'Out', 11 => 'Nov', 12 => 'Dez'
+        ];
+        $carbon = \Carbon\Carbon::parse($data);
+        return $carbon->format('d') . '' . $meses[$carbon->month] . ' ' . $carbon->year;
+    }
 }

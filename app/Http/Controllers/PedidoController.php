@@ -48,8 +48,6 @@ class PedidoController extends Controller
     public function store(Request $request)
     {
         $data = $request->all();
-
-        // Delegar a criação completa do pedido ao service
         $pedido = $this->pedidoService->criarPedidoCompleto($data);
 
         return redirect()->route('pedidos.index')
@@ -58,25 +56,25 @@ class PedidoController extends Controller
 
     public function show($id)
     {
-        $pedido = $this->pedidoService->getPedidoCompleto($id);
+        $pedido = $this->pedidoService->getPedidoCompleto((int)$id);
         return view('pedidos.show', compact('pedido'));
     }
 
     public function imprimirViaTap($id)
     {
-        $pedido = $this->pedidoService->getPedidoCompleto($id);
+        $pedido = $this->pedidoService->getPedidoCompleto((int)$id);
         return $this->pedidoService->gerarImpressaoViaTap($pedido);
     }
 
     public function imprimirViaRetirada($id)
     {
-        $pedido = $this->pedidoService->getPedidoCompleto($id);
+        $pedido = $this->pedidoService->getPedidoCompleto((int)$id);
         return $this->pedidoService->gerarImpressaoViaRetirada($pedido);
     }
 
     public function imprimirViaCompleta($id)
     {
-        $pedido = $this->pedidoService->getPedidoCompleto($id);
+        $pedido = $this->pedidoService->getPedidoCompleto((int)$id);
         return $this->pedidoService->gerarImpressaoViaCompleta($pedido);
     }
 
@@ -87,7 +85,7 @@ class PedidoController extends Controller
             'imagens.*' => 'image|max:5120',
         ]);
 
-        $pedido = $this->pedidoService->getPedidoCompleto($pedidoId);
+        $pedido = $this->pedidoService->getPedidoCompleto((int)$pedidoId);
         $this->pedidoService->uploadImagens($pedido, $request->file('imagens'));
 
         return redirect()->back()->with('success', 'Imagens adicionadas com sucesso!');
@@ -97,5 +95,49 @@ class PedidoController extends Controller
     {
         $this->pedidoService->removerImagem($imagem);
         return redirect()->back()->with('success', 'Imagem removida com sucesso!');
+    }
+
+    /**
+     * Página Kanban para controle de pedidos
+     */
+ public function kanban()
+{
+    // Carrega pedidos com cliente, items, agendamento, imagens e profissional
+    $pedidos = \App\Models\Pedido::with([
+        'cliente',
+        'profissional',
+        'items.terceirizadas',
+        'imagens',
+        'agendamento'
+    ])->orderBy('created_at', 'desc')->get();
+
+    $etapas = [
+        'Orçamento', 'Agendar', 'Retirar', 'Montado', 'Desmontado',
+        'Preparo', 'Corte', 'Costura', 'Montagem', 'Conferencia',
+        'Entregar', 'Concluido'
+    ];
+
+    return view('pedidos.kanban', compact('pedidos', 'etapas'));
+}
+
+
+    /**
+     * Atualiza o status do pedido via AJAX
+     */
+    public function updateStatus(Request $request)
+    {
+        $request->validate([
+            'pedido_id' => 'required',
+            'status' => 'required|string'
+        ]);
+
+        // Converter para inteiro para evitar erro de tipo
+        $pedidoId = (int) $request->pedido_id;
+
+        $pedido = $this->pedidoService->getPedidoCompleto($pedidoId);
+        $pedido->status = $request->status;
+        $pedido->save();
+
+        return response()->json(['success' => true]);
     }
 }

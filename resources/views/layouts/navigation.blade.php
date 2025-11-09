@@ -60,6 +60,9 @@
                             <x-dropdown-link :href="route('producao.index')">
                                 {{ __('Controle de Produção') }}
                             </x-dropdown-link>
+                             <x-dropdown-link :href="route('pedidos.kanban')">
+                                {{ __('Kanban de Pedidos') }}
+                            </x-dropdown-link>
                             <x-dropdown-link :href="route('producao.index')">
                                 {{ __('Relatórios') }}
                             </x-dropdown-link>

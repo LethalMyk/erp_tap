@@ -19,128 +19,143 @@ use App\Http\Controllers\AgendamentoController;
 use App\Http\Controllers\DespesaController;
 use App\Http\Controllers\EstoqueController;
 use App\Http\Controllers\ListaCompraController;
-use App\Http\Middleware\CheckRole;
-use App\Models\Terceirizada;
 use App\Http\Controllers\MovimentoEstoqueController;
 use App\Http\Controllers\ParcelaController;
 use App\Http\Controllers\OrcamentoController;
+use App\Http\Middleware\CheckRole;
+use App\Models\Terceirizada;
+use App\Models\Pedido;
 
-
-
-// Página inicial
+// ===========================
+// PÁGINAS INICIAIS
+// ===========================
 Route::get('/', function () { return view('welcome'); });
 Route::get('/home', function () { return view('home'); });
 Route::get('/dashboard', function () { return view('dashboard'); })
     ->middleware(['auth'])->name('dashboard');
 
-// Perfil
+// ===========================
+// PERFIL
+// ===========================
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Clientes
+// ===========================
+// PEDIDOS - ROTAS ESPECÍFICAS
+// ===========================
+Route::prefix('pedidos')->middleware('auth')->group(function() {
+    // Kanban
+    Route::get('/kanban', [PedidoController::class, 'kanban'])->name('pedidos.kanban');
+    // Atualização de status via AJAX
+    Route::post('/update-status', [PedidoController::class, 'updateStatus'])->name('pedidos.updateStatus');
+    // Impressões
+    Route::get('/{id}/imprimirviatap', [PedidoController::class, 'imprimirViaTap'])->name('pedidos.imprimirviatap');
+    Route::get('/{id}/imprimirviaretirada', [PedidoController::class, 'imprimirViaRetirada'])->name('pedidos.imprimirviaretirada');
+    Route::get('/{id}/imprimirviacompleta', [PedidoController::class, 'gerarImpressaoViaCompleta'])->name('pedidos.imprimirviacompleta');
+});
+
+// ROTAS RESOURCE (depois das específicas)
+Route::resource('pedidos', PedidoController::class);
+
+// Adicionar/remover imagens
+Route::post('/pedido/{pedido}/imagens', [FormularioController::class, 'adicionarImagem'])->name('pedido.imagem.store');
+Route::delete('/pedido/imagens/{imagem}', [FormularioController::class, 'removerImagem'])->name('pedido.imagem.destroy');
+
+// ===========================
+// CLIENTES
+// ===========================
 Route::resource('clientes', ClienteController::class);
 Route::put('/pedido/{pedido}', [PedidoController::class, 'update'])->name('pedido.update');
 
-// Pedidos
-Route::resource('pedidos', PedidoController::class);
-Route::get('/pedidos/create', [PedidoController::class, 'create'])->name('pedidos.create');
-Route::post('/pedidos', [PedidoController::class, 'store'])->name('pedidos.store');
-Route::delete('/pedidos/{pedido}/imagens/{imagem}', [PedidoController::class, 'destroyImagem'])->name('pedidos.imagens.destroy');
-Route::get('/get-items/{pedido_id}', [TerceirizadaController::class, 'getItems']);
-Route::get('/get-items/{pedido}', function(Pedido $pedido) {
-    return response()->json($pedido->items);
-});
-
-// Items
+// ===========================
+// ITENS
+// ===========================
 Route::resource('items', ItemController::class);
 
-// Terceirizadas
+// ===========================
+// TERCEIRIZADAS
+// ===========================
 Route::resource('terceirizadas', TerceirizadaController::class);
 Route::get('/terceirizadas', function () {
     $terceirizadas = Terceirizada::with(['item', 'pedido.cliente'])->get();
     return view('terceirizadas.index', compact('terceirizadas'));
 })->name('terceirizadas.index');
+Route::post('/terceirizada', [TerceirizadaController::class, 'store'])->name('terceirizada.store');
+Route::delete('/terceirizada/{terceirizada}', [TerceirizadaController::class, 'destroy'])->name('terceirizada.destroy');
+Route::get('/get-items/{pedido}', function(Pedido $pedido) {
+    return response()->json($pedido->items);
+});
 
-// Profissionais
+// ===========================
+// PROFISSIONAIS
+// ===========================
 Route::resource('profissional', ProfissionalController::class);
 
-// Serviços
+// ===========================
+// SERVIÇOS
+// ===========================
 Route::resource('servico', ServicoController::class);
 
-// Formulário
+// ===========================
+// FORMULÁRIO
+// ===========================
 Route::get('/formulario', [FormularioController::class, 'index'])->name('formulario.index');
 Route::post('/formulario', [FormularioController::class, 'store'])->name('formulario.store');
 Route::get('/pedido/{id}/visualizar', [FormularioController::class, 'visualizar'])->name('pedido.visualizar');
 
-// Impressões de pedidos
-Route::get('/pedidos/{id}/imprimirviatap', [PedidoController::class, 'imprimirViaTap'])->name('pedidos.imprimirviatap');
-Route::get('/pedidos/{id}/imprimirviaretirada', [PedidoController::class, 'imprimirViaRetirada'])->name('pedidos.imprimirviaretirada');
-Route::get('/pedidos/{id}/imprimirviacompleta', [PedidoController::class, 'imprimirViaCompleta'])->name('pedidos.imprimirviacompleta');
-
-// Agendamentos
+// ===========================
+// AGENDAMENTOS
+// ===========================
 Route::resource('agendamentos', AgendamentoController::class);
 Route::get('/calendario', [AgendamentoController::class, 'calendario'])->name('agendamentos.calendario');
-Route::get('/agendamentos/create', [AgendamentoController::class, 'create'])->name('agendamentos.create');
 
-// Pagamentos
+// ===========================
+// PAGAMENTOS
+// ===========================
 Route::resource('pagamento', PagamentoController::class);
 Route::post('/pagamento/{id}/registrar', [PagamentoController::class, 'registrar'])->name('pagamento.registrar');
 Route::get('/pagamento/create/{cliente_id?}', [PagamentoController::class, 'create'])->name('pagamento.create');
 
-// Atualizações e exclusões
-Route::put('/item/{item}', [ItemController::class, 'update'])->name('item.update');
-Route::delete('/terceirizada/{terceirizada}', [TerceirizadaController::class, 'destroy'])->name('terceirizada.destroy');
-Route::post('/terceirizada', [TerceirizadaController::class, 'store'])->name('terceirizada.store');
-
-// Imagens de pedidos
-Route::post('/pedido/{pedido}/imagens', [FormularioController::class, 'adicionarImagem'])->name('pedido.imagem.store');
-Route::delete('/pedido/imagens/{imagem}', [FormularioController::class, 'removerImagem'])->name('pedido.imagem.destroy');
-
-// Middleware admin/gerente
+// ===========================
+// MIDDLEWARE ADMIN/GERENTE
+// ===========================
 Route::middleware(['auth', CheckRole::class . ':admin,gerente'])->group(function () {
     Route::get('/admin-area', function () { return 'Área admin'; });
     Route::get('/producao', [ProducaoController::class, 'index'])->name('producao.index');
     Route::put('/producao/{id}', [ProducaoController::class, 'update'])->name('producao.update');
 });
 
-// Despesas
+// ===========================
+// DESPESAS
+// ===========================
 Route::middleware(['auth'])->group(function () {
     Route::resource('despesas', DespesaController::class)->except(['show']);
+    Route::post('/despesas/{id}/registrar-pagamento', [DespesaController::class, 'registrarPagamento'])->name('despesas.registrar-pagamento');
+    Route::put('/parcelas/{parcela}', [DespesaController::class, 'updateParcela'])->name('parcelas.update');
+    Route::post('/despesas/{parcela}/registrar-pagamento', [DespesaController::class, 'registrarPagamento'])->name('parcelas.registrarPagamento');
 });
-Route::post('/despesas/{id}/registrar-pagamento', [DespesaController::class, 'registrarPagamento'])->name('despesas.registrar-pagamento');
 
-// rota para atualizar parcela (usada pelo modal "Salvar Alterações")
-Route::put('/parcelas/{parcela}', [DespesaController::class, 'updateParcela'])->name('parcelas.update');
-
-// rota para registrar pagamento via AJAX (botão "Registrar Pagamento")
-Route::post('/despesas/{parcela}/registrar-pagamento', [DespesaController::class, 'registrarPagamento'])->name('parcelas.registrarPagamento');
-
-// Clientes e itens
-Route::get('/clientes/{id}/itens', [AgendamentoController::class, 'getItensCliente']);
-
-
+// ===========================
+// ESTOQUE
+// ===========================
 Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
 Route::post('/estoque', [EstoqueController::class, 'store'])->name('estoque.store');
-
 Route::post('/estoque/{estoque}/movimento', [MovimentoEstoqueController::class, 'store'])->name('estoque.movimento.store');
-
 
 // Lista de Compras
 Route::middleware(['auth'])->group(function () {
     Route::get('/estoque/listacompra', [ListaCompraController::class, 'index'])->name('estoque.listacompra');
     Route::patch('/estoque/listacompra/{item}', [ListaCompraController::class, 'atualizarSituacao'])->name('estoque.listacompra.atualizarSituacao');
+    Route::patch('lista-compras/{id}/arquivar', [ListaCompraController::class, 'arquivar'])->name('estoque.listacompra.arquivar');
+    Route::patch('lista-compras/{id}/desarquivar', [ListaCompraController::class, 'desarquivar'])->name('estoque.listacompra.desarquivar');
 });
 
-Route::patch('lista-compras/{id}/arquivar', [ListaCompraController::class, 'arquivar'])
-    ->name('estoque.listacompra.arquivar');
-Route::patch('lista-compras/{id}/desarquivar', [ListaCompraController::class, 'desarquivar'])
-    ->name('estoque.listacompra.desarquivar');
-
-// Orçamentos
-
+// ===========================
+// ORÇAMENTOS
+// ===========================
 Route::prefix('orcamentos')->name('orcamentos.')->group(function() {
     Route::get('/', [OrcamentoController::class, 'index'])->name('index');
     Route::get('/create', [OrcamentoController::class, 'create'])->name('create');
@@ -150,5 +165,7 @@ Route::prefix('orcamentos')->name('orcamentos.')->group(function() {
     Route::post('/{id}/converter', [OrcamentoController::class, 'converter'])->name('converter');
 });
 
-// Auth
+// ===========================
+// AUTH
+// ===========================
 require __DIR__.'/auth.php';
