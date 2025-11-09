@@ -13,7 +13,6 @@ use App\Services\ListaCompraService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Enums\StatusPagamento;
-use Carbon\Carbon;
 
 class PedidoService
 {
@@ -65,14 +64,17 @@ class PedidoService
             }
             $cliente = $this->clienteService->criarOuAtualizarCliente($data['cliente'] ?? []);
 
+            // --- VALORES ---
+            $valorPedido = $this->formatarValor($data['pedido']['valor'] ?? $data['valor'] ?? 0);
+
             // --- PEDIDO ---
             $periodo = $data['pedido']['periodo_retirada'] ?? '';
             $pedidoData = [
                 'cliente_id'       => $cliente->id,
                 'qntItens'         => $data['qntItens'] ?? 0,
                 'data'             => $data['pedido']['data'] ?? now(),
-                'valor'            => $this->formatarValor($data['pedido']['valor'] ?? 0),
-                'valorResta'       => $this->formatarValor($data['pedido']['valor'] ?? 0),
+                'valor'            => $valorPedido,
+                'valorResta'       => $valorPedido,
                 'status'           => 'RESTA',
                 'obs'              => $data['pedido']['obs'] ?? null,
                 'prazo'            => $data['pedido']['prazo'] ?? now(),
@@ -114,27 +116,27 @@ class PedidoService
             }
 
             // --- PAGAMENTOS ---
-$formasParaRegistrar = ['PIX','DEBITO','DINHEIRO','CREDITO À VISTA','CREDITO PARCELADO'];
+            $formasParaRegistrar = ['PIX','DEBITO','DINHEIRO','CREDITO À VISTA','CREDITO PARCELADO'];
 
-foreach ($data['pagamentos'] ?? [] as $pagData) {
-    $pagData['pedido_id'] = $pedido->id;
-    $pagData['valor'] = $this->formatarValor($pagData['valor'] ?? 0);
+            foreach ($data['pagamentos'] ?? [] as $pagData) {
+                $pagData['pedido_id'] = $pedido->id;
+                $pagData['valor'] = $this->formatarValor($pagData['valor'] ?? 0);
 
-    if (!empty($pagData['status'])) {
-        $status = $pagData['status'];
-    } else {
-        // Se a forma de pagamento estiver na lista de registrar, marca como PAGO
-        if (!empty($pagData['forma']) && in_array($pagData['forma'], $formasParaRegistrar)) {
-            $status = StatusPagamento::PAGO->value;
-        } else {
-            $status = StatusPagamento::PENDENTE->value;
-        }
-    }
+                if (!empty($pagData['status'])) {
+                    $status = $pagData['status'];
+                } else {
+                    // Se a forma de pagamento estiver na lista de registrar, marca como PAGO
+                    if (!empty($pagData['forma']) && in_array($pagData['forma'], $formasParaRegistrar)) {
+                        $status = StatusPagamento::PAGO->value;
+                    } else {
+                        $status = StatusPagamento::PENDENTE->value;
+                    }
+                }
 
-    $pagData['status'] = $status;
+                $pagData['status'] = $status;
 
-    Pagamento::create($pagData);
-}
+                Pagamento::create($pagData);
+            }
 
             // --- IMAGENS ---
             if (!empty($data['imagens'])) {
@@ -150,18 +152,16 @@ foreach ($data['pagamentos'] ?? [] as $pagData) {
      */
     public function atualizarPedido(Pedido $pedido, array $data)
     {
-        if (!empty($data['valor'])) {
-            $data['valor'] = $this->formatarValor($data['valor']);
-        }
+        $valorPedido = $this->formatarValor($data['valor'] ?? $pedido->valor);
 
         $pedido->update([
-            'data'          => $data['data'] ?? $pedido->data,
-            'prazo'         => $data['prazo'] ?? $pedido->prazo,
-            'data_retirada' => $data['data_retirada'] ?? $pedido->data_retirada,
-            'andamento'     => $data['andamento'] ?? $pedido->andamento,
-            'status'        => $data['status'] ?? $pedido->status,
-            'obs'           => $data['obs'] ?? $pedido->obs,
-            'valor'         => $data['valor'] ?? $pedido->valor,
+            'data'             => $data['data'] ?? $pedido->data,
+            'prazo'            => $data['prazo'] ?? $pedido->prazo,
+            'data_retirada'    => $data['data_retirada'] ?? $pedido->data_retirada,
+            'andamento'        => $data['andamento'] ?? $pedido->andamento,
+            'status'           => $data['status'] ?? $pedido->status,
+            'obs'              => $data['obs'] ?? $pedido->obs,
+            'valor'            => $valorPedido,
             'periodo_retirada' => in_array($data['periodo_retirada'] ?? '', ['Manhã', 'Tarde']) ? $data['periodo_retirada'] : $pedido->periodo_retirada,
         ]);
 
@@ -179,7 +179,7 @@ foreach ($data['pagamentos'] ?? [] as $pagData) {
     /**
      * Cria ou atualiza agendamento automático do pedido
      */
-    protected function criarAgendamento(Pedido $pedido, Cliente $cliente)
+    protected function criarAgendamento(Pedido $pedido, $cliente)
     {
         $agendamento = Agendamento::firstOrNew([
             'tipo'      => 'retirada',
