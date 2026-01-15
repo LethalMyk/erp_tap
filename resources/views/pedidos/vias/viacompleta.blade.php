@@ -203,7 +203,7 @@
         <!-- Modal -->
         <div class="modal fade" id="editarItemModal{{ $item->id }}" tabindex="-1" aria-labelledby="editarItemModalLabel{{ $item->id }}" aria-hidden="true">
             <div class="modal-dialog">
-                <form method="POST" action="{{ route('item.update', $item->id) }}">
+                <form method="POST" action="{{ route('items.update', $item->id) }}">
                     @csrf
                     @method('PUT')
                     <div class="modal-content">
