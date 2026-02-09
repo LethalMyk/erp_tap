@@ -105,7 +105,35 @@
                                 <option value="TM">TM</option>
                             </select>
                         </div>
-                        
+<!-- 🔹 ESPUMA EM LINHA (igual ao padrão do item) -->
+<div class="flex gap-2 mb-2 flex-wrap items-end mt-2">
+   <select class="espuma-select w-60 border rounded px-2 py-1">
+      <option value="">Sem espuma</option>
+      @foreach(\App\Models\ValorBase::where('tipo','ESPUMA')->get() as $v)
+         <option value="{{ $v->id }}" data-valor="{{ $v->valor }}">
+            {{ $v->nome }} - R$ {{ number_format($v->valor,2,',','.') }}/m³
+         </option>
+      @endforeach
+   </select>
+
+   <div class="espuma-campos hidden flex gap-2">
+      <div>
+         <label class="text-xs block">Altura (cm)</label>
+         <input type="number" step="0.01" class="espuma-altura w-28 border rounded px-2 py-1">
+      </div>
+
+      <div>
+         <label class="text-xs block">Quantidade</label>
+         <input type="number" step="1" class="espuma-qtd w-28 border rounded px-2 py-1">
+      </div>
+   </div>
+</div>
+
+<input type="hidden" name="items[0][valor_espuma]" class="valor-espuma-input">
+
+<!-- hidden para enviar ao Laravel -->
+<input type="hidden" name="items[{{ $index ?? 0 }}][valor_espuma]" class="valor-espuma-input">
+
                         <textarea name="items[0][especifi]" placeholder="Especificação / Observações do Item" rows="3"
                                   class="block w-full mb-2 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"></textarea>
                         <button type="button" onclick="removerItem(this)" class="mb-2 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">Remover Item</button>
@@ -251,6 +279,30 @@
                         <option value="TM">TM</option>
                     </select>
                 </div>
+<div class="flex gap-2 mb-2 flex-wrap items-end mt-2">
+   <select class="espuma-select w-60 border rounded px-2 py-1">
+      <option value="">Sem espuma</option>
+      @foreach(\App\Models\ValorBase::where('tipo','ESPUMA')->get() as $v)
+         <option value="{{ $v->id }}" data-valor="{{ $v->valor }}">
+            {{ $v->nome }} - R$ {{ number_format($v->valor,2,',','.') }}/m³
+         </option>
+      @endforeach
+   </select>
+
+   <div class="espuma-campos hidden flex gap-2">
+      <div>
+         <label class="text-xs block">Altura (cm)</label>
+         <input type="number" step="0.01" class="espuma-altura w-28 border rounded px-2 py-1">
+      </div>
+
+      <div>
+         <label class="text-xs block">Quantidade</label>
+         <input type="number" step="1" class="espuma-qtd w-28 border rounded px-2 py-1">
+      </div>
+   </div>
+</div>
+
+<input type="hidden" name="items[${itemIndex}][valor_espuma]" class="valor-espuma-input">
                 <textarea name="items[${itemIndex}][especifi]" placeholder="Especificação / Observações do Item" rows="3" class="block w-full mb-2 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"></textarea>
                 <button type="button" onclick="removerItem(this)" class="mb-2 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">Remover Item</button>
                 <h4 class="font-semibold mb-1">Serviços Terceirizados</h4>
@@ -538,13 +590,22 @@ function calcularValorSugerido(item) {
    const valorSugerido = metragem * valorPorMetro;
 
    // Atualiza tela
-   item.querySelector(".valor-sugerido").innerText =
-      valorSugerido.toFixed(2).replace(".", ",");
+const valorEspuma = parseFloat(
+   item.querySelector(".valor-espuma-input").value || 0
+);
 
-   // Salva no hidden para enviar ao Laravel
-   item.querySelector(".valor-sugerido-input").value = valorSugerido;
+// SOMA: tecido + espuma
+const valorFinalItem = valorSugerido + valorEspuma;
 
-      atualizarValorSugeridoTotal();
+// Atualiza tela do ITEM
+item.querySelector(".valor-sugerido").innerText =
+   valorFinalItem.toFixed(2).replace(".", ",");
+
+// Salva no hidden do ITEM
+item.querySelector(".valor-sugerido-input").value = valorFinalItem;
+
+// Atualiza total do pedido
+atualizarValorSugeridoTotal();
 
 }
 function atualizarValorSugeridoTotal() {
@@ -560,6 +621,56 @@ function atualizarValorSugeridoTotal() {
 
    // Atualiza hidden para enviar ao Laravel
    document.getElementById("valor_sugerido_total").value = total;
+}
+document.addEventListener("change", function(e) {
+
+   const item = e.target.closest(".item");
+   if (!item) return;
+
+   // Se mudou o tipo de espuma
+   if (e.target.classList.contains("espuma-select")) {
+      const campos = item.querySelector(".espuma-campos");
+
+      if (e.target.value) {
+         campos.classList.remove("hidden");
+      } else {
+         campos.classList.add("hidden");
+         item.querySelector(".valor-espuma-input").value = 0;
+         calcularValorSugerido(item);
+      }
+   }
+
+   // Se mudou altura ou quantidade
+   if (
+      e.target.classList.contains("espuma-altura") ||
+      e.target.classList.contains("espuma-qtd")
+   ) {
+      calcularEspuma(item);
+   }
+});
+
+function calcularEspuma(item) {
+
+   const select = item.querySelector(".espuma-select");
+   const valorPorCm = parseFloat(
+      select.selectedOptions[0]?.dataset.valor || 0
+   );
+
+   const altura = parseFloat(
+      item.querySelector(".espuma-altura").value || 0
+   );
+
+   const qtd = parseInt(
+      item.querySelector(".espuma-qtd").value || 0
+   );
+
+   const valorEspuma = altura * qtd * valorPorCm;
+
+   // salva no hidden do item
+   item.querySelector(".valor-espuma-input").value = valorEspuma;
+
+   // Recalcula o valor sugerido do item
+   calcularValorSugerido(item);
 }
 
 </script>
