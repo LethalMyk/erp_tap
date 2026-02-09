@@ -164,6 +164,17 @@
 <input type="hidden" name="items[0][valor_ferragem]" 
        class="valor-ferragem-input">
 
+
+       <button type="button"
+        class="btn-estrutura-add bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded text-sm mt-2">
+   + Adicionar Estrutura
+</button>
+
+<div class="estruturas-container mt-2"></div>
+
+<input type="hidden" name="items[0][valor_estrutura]"
+       class="valor-estrutura-input">
+
                         <textarea name="items[0][especifi]" placeholder="Especificação / Observações do Item" rows="3"
                                   class="block w-full mb-2 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"></textarea>
                         <button type="button" onclick="removerItem(this)" class="mb-2 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">Remover Item</button>
@@ -265,6 +276,15 @@
     <script>
 window.ferragensOptions = `
 @foreach(\App\Models\ValorBase::where('tipo','FERRAGEM')->orderBy('nome')->get() as $v)
+<option value="{{ $v->id }}" data-valor="{{ $v->valor }}">
+   {{ $v->nome }} — R$ {{ number_format($v->valor,2,',','.') }} / {{ $v->unidade }}
+</option>
+@endforeach
+`;
+</script>
+<script>
+window.estruturasOptions = `
+@foreach(\App\Models\ValorBase::where('tipo','ESTRUTURA')->orderBy('nome')->get() as $v)
 <option value="{{ $v->id }}" data-valor="{{ $v->valor }}">
    {{ $v->nome }} — R$ {{ number_format($v->valor,2,',','.') }} / {{ $v->unidade }}
 </option>
@@ -386,6 +406,15 @@ window.ferragensOptions = `
 <input type="hidden" name="items[${itemIndex}][valor_ferragem]"
        class="valor-ferragem-input">
 
+<button type="button"
+        class="btn-estrutura-add bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded text-sm mt-2">
+   + Adicionar Estrutura
+</button>
+
+<div class="estruturas-container mt-2"></div>
+
+<input type="hidden" name="items[${itemIndex}][valor_estrutura]"
+       class="valor-estrutura-input">
 
 
                 <textarea name="items[${itemIndex}][especifi]" placeholder="Especificação / Observações do Item" rows="3" class="block w-full mb-2 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"></textarea>
@@ -685,9 +714,11 @@ const valorEnchimento = parseFloat(
 );
 
 const valorFerragem = calcularValorFerragens(item);
+const valorEstrutura = calcularValorEstruturas(item);
+
 
 const valorFinalItem =
-   valorSugerido + valorEspuma + valorEnchimento + valorFerragem;
+   valorSugerido + valorEspuma + valorEnchimento + valorFerragem + valorEstrutura;
 
 // Atualiza tela do ITEM
 item.querySelector(".valor-sugerido").innerText =
@@ -753,6 +784,40 @@ document.addEventListener("change", function(e) {
       calcularValorSugerido(item);
    }
 });
+
+document.addEventListener("change", function(e) {
+
+   const item = e.target.closest(".item");
+   if (!item) return;
+
+   if (e.target.classList.contains("estrutura-select") ||
+       e.target.classList.contains("estrutura-qtd")) {
+
+      calcularValorEstruturas(item);
+      calcularValorSugerido(item);
+   }
+});
+function calcularValorEstruturas(item) {
+   let total = 0;
+
+   item.querySelectorAll(".estrutura-linha").forEach(linha => {
+
+      const select = linha.querySelector(".estrutura-select");
+      const qtd = parseFloat(linha.querySelector(".estrutura-qtd").value || 0);
+      const valorUnit = parseFloat(
+         select.selectedOptions[0]?.dataset.valor || 0
+      );
+
+      const totalLinha = qtd * valorUnit;
+      linha.querySelector(".valor-estrutura-linha").value = totalLinha;
+
+      total += totalLinha;
+   });
+
+   item.querySelector(".valor-estrutura-input").value = total;
+   return total;
+}
+
 document.addEventListener("change", function(e) {
 
    const item = e.target.closest(".item");
@@ -914,6 +979,54 @@ function calcularValorFerragens(item) {
    item.querySelector(".valor-ferragem-input").value = total;
    return total;
 }
+
+document.addEventListener("click", function(e) {
+
+   const item = e.target.closest(".item");
+   if (!item) return;
+
+   if (e.target.classList.contains("btn-estrutura-add")) {
+
+      const container = item.querySelector(".estruturas-container");
+
+      const linha = document.createElement("div");
+      linha.classList.add("estrutura-linha","flex","gap-2","mb-2","items-end");
+
+      linha.innerHTML = `
+         <select class="estrutura-select w-60 border rounded px-2 py-1">
+            <option value="">Selecione a estrutura</option>
+            ${window.estruturasOptions}
+         </select>
+
+         <div>
+            <label class="text-xs block">Quantidade</label>
+            <input type="number" step="1"
+                   class="estrutura-qtd w-28 border rounded px-2 py-1">
+         </div>
+
+         <button type="button"
+                 class="btn-remover-estrutura bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
+            ✕
+         </button>
+
+         <input type="hidden" class="valor-estrutura-linha">
+      `;
+
+      container.appendChild(linha);
+
+      calcularValorEstruturas(item);
+      calcularValorSugerido(item);
+   }
+
+   // REMOVER ESTRUTURA
+   if (e.target.classList.contains("btn-remover-estrutura")) {
+      const linha = e.target.closest(".estrutura-linha");
+      linha.remove();
+      const item = e.target.closest(".item");
+      calcularValorEstruturas(item);
+      calcularValorSugerido(item);
+   }
+});
 
 </script>
 
