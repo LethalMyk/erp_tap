@@ -131,8 +131,30 @@
 
 <input type="hidden" name="items[0][valor_espuma]" class="valor-espuma-input">
 
+<!-- 🔹 ENCHIMENTOS (mesmo padrão visual da espuma) -->
+<div class="flex gap-2 mb-2 flex-wrap items-end mt-2">
+   <select class="enchimento-select w-60 border rounded px-2 py-1">
+      <option value="">Sem enchimento</option>
+
+      @foreach($enchimentos as $e)
+         <option value="{{ $e->id }}" data-valor="{{ $e->valor }}">
+            {{ $e->nome }} — R$ {{ number_format($e->valor,2,',','.') }} / {{ $e->unidade }}
+         </option>
+      @endforeach
+   </select>
+
+   <div class="enchimento-campos hidden flex gap-2">
+      <div>
+         <label class="text-xs block">Quantidade</label>
+         <input type="number" step="1" class="enchimento-qtd w-28 border rounded px-2 py-1">
+      </div>
+   </div>
+</div>
+
+<input type="hidden" name="items[0][enchimento_tipo]" class="enchimento-tipo-input">
+<input type="hidden" name="items[0][enchimento_qtd]" class="enchimento-qtd-input">
+<input type="hidden" name="items[0][valor_enchimento]" class="valor-enchimento-input">
 <!-- hidden para enviar ao Laravel -->
-<input type="hidden" name="items[{{ $index ?? 0 }}][valor_espuma]" class="valor-espuma-input">
 
                         <textarea name="items[0][especifi]" placeholder="Especificação / Observações do Item" rows="3"
                                   class="block w-full mb-2 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"></textarea>
@@ -303,6 +325,41 @@
 </div>
 
 <input type="hidden" name="items[${itemIndex}][valor_espuma]" class="valor-espuma-input">
+
+
+<!-- ENCHIMENTO (DENTRO DO ITEM DINÂMICO) -->
+<div class="flex gap-2 mb-2 flex-wrap items-end mt-2">
+
+   <select class="enchimento-select w-60 border rounded px-2 py-1">
+      <option value="">Sem enchimento</option>
+      @foreach($enchimentos as $ench)
+         <option 
+            value="{{ $ench->id }}" 
+            data-valor="{{ $ench->valor }}"
+         >
+            {{ $ench->nome }} — R$ {{ number_format($ench->valor,2,',','.') }} / {{ $ench->unidade }}
+         </option>
+      @endforeach
+   </select>
+
+   <div class="enchimento-campos hidden flex gap-2">
+      <div>
+         <label class="text-xs block">Quantidade</label>
+         <input type="number" step="1" 
+                class="enchimento-qtd w-28 border rounded px-2 py-1">
+      </div>
+   </div>
+</div>
+
+<input type="hidden" name="items[${itemIndex}][enchimento_tipo]" 
+       class="enchimento-tipo-input">
+
+<input type="hidden" name="items[${itemIndex}][enchimento_qtd]" 
+       class="enchimento-qtd-input">
+
+<input type="hidden" name="items[${itemIndex}][valor_enchimento]" 
+       class="valor-enchimento-input">
+
                 <textarea name="items[${itemIndex}][especifi]" placeholder="Especificação / Observações do Item" rows="3" class="block w-full mb-2 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"></textarea>
                 <button type="button" onclick="removerItem(this)" class="mb-2 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">Remover Item</button>
                 <h4 class="font-semibold mb-1">Serviços Terceirizados</h4>
@@ -595,7 +652,11 @@ const valorEspuma = parseFloat(
 );
 
 // SOMA: tecido + espuma
-const valorFinalItem = valorSugerido + valorEspuma;
+const valorEnchimento = parseFloat(
+   item.querySelector(".valor-enchimento-input").value || 0
+);
+
+const valorFinalItem = valorSugerido + valorEspuma + valorEnchimento;
 
 // Atualiza tela do ITEM
 item.querySelector(".valor-sugerido").innerText =
@@ -622,56 +683,118 @@ function atualizarValorSugeridoTotal() {
    // Atualiza hidden para enviar ao Laravel
    document.getElementById("valor_sugerido_total").value = total;
 }
+
 document.addEventListener("change", function(e) {
 
    const item = e.target.closest(".item");
    if (!item) return;
 
-   // Se mudou o tipo de espuma
-   if (e.target.classList.contains("espuma-select")) {
-      const campos = item.querySelector(".espuma-campos");
+   // Quando escolher o enchimento
+   if (e.target.classList.contains("enchimento-select")) {
+      const campos = item.querySelector(".enchimento-campos");
+      const hiddenTipo = item.querySelector(".enchimento-tipo-input");
 
       if (e.target.value) {
          campos.classList.remove("hidden");
+         hiddenTipo.value = e.target.value;
       } else {
          campos.classList.add("hidden");
-         item.querySelector(".valor-espuma-input").value = 0;
+         hiddenTipo.value = "";
+         item.querySelector(".enchimento-qtd-input").value = "";
+         item.querySelector(".valor-enchimento-input").value = 0;
          calcularValorSugerido(item);
       }
    }
 
-   // Se mudou altura ou quantidade
+   // Quando digitar quantidade do enchimento
+   if (e.target.classList.contains("enchimento-qtd")) {
+      const qtd = parseInt(e.target.value || 0);
+      const select = item.querySelector(".enchimento-select");
+      const valorUnit = parseFloat(
+         select.selectedOptions[0]?.dataset.valor || 0
+      );
+
+      const valorEnchimento = qtd * valorUnit;
+
+      item.querySelector(".enchimento-qtd-input").value = qtd;
+      item.querySelector(".valor-enchimento-input").value = valorEnchimento;
+
+      calcularValorSugerido(item);
+   }
+});
+document.addEventListener("change", function(e) {
+
+   const item = e.target.closest(".item");
+   if (!item) return;
+
+   if (e.target.classList.contains("enchimento-select")) {
+      const campos = item.querySelector(".enchimento-campos");
+      const hiddenTipo = item.querySelector('[name*="enchimento_tipo"]');
+
+      if (e.target.value) {
+         campos.classList.remove("hidden");
+         hiddenTipo.value = e.target.value;
+      } else {
+         campos.classList.add("hidden");
+         hiddenTipo.value = "";
+         item.querySelector('[name*="enchimento_qtd"]').value = "";
+      }
+   }
+
+   if (e.target.classList.contains("enchimento-qtd")) {
+      const hiddenQtd = item.querySelector('[name*="enchimento_qtd"]');
+      hiddenQtd.value = e.target.value;
+   }
+});
+document.addEventListener("change", function(e) {
+
+   const item = e.target.closest(".item");
+   if (!item) return;
+
+   // 🔹 MOSTRAR / ESCONDER CAMPOS DA ESPUMA
+   if (e.target.classList.contains("espuma-select")) {
+
+      const camposEspuma = item.querySelector(".espuma-campos");
+
+      if (e.target.value) {
+         camposEspuma.classList.remove("hidden");
+      } else {
+         camposEspuma.classList.add("hidden");
+
+         // Zerar valores quando desmarcar
+         item.querySelector(".espuma-altura").value = "";
+         item.querySelector(".espuma-qtd").value = "";
+         item.querySelector(".valor-espuma-input").value = 0;
+
+         calcularValorSugerido(item);
+      }
+   }
+
+   // 🔹 QUANDO DIGITAR ALTURA OU QUANTIDADE DA ESPUMA
    if (
       e.target.classList.contains("espuma-altura") ||
       e.target.classList.contains("espuma-qtd")
    ) {
-      calcularEspuma(item);
+      const altura = parseFloat(
+         item.querySelector(".espuma-altura").value || 0
+      );
+
+      const qtd = parseInt(
+         item.querySelector(".espuma-qtd").value || 0
+      );
+
+      const select = item.querySelector(".espuma-select");
+      const valorUnit = parseFloat(
+         select.selectedOptions[0]?.dataset.valor || 0
+      );
+
+      // Exemplo simples de cálculo:
+      const valorEspuma = altura * qtd * valorUnit;
+
+      item.querySelector(".valor-espuma-input").value = valorEspuma;
+
+      calcularValorSugerido(item);
    }
 });
-
-function calcularEspuma(item) {
-
-   const select = item.querySelector(".espuma-select");
-   const valorPorCm = parseFloat(
-      select.selectedOptions[0]?.dataset.valor || 0
-   );
-
-   const altura = parseFloat(
-      item.querySelector(".espuma-altura").value || 0
-   );
-
-   const qtd = parseInt(
-      item.querySelector(".espuma-qtd").value || 0
-   );
-
-   const valorEspuma = altura * qtd * valorPorCm;
-
-   // salva no hidden do item
-   item.querySelector(".valor-espuma-input").value = valorEspuma;
-
-   // Recalcula o valor sugerido do item
-   calcularValorSugerido(item);
-}
-
 </script>
 </x-app-layout>

@@ -8,6 +8,8 @@ use App\Services\ClienteService;
 use App\Models\Pedido;
 use App\Models\Profissional;
 use App\Models\PedidoImagem;
+use App\Models\ValorBase;
+
 
 class FormularioController extends Controller
 {
@@ -25,13 +27,22 @@ class FormularioController extends Controller
     /**
      * Exibe formulário principal
      */
-    public function index()
-    {
-        $profissionais = Profissional::orderBy('nome')->get();
-        $clientes = $this->clienteService->listarTodos(); // pega todos os clientes
+public function index()
+{
+    $profissionais = Profissional::orderBy('nome')->get();
+    $clientes = $this->clienteService->listarTodos();
 
-        return view('formulario', compact('profissionais', 'clientes'));
-    }
+    // Buscar apenas os registros do tipo "enchimento"
+    $enchimentos = ValorBase::where('tipo', 'enchimento')
+        ->orderBy('nome')
+        ->get();
+
+    return view('formulario', compact(
+        'profissionais',
+        'clientes',
+        'enchimentos'   // ← você esqueceu de enviar isso antes
+    ));
+}
 
     /**
      * Salva formulário completo (cliente + pedido + itens + pagamentos + imagens + agendamento)
