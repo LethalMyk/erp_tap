@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::table('item_pedidos', function (Blueprint $table) {
+       Schema::table('items', function (Blueprint $table) {
     $table->decimal('valor_sugerido', 10, 2)->nullable();
 });
 
@@ -22,7 +22,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('item_pedidos', function (Blueprint $table) {
+        Schema::table('items', function (Blueprint $table) {
             //
         });
     }

@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     
     {
         $this->call(ProfissionalSeeder::class);
+        $this->call(ValoresBaseSeeder::class); // <-- chama o outro seeder
 
         // User::factory(10)->create();
 

@@ -2,27 +2,52 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\ValorBase;
 
-class DatabaseSeeder extends Seeder
-
+class ValoresBaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
-    
     {
-        $this->call(ProfissionalSeeder::class);
+        ValorBase::truncate(); // limpa antes de inserir
 
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        ValorBase::insert([
+            [
+                'tipo' => 'item',
+                'nome' => '2 lug',
+                'valor' => 500.00,
+                'unidade' => null,
+            ],
+            [
+                'tipo' => 'tecido',
+                'nome' => 'CHOCO 03 - IDEALE',
+                'valor' => 25.00,
+                'unidade' => null,
+            ],
+            [
+                'tipo' => 'espuma',
+                'nome' => 'NOVA D-33',
+                'valor' => 5.00,
+                'unidade' => 'MT',
+            ],
+            [
+                'tipo' => 'enchimento',
+                'nome' => 'Soft Novo Total',
+                'valor' => 5.00,
+                'unidade' => 'Peça',
+            ],
+            [
+                'tipo' => 'ferragem',
+                'nome' => 'PÉS CANTO 6CM',
+                'valor' => 7.00,
+                'unidade' => 'UN',
+            ],
+            [
+                'tipo' => 'estrutura',
+                'nome' => 'Veneno de Cupim - Aplicar',
+                'valor' => 150.00,
+                'unidade' => 'Peça',
+            ],
         ]);
-        
     }
 }
