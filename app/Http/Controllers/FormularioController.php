@@ -60,6 +60,16 @@ class FormularioController extends Controller
                 }
             }
         }
+// Garantir que valor_sugerido dos itens seja float
+if (!empty($data['items'])) {
+    foreach ($data['items'] as $key => $item) {
+
+        if (isset($item['valor_sugerido'])) {
+            $data['items'][$key]['valor_sugerido'] =
+                floatval($item['valor_sugerido']);
+        }
+    }
+}
 
         $pedido = $this->pedidoService->criarPedidoCompleto($data);
 

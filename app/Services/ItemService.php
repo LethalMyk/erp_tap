@@ -25,22 +25,23 @@ class ItemService
         return $this->repository->find($id);
     }
 
-    public function criar(array $dados)
-    {
-        $item = $this->repository->create($dados);
+   public function criar(array $dados)
+{
+    $item = $this->repository->create($dados);
 
-        // Se vierem terceirizadas, cadastra junto
-        if (!empty($dados['terceirizadas'])) {
-            foreach ($dados['terceirizadas'] as $terc) {
-                $item->terceirizadas()->create([
-                    'tipoServico' => $terc['tipo'] ?? '',
-                    'obs' => $terc['obs'] ?? '',
-                ]);
-            }
+    // Se vierem terceirizadas, cadastra junto
+    if (!empty($dados['terceirizadas'])) {
+        foreach ($dados['terceirizadas'] as $terc) {
+            $item->terceirizadas()->create([
+                'tipoServico' => $terc['tipo'] ?? '',
+                'obs' => $terc['obs'] ?? '',
+            ]);
         }
-
-        return $item;
     }
+
+    return $item;
+}
+
 
     public function atualizar(Item $item, array $dados)
     {

@@ -83,14 +83,29 @@
                     <div class="item mb-4">
                         <div class="flex gap-2 mb-2 flex-wrap">
                             <input type="text" name="items[0][nomeItem]" placeholder="Nome do Item" required class="flex-1 min-w-[150px]">
-                            <input type="text" name="items[0][material]" placeholder="Material" required class="w-40">
+<select name="items[0][material]" class="w-40 material-select" required>
+   <option value="">Selecione o tecido</option>
+   @foreach(\App\Models\ValorBase::where('tipo','TECIDO')->get() as $v)
+      <option value="{{ $v->id }}" data-valor="{{ $v->valor }}">
+         {{ $v->nome }} - R$ {{ number_format($v->valor,2,',','.') }}/m²
+      </option>
+   @endforeach
+</select>
                             <input type="number" name="items[0][metragem]" placeholder="Metragem" step="0.01" value="0" class="w-24">
+                           <p class="text-sm mt-1">
+   <strong>Valor Sugerido:</strong> 
+   R$ <span class="valor-sugerido">0,00</span>
+</p>
+
+<input type="hidden" name="items[0][valor_sugerido]" class="valor-sugerido-input">
+
                             <select name="items[0][material_disponib]" required class="w-32">
                                 <option value="Pedir" selected>Pedir</option>
                                 <option value="Complementar">Complementar</option>
                                 <option value="TM">TM</option>
                             </select>
                         </div>
+                        
                         <textarea name="items[0][especifi]" placeholder="Especificação / Observações do Item" rows="3"
                                   class="block w-full mb-2 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"></textarea>
                         <button type="button" onclick="removerItem(this)" class="mb-2 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">Remover Item</button>
@@ -145,6 +160,14 @@
                     <span id="prazo_info" class="ml-2 text-gray-600"></span>
                 </div>
             </div>
+
+<!-- 🔹 VALOR SUGERIDO DO PEDIDO (SOMA DOS ITENS) -->
+<p class="text-sm mt-2 mb-2">
+   <strong>Valor Sugerido do Pedido:</strong>  
+   R$ <span id="valor-sugerido-total">0,00</span>
+</p>
+
+<input type="hidden" name="valor_sugerido_total" id="valor_sugerido_total">
 
             <!-- Valor Total -->
             <h3 class="text-lg font-semibold mb-2">Valor Total</h3>
@@ -207,9 +230,22 @@
             newItem.innerHTML = `
                 <div class="flex gap-2 mb-2 flex-wrap">
                     <input type="text" name="items[${itemIndex}][nomeItem]" placeholder="Nome do Item" class="flex-1 min-w-[150px]">
-                    <input type="text" name="items[${itemIndex}][material]" placeholder="Material" class="w-40">
+<select name="items[${itemIndex}][material]" class="w-40 material-select" required>
+   <option value="">Selecione o tecido</option>
+   @foreach(\App\Models\ValorBase::where('tipo','TECIDO')->get() as $v)
+      <option value="{{ $v->id }}" data-valor="{{ $v->valor }}">
+         {{ $v->nome }} - R$ {{ number_format($v->valor,2,',','.') }}/m²
+      </option>
+   @endforeach
+</select>
                     <input type="number" name="items[${itemIndex}][metragem]" placeholder="Metragem" step="0.01" value="0" class="w-24">
-                    <select name="items[${itemIndex}][material_disponib]" required class="w-32">
+<p class="text-sm mt-1">
+   <strong>Valor Sugerido:</strong> 
+   R$ <span class="valor-sugerido">0,00</span>
+</p>
+
+                        <input type="hidden" name="items[${itemIndex}][valor_sugerido]" class="valor-sugerido-input">
+                        <select name="items[${itemIndex}][material_disponib]" required class="w-32">
                         <option value="Pedir" selected>Pedir</option>
                         <option value="Complementar">Complementar</option>
                         <option value="TM">TM</option>
@@ -284,7 +320,10 @@
             if(!mostrar) inputData.value='';
         }
 
-        function removerItem(btn){ btn.closest('.item').remove(); }
+function removerItem(btn){ 
+   btn.closest('.item').remove(); 
+   atualizarValorSugeridoTotal(); 
+}
         function removerPagamento(btn){ btn.closest('.pagamento').remove(); }
         function removerTerceirizada(btn){ btn.closest('.terceirizada').remove(); }
 
@@ -471,6 +510,57 @@ document.querySelectorAll('.periodo-checkbox').forEach(checkbox => {
     });
 });
 
+document.addEventListener("input", function(e) {
+
+   const item = e.target.closest(".item");
+   if (!item) return;
+
+   if (
+      e.target.name.includes("[metragem]") ||
+      e.target.classList.contains("material-select")
+   ) {
+      calcularValorSugerido(item);
+      
+   }
+});
+
+function calcularValorSugerido(item) {
+
+   const metragem = parseFloat(
+      item.querySelector('[name*="[metragem]"]').value || 0
+   );
+
+   const materialSelect = item.querySelector(".material-select");
+   const valorPorMetro = parseFloat(
+      materialSelect.selectedOptions[0]?.dataset.valor || 0
+   );
+
+   const valorSugerido = metragem * valorPorMetro;
+
+   // Atualiza tela
+   item.querySelector(".valor-sugerido").innerText =
+      valorSugerido.toFixed(2).replace(".", ",");
+
+   // Salva no hidden para enviar ao Laravel
+   item.querySelector(".valor-sugerido-input").value = valorSugerido;
+
+      atualizarValorSugeridoTotal();
+
+}
+function atualizarValorSugeridoTotal() {
+   let total = 0;
+
+   document.querySelectorAll(".valor-sugerido-input").forEach(input => {
+      total += parseFloat(input.value || 0);
+   });
+
+   // Atualiza o texto na tela
+   document.getElementById("valor-sugerido-total").innerText =
+      total.toFixed(2).replace(".", ",");
+
+   // Atualiza hidden para enviar ao Laravel
+   document.getElementById("valor_sugerido_total").value = total;
+}
 
 </script>
 </x-app-layout>

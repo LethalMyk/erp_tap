@@ -37,6 +37,7 @@ class ItemController extends Controller
             'especifi' => 'nullable|string',
             'pedido_id' => 'required|exists:pedidos,id',
             'terceirizadas' => 'nullable|array',
+             'valor_sugerido' => 'nullable|numeric',   // <-- NOVO
         ]);
 
         $item = $this->itemService->criar($dados);
@@ -70,6 +71,7 @@ class ItemController extends Controller
             'metragem' => 'required|numeric',
             'especifi' => 'nullable|string',
             'terceirizadas' => 'nullable|array',
+              'valor_sugerido' => 'nullable|numeric', // <-- NOVO
         ]);
 
         $this->itemService->atualizar($item, $dados);
