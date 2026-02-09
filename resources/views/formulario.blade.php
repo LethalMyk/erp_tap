@@ -154,7 +154,15 @@
 <input type="hidden" name="items[0][enchimento_tipo]" class="enchimento-tipo-input">
 <input type="hidden" name="items[0][enchimento_qtd]" class="enchimento-qtd-input">
 <input type="hidden" name="items[0][valor_enchimento]" class="valor-enchimento-input">
-<!-- hidden para enviar ao Laravel -->
+<button type="button"
+        class="btn-ferragem-add bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded text-sm mt-2">
+   + Adicionar Ferragem
+</button>
+
+<div class="ferragens-container mt-2"></div>
+
+<input type="hidden" name="items[0][valor_ferragem]" 
+       class="valor-ferragem-input">
 
                         <textarea name="items[0][especifi]" placeholder="Especificação / Observações do Item" rows="3"
                                   class="block w-full mb-2 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"></textarea>
@@ -254,6 +262,16 @@
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Salvar Pedido</button>
         </form>
     </div>
+    <script>
+window.ferragensOptions = `
+@foreach(\App\Models\ValorBase::where('tipo','FERRAGEM')->orderBy('nome')->get() as $v)
+<option value="{{ $v->id }}" data-valor="{{ $v->valor }}">
+   {{ $v->nome }} — R$ {{ number_format($v->valor,2,',','.') }} / {{ $v->unidade }}
+</option>
+@endforeach
+`;
+</script>
+
 
     <!-- Scripts -->
     <script>
@@ -359,6 +377,16 @@
 
 <input type="hidden" name="items[${itemIndex}][valor_enchimento]" 
        class="valor-enchimento-input">
+<button type="button"
+        class="btn-ferragem-add bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded text-sm mt-2">
+   + Adicionar Ferragem
+</button>
+<div class="ferragens-container mt-2"></div>
+
+<input type="hidden" name="items[${itemIndex}][valor_ferragem]"
+       class="valor-ferragem-input">
+
+
 
                 <textarea name="items[${itemIndex}][especifi]" placeholder="Especificação / Observações do Item" rows="3" class="block w-full mb-2 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"></textarea>
                 <button type="button" onclick="removerItem(this)" class="mb-2 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">Remover Item</button>
@@ -656,7 +684,10 @@ const valorEnchimento = parseFloat(
    item.querySelector(".valor-enchimento-input").value || 0
 );
 
-const valorFinalItem = valorSugerido + valorEspuma + valorEnchimento;
+const valorFerragem = calcularValorFerragens(item);
+
+const valorFinalItem =
+   valorSugerido + valorEspuma + valorEnchimento + valorFerragem;
 
 // Atualiza tela do ITEM
 item.querySelector(".valor-sugerido").innerText =
@@ -797,4 +828,93 @@ document.addEventListener("change", function(e) {
    }
 });
 </script>
+<script>
+document.addEventListener("click", function(e) {
+
+   const item = e.target.closest(".item");
+   if (!item) return;
+
+   if (e.target.classList.contains("btn-ferragem-add")) {
+
+      const container = item.querySelector(".ferragens-container");
+
+      const linha = document.createElement("div");
+      linha.classList.add("ferragem-linha","flex","gap-2","mb-2","items-end");
+
+      linha.innerHTML = `
+         <select class="ferragem-select w-60 border rounded px-2 py-1">
+            <option value="">Selecione a ferragem</option>
+            ${window.ferragensOptions}
+         </select>
+
+         <div>
+            <label class="text-xs block">Quantidade</label>
+            <input type="number" step="1"
+                   class="ferragem-qtd w-28 border rounded px-2 py-1">
+         </div>
+
+         <button type="button"
+                 class="btn-remover-ferragem bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
+            ✕
+         </button>
+
+         <input type="hidden" class="valor-ferragem-linha">
+      `;
+
+      container.appendChild(linha);
+
+      calcularValorFerragens(item);
+calcularValorSugerido(item);
+
+   }
+
+   // BOTÃO REMOVER FERRAGEM
+   if (e.target.classList.contains("btn-remover-ferragem")) {
+      const linha = e.target.closest(".ferragem-linha");
+      linha.remove();
+      const item = e.target.closest(".item");
+      calcularValorFerragens(item);
+      calcularValorSugerido(item);
+   }
+});
+document.addEventListener("change", function(e) {
+
+   const item = e.target.closest(".item");
+   if (!item) return;
+
+   // Quando mudar qualquer SELECT de ferragem
+   if (e.target.classList.contains("ferragem-select")) {
+      calcularValorFerragens(item);
+      calcularValorSugerido(item);
+   }
+
+   // Quando digitar qualquer quantidade de ferragem
+   if (e.target.classList.contains("ferragem-qtd")) {
+      calcularValorFerragens(item);
+      calcularValorSugerido(item);
+   }
+});
+function calcularValorFerragens(item) {
+   let total = 0;
+
+   item.querySelectorAll(".ferragem-linha").forEach(linha => {
+
+      const select = linha.querySelector(".ferragem-select");
+      const qtd = parseFloat(linha.querySelector(".ferragem-qtd").value || 0);
+      const valorUnit = parseFloat(
+         select.selectedOptions[0]?.dataset.valor || 0
+      );
+
+      const totalLinha = qtd * valorUnit;
+      linha.querySelector(".valor-ferragem-linha").value = totalLinha;
+
+      total += totalLinha;
+   });
+
+   item.querySelector(".valor-ferragem-input").value = total;
+   return total;
+}
+
+</script>
+
 </x-app-layout>
