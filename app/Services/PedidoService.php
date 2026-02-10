@@ -78,7 +78,9 @@ class PedidoService
                 'status'           => 'RESTA',
                 'obs'              => $data['pedido']['obs'] ?? null,
                 'prazo'            => $data['pedido']['prazo'] ?? now(),
-                'data_retirada'    => $data['pedido']['data_retirada'] ?? null,
+'data_retirada' => $data['pedido']['data_retirada']
+    ?? $data['data_retirada']
+    ?? null,
                 'periodo_retirada' => in_array($periodo, ['Manhã', 'Tarde']) ? $periodo : 'Combinar',
                 'tapeceiro'        => $data['pedido']['tapeceiro'] ?? null,
                 'andamento'        => 'Retirar',
@@ -143,6 +145,17 @@ class PedidoService
                 $this->uploadImagens($pedido, $data['imagens']);
             }
 
+            // --- ATUALIZA STATUS DO PEDIDO ---
+$totalPago = Pagamento::where('pedido_id', $pedido->id)
+    ->where('status', 'PAGAMENTO REGISTRADO')
+    ->sum('valor');
+
+$novoValorResta = max(0, $pedido->valor - $totalPago);
+
+$pedido->update([
+    'valorResta' => $novoValorResta,
+    'status' => $novoValorResta == 0 ? 'PAGO' : 'RESTA'
+]);
             return $pedido;
         });
     }

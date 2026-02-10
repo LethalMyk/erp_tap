@@ -19,6 +19,8 @@ class ClienteService
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
+
+    
     public function listarTodos()
     {
         return $this->repository->all();
@@ -45,6 +47,22 @@ class ClienteService
     {
         return $this->repository->create($dados);
     }
+
+
+    /**
+ * Retorna endereço completo formatado do cliente
+ */
+public function getEnderecoCompleto(Cliente $cliente): string
+{
+    return trim(
+        ($cliente->endereco ?? '')
+        // se você tiver mais campos, pode concatenar aqui:
+        // . ', ' . ($cliente->numero ?? '')
+        // . ' - ' . ($cliente->bairro ?? '')
+        // . ' - ' . ($cliente->cidade ?? '')
+    );
+}
+
 
     /**
      * Atualiza um cliente existente

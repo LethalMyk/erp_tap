@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('pedido_id');
             $table->enum('andamento', ['em espera', 'executado', 'pronto'])->default('em espera');
             $table->decimal('valor', 10, 2)->nullable();
-            $table->enum('statusPg', ['Pendente', 'Pago', 'Parcial'])->default('Pendente');
+            $table->enum('statusPg', ['Pendente', 'Pago', 'Parcial', 'EM ABERTO'])->default('Pendente');
             $table->timestamps();
         });
     }
