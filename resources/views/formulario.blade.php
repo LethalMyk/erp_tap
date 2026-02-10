@@ -83,6 +83,20 @@
                     <div class="item mb-4">
                         <div class="flex gap-2 mb-2 flex-wrap">
                             <input type="text" name="items[0][nomeItem]" placeholder="Nome do Item" required class="flex-1 min-w-[150px]">
+                            <select name="items[0][modelo]" class="w-48 modelo-select">
+                               <option value="">Selecione o Modelo</option>
+                            
+                               @foreach(\App\Models\ValorBase::where('tipo','MODELO')
+    ->orderByRaw("
+        FIELD(nome, 'Fácil', 'Médio', 'Difícil')
+    ")
+    ->get() as $v)
+
+                                  <option value="{{ $v->id }}" data-valor="{{ $v->valor }}">
+                                     {{ $v->nome }} — R$ {{ number_format($v->valor,2,',','.') }}
+                                  </option>
+                               @endforeach
+                            </select>
 <select name="items[0][material]" class="w-40 material-select" required>
    <option value="">Selecione o tecido</option>
    @foreach(\App\Models\ValorBase::where('tipo','TECIDO')->get() as $v)
@@ -91,6 +105,9 @@
       </option>
    @endforeach
 </select>
+
+<input type="hidden" name="items[0][valor_modelo]" class="valor-modelo-input">
+
                             <input type="number" name="items[0][metragem]" placeholder="Metragem" step="0.01" value="0" class="w-24">
                            <p class="text-sm mt-1">
    <strong>Valor Sugerido:</strong> 
@@ -318,6 +335,22 @@ window.estruturasOptions = `
             newItem.innerHTML = `
                 <div class="flex gap-2 mb-2 flex-wrap">
                     <input type="text" name="items[${itemIndex}][nomeItem]" placeholder="Nome do Item" class="flex-1 min-w-[150px]">
+                    <select name="items[${itemIndex}][modelo]" class="w-48 modelo-select">
+                       <option value="">Selecione o Modelo</option>
+                    
+                       @foreach(\App\Models\ValorBase::where('tipo','MODELO')
+    ->orderByRaw("
+        FIELD(nome, 'Fácil', 'Médio', 'Difícil')
+    ")
+    ->get() as $v)
+
+                          <option value="{{ $v->id }}" data-valor="{{ $v->valor }}">
+                             {{ $v->nome }} — R$ {{ number_format($v->valor,2,',','.') }}
+                          </option>
+                       @endforeach
+                    </select>
+                    
+                    <input type="hidden" name="items[${itemIndex}][valor_modelo]" class="valor-modelo-input">
 <select name="items[${itemIndex}][material]" class="w-40 material-select" required>
    <option value="">Selecione o tecido</option>
    @foreach(\App\Models\ValorBase::where('tipo','TECIDO')->get() as $v)
@@ -326,6 +359,7 @@ window.estruturasOptions = `
       </option>
    @endforeach
 </select>
+
                     <input type="number" name="items[${itemIndex}][metragem]" placeholder="Metragem" step="0.01" value="0" class="w-24">
 <p class="text-sm mt-1">
    <strong>Valor Sugerido:</strong> 
@@ -692,7 +726,12 @@ document.addEventListener("input", function(e) {
 
 function calcularValorSugerido(item) {
 
-   const metragem = parseFloat(
+   
+const valorModelo = parseFloat(
+   item.querySelector(".valor-modelo-input")?.value || 0
+);
+
+const metragem = parseFloat(
       item.querySelector('[name*="[metragem]"]').value || 0
    );
 
@@ -718,7 +757,12 @@ const valorEstrutura = calcularValorEstruturas(item);
 
 
 const valorFinalItem =
-   valorSugerido + valorEspuma + valorEnchimento + valorFerragem + valorEstrutura;
+   valorSugerido + 
+   valorEspuma + 
+   valorEnchimento + 
+   valorFerragem + 
+   valorEstrutura +
+   valorModelo;
 
 // Atualiza tela do ITEM
 item.querySelector(".valor-sugerido").innerText =
@@ -1024,6 +1068,22 @@ document.addEventListener("click", function(e) {
       linha.remove();
       const item = e.target.closest(".item");
       calcularValorEstruturas(item);
+      calcularValorSugerido(item);
+   }
+});
+document.addEventListener("change", function(e) {
+
+   const item = e.target.closest(".item");
+   if (!item) return;
+
+   if (e.target.classList.contains("modelo-select")) {
+
+      const valor = parseFloat(
+         e.target.selectedOptions[0]?.dataset.valor || 0
+      );
+
+      item.querySelector(".valor-modelo-input").value = valor;
+
       calcularValorSugerido(item);
    }
 });

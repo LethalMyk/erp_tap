@@ -48,6 +48,24 @@ class ValoresBaseSeeder extends Seeder
                 'valor' => 150.00,
                 'unidade' => 'Peça',
             ],
+            [
+                'tipo' => 'modelo',
+                'nome' => '3x2 Fixo - Facil',
+                'valor' => 1000.00,
+                'unidade' => null,
+            ],
+              [
+                'tipo' => 'modelo',
+                'nome' => '3x2 Fixo - Medio',
+                'valor' => 2000.00,
+                'unidade' => null,
+            ],
+              [
+                'tipo' => 'modelo',
+                'nome' => '3x2 Fixo - Dificil',
+                'valor' => 3000.00,
+                'unidade' => null,
+            ],
         ]);
     }
 }
