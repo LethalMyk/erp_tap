@@ -20,7 +20,7 @@
             width: 100%;
             margin: 0 auto;
         }
-/*1-3 imagens */
+/*1-3 imag1ens */
 
         /* Alinhar conteúdo da célula direita */
         td.right {
