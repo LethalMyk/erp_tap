@@ -70,7 +70,7 @@ td, th {
     margin-bottom: 2px;
 }
 
-
+/*1-3 imagens */
 
     </style>
 </head>

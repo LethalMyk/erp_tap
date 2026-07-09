@@ -100,7 +100,7 @@ td, th {
     max-width: 20%;
 }
 
-/* Se quiser garantir um limite mínimo pra não ficarem muito pequenas */
+/* Se quiser garantir um limite mínimo pra não ficarem muito pequenas111 */
 .imagens-10plus img {
     max-width: 15%;
 }
